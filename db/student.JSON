@@ -1,0 +1,37 @@
+[
+    {
+        "name": "Emmanuel",
+        "email": "test@test.com",
+        "password": "kingkab123"
+    },
+    {
+        "name": "Jacob",
+        "email": "test@2test.com",
+        "password": "realtor.com"
+    },
+    {
+        "name": "Oscar",
+        "email": "test@3test.com",
+        "password": "sweat"
+    },
+    {
+        "name": "Sahira",
+        "email": "test@4test.com",
+        "password": "icode123"
+    },
+    {
+        "name": "Kwad",
+        "email": "test@5test.com",
+        "password": "kwadikap"
+    },
+    {
+        "name": "Jungy",
+        "email": "test@6test.com",
+        "password": "callmejune"
+    },
+    {
+        "name": "Juan",
+        "email": "test@7test.com",
+        "password": "realswift"
+    }
+]

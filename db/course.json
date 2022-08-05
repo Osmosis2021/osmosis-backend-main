@@ -1,0 +1,35 @@
+[
+    {
+        "courseTitle" : "How to Play Basketball",
+        "courseDescription" : "Teach students how to play BasketBall",
+        "subject": "Sports",
+        "schedule":["12/5/20201 15:00", "12/6/2021 16:00"],
+        "images": [],
+        "online": "True",
+        "reviews": ["Good", "Bad", "Great", "Best"],
+        "rating": 15,
+        "students": [1,2,3,4,5]
+    },
+    {
+        "courseTitle": "Cooking Tacos",
+        "courseDescription": "Teach students how to make authentic Mexican Tacos",
+        "subject": "Cooking",
+        "schedule":["12/2/20201 15:00", "12/2/2021 16:00"],
+        "images": [],
+        "online": "True",
+        "reviews": ["Good", "Bad", "Great", "Best"],
+        "rating": 23,
+        "students": [1, 2, 3, 4, 5]
+    },
+    {
+        "courseTitle": "How to Play Soccer",
+        "courseDescription": "Teach students how to play Soccer",
+        "subject": "Sports",
+        "schedule":["12/4/20201 15:00", "12/12/2021 16:00"],
+        "images": [],
+        "online": "True",
+        "reviews": ["Good", "Bad", "Great", "Best"],
+        "rating": 50,
+        "students": [1, 2, 3, 4, 5]
+    }
+]
