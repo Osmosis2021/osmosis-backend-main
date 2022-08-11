@@ -1,10 +1,8 @@
 const express = require('express')
 const router = express.Router();
-console.log('******here')
 
 const Course = require('../models/course');
 
-console.log('******here2')
 
 // INDEX 
 router.get('/', (req, res, next) => {
