@@ -3,10 +3,14 @@ const mongoose = require('mongoose');
 // create Teacher Schema here
 const TeacherSchema = new mongoose.Schema(
 	{
-		name: {
+		firstName: {
 			type: String,
-			required: true,
-		},
+			required: true
+		 },
+		lastName: {
+			type: String,
+			required: true
+		 },
 		email: {
 			type: String,
 			required: true,
@@ -17,56 +21,23 @@ const TeacherSchema = new mongoose.Schema(
 			required: true,
 		},
 		industry: {
-			type: String,
-			required: true,
+			type: [String],
+			default: [],
 		},
 		generalTag: {
-			type: String,
-			required: true
+			type: [String],
+			default: []
 		 },
 		specificTags: {
 			type: String,
 		},
-		firstName: {
-			type: String,
-			required: true
-		 },
-		lastName: {
-			type: String,
-			required: true
-		 },
-		length: {
-			type: String,
-			required: true
-		 },
-		time: {
-			type: String,
-			required: true
-		 },
-		
-		latitude: {
-			type: Number,
-			required: true
-		 },
-		longitude: {
-			type: Number,
-			required: true
-		 },
-		
-		capacity: {
-			type: Number,
-			required: true
-		 },
-		price: {
-			type: Number,
-			required: true
-		 },
 		stars: {
 			type: Number,
-			required: true
+			default: 0
 		 },
 		 description: {
-			type: String
+			type: String,
+			default: ''
 		 }
 
 	},
