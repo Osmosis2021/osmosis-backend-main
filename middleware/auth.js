@@ -1,5 +1,6 @@
 const router = require('express').Router()
 const Student = require('../models/student')
+const Teacher = require('../models/teacher')
 // const bcrypt = require('bcryptjs');
 // const jwt = require('jsonwebtoken');
 
@@ -16,6 +17,30 @@ router.get('/login/:email/:password', async (req, res) => {
         }
     })
 });
+
+router.post('/registerTeacher', async (req, res) => {
+    const exisitingUser = await Teacher.findOne({email: req.body.email})
+    if (exisitingUser) {
+        return res.json({message: 'This email is already registered.'})
+    }
+    const teacherInfo = {
+        email: req.body.email,
+        password: req.body.password,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        stars: req.body.stars,
+        description: req.body.description,
+        industries: req.body.industries,
+        generalTags: req.body.generalTags,
+        specificTags: req.body.specificTags
+    };
+    Teacher.create(teacherInfo)
+    // .then(savedTeacher => {
+    //     // Send the new user an email to confirm their info.
+    //     sendEmail(savedTeacher.email, templates.confirm(savedTeacher._id))
+    .then(savedTeacher => res.json({message: 'Successfully saved a new teacher.'})
+    ).catch(err => console.log('Teacher.create error:\n', err))
+    })
 
 // router.post('/register', async (req, res) => {
 //     // TODO: do schema validation here
