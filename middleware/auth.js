@@ -41,7 +41,23 @@ router.post('/registerTeacher', async (req, res) => {
     //     sendEmail(savedTeacher.email, templates.confirm(savedTeacher._id))
     .then(savedTeacher => res.json({message: 'Successfully saved a new teacher.'})
     ).catch(err => console.log('Teacher.create error:\n', err))
+})
+
+router.post('/getTeacherData', async (req, res) => {
+    console.log('in backend with this req', req.body);
+    // const {teacherUserName} = req.params
+    const teacherObj = await Teacher.findOne({userName: req.body.teacherUserName})
+    console.log(teacherObj);
+    Teacher.findOne({userName: req.body.teacherUserName}, (err, data) => {
+        if (data) {
+            console.log('in if block of /getTeacher in backend');
+            res.json(data)
+        } else {
+            res.json({message: "Could not get teacher's info."})
+        }
     })
+})
+
 
 // router.post('/register', async (req, res) => {
 //     // TODO: do schema validation here
