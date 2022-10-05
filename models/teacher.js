@@ -20,11 +20,11 @@ const TeacherSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
-		industry: {
+		industries: {
 			type: [String],
 			default: [],
 		},
-		generalTag: {
+		generalTags: {
 			type: [String],
 			default: []
 		 },
