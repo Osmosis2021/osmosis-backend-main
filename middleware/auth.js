@@ -28,6 +28,7 @@ router.post('/registerTeacher', async (req, res) => {
         password: req.body.password,
         firstName: req.body.firstName,
         lastName: req.body.lastName,
+        userName: req.body.userName,
         stars: req.body.stars,
         description: req.body.description,
         industries: req.body.industries,
