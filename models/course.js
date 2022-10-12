@@ -5,19 +5,27 @@ const Review = require('./review').schema;
 
 
 const CourseSchema = new mongoose.Schema({
-    // owner = {type: mongoose.Schema.Types.ObjectId, ref: 'Teacher'},
-    courseTitle : String,
-    courseDescription : String,
-    subject : String,
-    schedule : {
-        type: [Date]
+    courseTitle: String,
+	courseDescription: String,
+	subject: String,
+    capacity: Number,
+    price: Number,
+    tag: [String],
+	schedule: {
+        type: [Date],
+	},
+	// images: [],
+    timeOfDay: String,
+	online: Boolean,
+	reviews: [Review],
+	rating: Number,
+	// students: [{type: mongoose.Schema.Types.ObjectId, ref: 'Student'}],
+    owner: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
     },
-    // images: [],
-    online: Boolean,
-    reviews: [Review],
-    rating: Number
-    // students: [{type: mongoose.Schema.Types.ObjectId, ref: 'Student'}],
-})
+});
 
 const Course = mongoose.model('Course', CourseSchema);
 
