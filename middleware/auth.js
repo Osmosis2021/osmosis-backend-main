@@ -18,6 +18,21 @@ router.get('/login/:email/:password', async (req, res) => {
     })
 });
 
+//jacklerner7 is taken
+router.get('/isUserNameUnique/:userName', async (req, res) => {
+    const {userName} = req.params
+    console.log('in router.get /isUserNameUnique, name:', userName);
+    Teacher.findOne({userName}, (err, data) => {
+        console.log(data)
+        if (data) {
+            res.json({isAvailable: false})
+        } else {
+            res.json({isAvailable: true})
+        }
+    })
+    
+})
+
 router.post('/registerTeacher', async (req, res) => {
     const exisitingUser = await Teacher.findOne({email: req.body.email})
     if (exisitingUser) {
