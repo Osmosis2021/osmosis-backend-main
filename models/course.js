@@ -16,8 +16,6 @@ const CourseSchema = new mongoose.Schema({
 	// images: [],
     timeOfDay: String,
 	online: Boolean,
-	reviews: [Review],
-	rating: Number,
 	// students: [{type: mongoose.Schema.Types.ObjectId, ref: 'Student'}],
     owner: {
         type: mongoose.Schema.Types.ObjectId,
