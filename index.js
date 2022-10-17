@@ -47,6 +47,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Courses Routes
 const courseController = require('./controllers/courseController.js')
+app.use('/api/courses', courseController);
 
 // Student Routes
 const studentController = require('./controllers/studentController.js')
