@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const Review = require('./review').schema;
 // const mongoose = require('../db/connection');
 // const Teacher = require('./teacher').schema;
 
@@ -8,6 +7,7 @@ const CourseSchema = new mongoose.Schema({
     courseTitle: String,
 	courseDescription: String,
 	subject: String,
+    userName: String,
     capacity: Number,
     price: Number,
     tag: [String],
@@ -17,8 +17,7 @@ const CourseSchema = new mongoose.Schema({
 	// images: [],
     timeOfDay: String,
 	online: Boolean,
-	reviews: [Review],
-	rating: Number,
+	
 	// students: [{type: mongoose.Schema.Types.ObjectId, ref: 'Student'}],
     owner: {
         type: mongoose.Schema.Types.ObjectId,
@@ -28,5 +27,4 @@ const CourseSchema = new mongoose.Schema({
 });
 
 const Course = mongoose.model('Course', CourseSchema);
-
 module.exports = Course;
