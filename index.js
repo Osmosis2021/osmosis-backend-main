@@ -4,7 +4,7 @@ const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const authRoute = require('./middleware/auth')
-const Student = require('./models/student')
+const courseRoute = require('./middleware/course')
 const PORT = process.env.PORT || 8126;
 
 
@@ -60,6 +60,7 @@ const reviewController  = require('./controllers/reviewController.js')
 
 
 app.use('/user', authRoute)
+app.use('/course', courseRoute)
 
 
 
