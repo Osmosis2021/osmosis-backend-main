@@ -1,29 +1,25 @@
-const express = require('express')
+const express = require('express');
 const router = express.Router();
-
+const fs = require('fs');
 const Course = require('../models/course');
 
-
-// INDEX 
-// GET ALL COURSES LISTED
+// INDEX GET ALL COURSES LISTED
 router.get('/', (req, res, next) => {
     Course.find().then((courses) => res.json(courses)).catch(next);
 })
 
 
-// SHOW 
-// GET ALL COURSES BY TEACHER (USER)
+// SHOW GET ALL COURSES BY TEACHER (USER)
 
 // GET SPECIFIC COURSE FROM TEACHER(USER)
-//course/:id
-router.get('/user/:id', async (req, res, next) => {
-   
+router.get('/user/:id', async (req, res, next) => {   
     try {
-        const course = Course.findById(req.params.id).populate('students').then((course) => res.json(course)).catch(next);
+        const course = Course.findById(req.params.id).populate('students')
+        res.json(course)
     } catch (error) {
-        
+        next(error);
     }
-    })
+})
 
 // CREATE A CLASS
 router.post('/', async(req, res, next)=> {
@@ -34,12 +30,6 @@ router.post('/', async(req, res, next)=> {
         next(error);
     }    
 });
-
-
-// UPDATE
-// update a course --> 
-
-//
 
 
 // DELETE
