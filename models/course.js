@@ -14,7 +14,11 @@ const CourseSchema = new mongoose.Schema({
 	schedule: {
         type: [Date],
 	},
-	// images: [],
+	images: [{
+        name: String,
+        data: Buffer,
+        contentType: String
+    }],
     timeOfDay: String,
 	online: Boolean,
 	

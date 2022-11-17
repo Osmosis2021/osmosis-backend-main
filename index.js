@@ -58,6 +58,9 @@ const teacherController = require('./controllers/teacherController.js')
 // Review Routes
 const reviewController  = require('./controllers/reviewController.js')
 
+const imageController = require('./controllers/imageController.js')
+app.use('/api/images', imageController)
+app.use(express.static('/UploadPhotos'))
 
 app.use('/user', authRoute)
 app.use('/course', courseRoute)
