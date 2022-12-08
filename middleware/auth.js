@@ -4,8 +4,6 @@ const Teacher = require('../models/teacher')
 // const bcrypt = require('bcryptjs');
 // const jwt = require('jsonwebtoken');
 
-
-
 router.get('/login/:email/:password', async (req, res) => {
     console.log('in router.get /login');
     const {email, password} = req.params
@@ -30,7 +28,11 @@ router.get('/isUserNameUnique/:userName', async (req, res) => {
             res.json({isAvailable: true})
         }
     })
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 86c07a524d7f464a5f4ad7e1143698efb510d941
 })
 
 router.post('/registerTeacher', async (req, res) => {
@@ -60,15 +62,15 @@ router.post('/registerTeacher', async (req, res) => {
 
 router.post('/getTeacherData', async (req, res) => {
     console.log('in backend with this req', req.body);
-    // const {teacherUserName} = req.params
-    const teacherObj = await Teacher.findOne({userName: req.body.teacherUserName})
-    console.log(teacherObj);
-    Teacher.findOne({userName: req.body.teacherUserName}, (err, data) => {
+    const {teacherUserName} = req.params
+    const teacherObj = await Teacher.findOne({teacherUserName: "rader-jake"})
+    Teacher.findOne({teacherUserName: req.body.userName}, (err, data) => {
         if (data) {
             console.log('in if block of /getTeacher in backend');
             res.json(data)
+            console.log(data)
         } else {
-            res.json({message: "Could not get teacher's info."})
+            res.json({message: "Could not get teacher's info.", err})
         }
     })
 })

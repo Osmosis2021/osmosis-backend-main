@@ -18,5 +18,19 @@ router.get('/getCourses/:latitude/:longitude', async (req, res) => {
     )
 })
 
+router.get('/getCourses/:userName', async (req, res) => {
+    const {userName} = req.params
+    console.log('in /getCourses with this teachers username', {userName});
+    Course.findOne ({userName}, (err, data) => {
+            if (data) {
+                res.json(data)
+            } else {
+                console.log("Could not get course.")
+                res.json({message: "Could not get courses.", err})
+            }
+        }
+    )
+})
+
 
 module.exports = router;
