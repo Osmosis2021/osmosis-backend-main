@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
-// create Teacher Schema here
-const TeacherSchema = new mongoose.Schema(
+// create User Schema here
+const UserSchema = new mongoose.Schema(
 	{
 		firstName: {
 			type: String,
@@ -24,6 +24,14 @@ const TeacherSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
+		isStudent: {
+			type: Boolean,
+			default: false
+		},
+		isTeacher: {
+			type: Boolean,
+			default: false
+		},
 		industries: {
 			type: [String],
 			default: [],
@@ -31,7 +39,7 @@ const TeacherSchema = new mongoose.Schema(
 		generalTags: {
 			type: [String],
 			default: []
-		 },
+		},
 		specificTags: {
 			type: String,
 		},
@@ -57,9 +65,9 @@ const TeacherSchema = new mongoose.Schema(
 	}
 );
 
-// export Teacher Schema
-const Teacher = mongoose.model('Teacher', TeacherSchema);
-module.exports = Teacher;
+// export User Schema
+const User = mongoose.model('User', UserSchema);
+module.exports = User;
 
 
 

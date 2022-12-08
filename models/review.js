@@ -14,7 +14,7 @@ const reviewSchema = new mongoose.Schema(
             type: Number,
             required: true,
         },
-		author: { type: mongoose.Schema.Types.ObjectId, ref: 'Student' },
+		author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 		courseId: String,
 	},
 	{

@@ -19,7 +19,7 @@ router.get('/', (req, res, next) => {
 router.get('/user/:id', async (req, res, next) => {
    
     try {
-        const course = Course.findById(req.params.id).populate('students').then((course) => res.json(course)).catch(next);
+        const course = Course.findById(req.params.id).populate('users').then((course) => res.json(course)).catch(next);
     } catch (error) {
         
     }

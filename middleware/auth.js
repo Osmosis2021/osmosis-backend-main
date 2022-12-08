@@ -1,13 +1,12 @@
 const router = require('express').Router()
-const Student = require('../models/student')
-const Teacher = require('../models/teacher')
+const User = require('../models/user')
 // const bcrypt = require('bcryptjs');
 // const jwt = require('jsonwebtoken');
 
 router.get('/login/:email/:password', async (req, res) => {
     console.log('in router.get /login');
     const {email, password} = req.params
-    Student.findOne({email, password}, (err, data) => {
+    User.findOne({email, password}, (err, data) => {
         if (data) {
             res.json({userID: data._id})
         } else {
@@ -20,7 +19,7 @@ router.get('/login/:email/:password', async (req, res) => {
 router.get('/isUserNameUnique/:userName', async (req, res) => {
     const {userName} = req.params
     console.log('in router.get /isUserNameUnique, name:', userName);
-    Teacher.findOne({userName}, (err, data) => {
+    User.findOne({userName}, (err, data) => {
         console.log(data)
         if (data) {
             res.json({isAvailable: false})
@@ -28,19 +27,14 @@ router.get('/isUserNameUnique/:userName', async (req, res) => {
             res.json({isAvailable: true})
         }
     })
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> 86c07a524d7f464a5f4ad7e1143698efb510d941
 })
 
-router.post('/registerTeacher', async (req, res) => {
-    const exisitingUser = await Teacher.findOne({email: req.body.email})
+router.post('/registerUser', async (req, res) => {
+    const exisitingUser = await User.findOne({email: req.body.email})
     if (exisitingUser) {
         return res.json({message: 'This email is already registered.'})
     }
-    const teacherInfo = {
+    const userInfo = {
         email: req.body.email,
         password: req.body.password,
         firstName: req.body.firstName,
@@ -50,23 +44,30 @@ router.post('/registerTeacher', async (req, res) => {
         description: req.body.description,
         industries: req.body.industries,
         generalTags: req.body.generalTags,
-        specificTags: req.body.specificTags
+        specificTags: req.body.specificTags,
+        isStudent: req.body.isStudent,
+        isTeacher: req.body.isTeacher
     };
-    Teacher.create(teacherInfo)
-    // .then(savedTeacher => {
+    // delete undefined properties in userInfo
+    Object.keys(userInfo).forEach(key => {
+        if(userInfo[key] === undefined) {
+            delete userInfo[key]
+        }
+    })
+    User.create(userInfo)
+    // .then(savedUser => {
     //     // Send the new user an email to confirm their info.
-    //     sendEmail(savedTeacher.email, templates.confirm(savedTeacher._id))
-    .then(savedTeacher => res.json({message: 'Successfully saved a new teacher.'})
-    ).catch(err => console.log('Teacher.create error:\n', err))
+    //     sendEmail(savedUser.email, templates.confirm(savedUser._id))
+    .then(savedUser => res.json({message: 'Successfully saved a new user.'})
+    ).catch(err => console.log('User.create error:\n', err))
 })
 
 router.post('/getTeacherData', async (req, res) => {
     console.log('in backend with this req', req.body);
-    const {teacherUserName} = req.params
-    const teacherObj = await Teacher.findOne({teacherUserName: "rader-jake"})
-    Teacher.findOne({teacherUserName: req.body.userName}, (err, data) => {
+    // const {teacherUserName} = req.params
+    // const teacherObj = await User.findOne({teacherUserName: "rader-jake"})
+    User.findOne({userName: req.body.userName}, (err, data) => {
         if (data) {
-            console.log('in if block of /getTeacher in backend');
             res.json(data)
             console.log(data)
         } else {

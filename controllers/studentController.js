@@ -1,21 +1,21 @@
 const express = require('express');
 const router = express.Router();
 
-const Student = require('../models/student');
+const User = require('../models/user');
 
 // INDEX
 router.get('/', (req, res, next) => {
-	Student.find()
-		.then((students) => res.json(students))
+	User.find()
+		.then((users) => res.json(users))
 		.catch(next);
 });
 
 // SHOW
-// GET /student/:id
+// GET /user/:id
 router.get('/:id', (req, res, next) => {
 	const id = req.params.id;
-	Student.findById(id)
-		.then((student) => res.json(student))
+	User.findById(id)
+		.then((user) => res.json(user))
 		.catch(next);
 });
 

@@ -8,7 +8,8 @@ const CourseSchema = new mongoose.Schema({
 	courseDescription: String,
 	subject: String,
     userName: String,
-    capacity: Number,
+    minCapacity: Number,
+    maxCapacity: Number,
     price: Number,
     tag: [String],
 	schedule: {
@@ -17,7 +18,7 @@ const CourseSchema = new mongoose.Schema({
 	// images: [],
     timeOfDay: String,
 	online: Boolean,
-	// students: [{type: mongoose.Schema.Types.ObjectId, ref: 'Student'}],
+	// students: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
     owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

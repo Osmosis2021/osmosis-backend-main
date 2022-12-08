@@ -1,10 +1,10 @@
-const Student = require('../models/student');
+const User = require('../models/user');
 const seedStudentData = require('./student.JSON');
 
-Student.deleteMany({})
+User.deleteMany({})
     .then(() => {
         console.log('All items deleted!');
-        return Student.insertMany(seedStudentData);
+        return User.insertMany(seedStudentData);
     })
     .then((items) => {
         console.log(items);
