@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 const CourseSchema = new mongoose.Schema({
     courseTitle: String,
 	courseDescription: String,
-	subject: String,
+    industry: String,
     userName: String,
     minCapacity: Number,
     maxCapacity: Number,
@@ -16,7 +16,6 @@ const CourseSchema = new mongoose.Schema({
         type: [Date],
 	},
 	// images: [],
-    timeOfDay: String,
 	online: Boolean,
 	// students: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
     owner: {
