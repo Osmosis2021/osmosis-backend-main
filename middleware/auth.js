@@ -110,5 +110,22 @@ router.post('/getTeacherData', async (req, res) => {
 //     });
 
 
+// Get user profile (student)
+
+router.get('/getUserInfo/:userName', async (req, res) => {
+    const {userName} = req.params
+    console.log('in router.get /getUserInfo, name:', userName);
+    User.findOne({userName}, (err, data) => {
+        console.log(data)
+        if (data) {
+            res.json(data)
+            console.log(data)
+        } else {
+            res.json({message: "Could not get user's info.", err})
+        }
+    })
+})
+
+
 
 module.exports = router;
