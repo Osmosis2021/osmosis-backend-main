@@ -2,6 +2,8 @@ const router = require('express').Router()
 const User = require('../models/user')
 // const bcrypt = require('bcryptjs');
 // const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const fs = require('fs')
 
 router.get('/login/:email/:password', async (req, res) => {
     console.log('in router.get /login');
@@ -126,6 +128,21 @@ router.get('/getUserInfo/:userName', async (req, res) => {
     })
 })
 
+// Upload Photos to DB
+
+const photosMiddleware = multer({dest:'uploads/'})
+router.post('/upload', photosMiddleware.array('photos', 10), (req, res) => {
+    const uploadedFiles = [];
+    for (let i = 0; i < req.files.length; i++) {
+        const {path, originalname} = req.files[i];
+        const parts = originalname.split('.');
+        const ext = parts[parts.length - 1];
+        const newPath = path + '.' + ext;
+        fs.renameSync(path, newPath)
+        uploadedFiles.push(newPath.replace('uploads/',''));
+    }
+    res.json(uploadedFiles)
+});
 
 
 module.exports = router;

@@ -32,5 +32,11 @@ router.get('/getCourses/:userName', async (req, res) => {
     )
 })
 
+// Get Classes from DB
+
+router.get('/getClasses', async (req,res) => {
+    res.json( await Course.find() );
+  });
+
 
 module.exports = router;
