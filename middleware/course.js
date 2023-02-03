@@ -39,4 +39,35 @@ router.get('/getClasses', async (req,res) => {
   });
 
 
+//   REGISTER COURSE
+
+router.post('/registerCourse', async (req, res) => {
+    // const exisitingUser = await User.findOne({email: req.body.email})
+    // if (exisitingUser) {
+    //     return res.json({message: 'This email is already registered.'})
+    // }
+
+    const courseInfo = req.body
+    //  {
+    //     owner: courseObj.owner,
+    //     industry,
+    //     tags,
+    //     price
+    // };
+
+    // delete undefined properties in userInfo
+    Object.keys(courseInfo).forEach(key => {
+        if(courseInfo[key] === undefined) {
+            delete courseInfo[key]
+        }
+    })
+    Course.create(req.body)
+    // .then(savedUser => {
+    //     // Send the new user an email to confirm their info.
+    //     sendEmail(savedUser.email, templates.confirm(savedUser._id))
+    .then(savedCourse => res.json({message: 'Successfully uploaded a new course.'})
+    ).catch(err => console.log('Course.create error:\n', err))
+})
+
+
 module.exports = router;
