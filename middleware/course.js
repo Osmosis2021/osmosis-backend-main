@@ -1,5 +1,13 @@
 const router = require('express').Router()
 const Course = require('../models/course')
+const Image = require('../models/image')
+const cloudinary = require('cloudinary');
+
+cloudinary.config({ 
+    cloud_name: 'dv5yztb2q', 
+    api_key: '813545133896732', 
+    api_secret: '-AvzbZfxBUk72VeLNs04K8LG22w' 
+  });
 
 router.get('/getCourses/:latitude/:longitude', async (req, res) => {
     const {latitude, longitude} = req.params
@@ -69,5 +77,38 @@ router.post('/registerCourse', async (req, res) => {
     ).catch(err => console.log('Course.create error:\n', err))
 })
 
+
+// Upload Photos to DB
+router.post('/upload', async (req, res, next) => {
+
+    try {
+    // const {image} = req.body;
+    let images = [...req.body.images]
+    let imagesBuffer = [];
+    for (i=0; i<images.length; i++) {
+        const result = await cloudinary.uploader.upload(images[i], {
+        folder: "classRooms",
+            // width: 300,
+            // crop: "scale"
+        });
+        imagesBuffer.push({
+            public_id: result.public_id,
+            url: result.secure_url
+        })
+    }
+
+    req.body.images = imagesBuffer
+        const product = await Image.create(req.body);
+
+        res.status(201).json({
+            success: true,
+            product
+        })
+
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+})
 
 module.exports = router;

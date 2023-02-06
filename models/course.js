@@ -15,7 +15,16 @@ const CourseSchema = new mongoose.Schema({
 	schedule: {
         type: [Date],
 	},
-	photos: [String],
+	image: {
+        public_id: {
+            type: String,
+            required: true
+        },
+        url: {
+            type: String,
+            required: true
+        }
+    },
 	online: Boolean,
 	// students: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
     owner: {
