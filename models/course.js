@@ -4,8 +4,11 @@ const mongoose = require('mongoose');
 
 
 const CourseSchema = new mongoose.Schema({
+    address: String,
     courseTitle: String,
 	courseDescription: String,
+    latitude: Number,
+    longitude: Number,
     industry: String,
     userName: String,
     minCapacity: Number,
