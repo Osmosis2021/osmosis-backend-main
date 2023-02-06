@@ -2,6 +2,8 @@ const router = require('express').Router()
 const User = require('../models/user')
 // const bcrypt = require('bcryptjs');
 // const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const fs = require('fs')
 
 router.get('/login/:email/:password', async (req, res) => {
     console.log('in router.get /login');
@@ -110,6 +112,38 @@ router.post('/getTeacherData', async (req, res) => {
 //     ).catch(err => console.log('User.create error:\n', err))
 //     });
 
+
+// Get user profile (student)
+
+router.get('/getUserInfo/:userName', async (req, res) => {
+    const {userName} = req.params
+    console.log('in router.get /getUserInfo, name:', userName);
+    User.findOne({userName}, (err, data) => {
+        console.log(data)
+        if (data) {
+            res.json(data)
+            console.log(data)
+        } else {
+            res.json({message: "Could not get user's info.", err})
+        }
+    })
+})
+
+// Upload Photos to DB
+
+const photosMiddleware = multer({dest:'uploads/'})
+router.post('/upload', photosMiddleware.array('photos', 10), (req, res) => {
+    const uploadedFiles = [];
+    for (let i = 0; i < req.files.length; i++) {
+        const {path, originalname} = req.files[i];
+        const parts = originalname.split('.');
+        const ext = parts[parts.length - 1];
+        const newPath = path + '.' + ext;
+        fs.renameSync(path, newPath)
+        uploadedFiles.push(newPath.replace('uploads/',''));
+    }
+    res.json(uploadedFiles)
+});
 
 
 module.exports = router;

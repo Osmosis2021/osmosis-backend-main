@@ -32,6 +32,8 @@ app.use(express.urlencoded({ extended: true }));
 // const requestLogger = require('./middleware/request_logger');
 // app.use(requestLogger);
 
+app.use("/photos", express.static('uploads'));
+
 
 //=============================================================================
 // ROUTES
