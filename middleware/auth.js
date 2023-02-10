@@ -10,7 +10,7 @@ router.get('/login/:email/:password', async (req, res) => {
     const {email, password} = req.params
     User.findOne({email, password}, (err, data) => {
         if (data) {
-            res.json({userID: data._id})
+            res.json({userID: data._id, userName: data.userName})
         } else {
             res.json({message: "Could not get user's id."})
         }

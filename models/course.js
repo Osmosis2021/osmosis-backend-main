@@ -11,11 +11,11 @@ const CourseSchema = new mongoose.Schema({
     minCapacity: Number,
     maxCapacity: Number,
     price: Number,
-    tag: [String],
+    tags: [String],
 	schedule: {
         type: [Date],
 	},
-	image: {
+	images: [{
         public_id: {
             type: String,
             required: true
@@ -24,13 +24,13 @@ const CourseSchema = new mongoose.Schema({
             type: String,
             required: true
         }
-    },
+    }],
 	online: Boolean,
 	// students: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
     owner: {
         type: mongoose.Schema.Types.ObjectId,
+        // required: true,
         ref: 'User',
-        required: true,
     },
 });
 

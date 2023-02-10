@@ -47,68 +47,84 @@ router.get('/getClasses', async (req,res) => {
   });
 
 
+
+
+
 //   REGISTER COURSE
 
-router.post('/registerCourse', async (req, res) => {
-    // const exisitingUser = await User.findOne({email: req.body.email})
-    // if (exisitingUser) {
-    //     return res.json({message: 'This email is already registered.'})
-    // }
+router.post('/registerCourse', async (req, res, next) => {
 
-    const courseInfo = req.body
-    //  {
-    //     owner: courseObj.owner,
-    //     industry,
-    //     tags,
-    //     price
-    // };
+    try {
+        let images = [...req.body.images];
+        let imagesBuffer = [];
 
-    // delete undefined properties in userInfo
-    Object.keys(courseInfo).forEach(key => {
-        if(courseInfo[key] === undefined) {
-            delete courseInfo[key]
+        for (let i =0; i < images.length;  i++){
+              const result = await cloudinary.uploader.upload(images[i], {
+              folder: "banners",
+              width: 1920,
+              crop: "scale"
+        });
+
+          imagesBuffer.push({
+            public_id: result.public_id,
+            url: result.secure_url
+          })
+
         }
-    })
-    Course.create(req.body)
-    // .then(savedUser => {
-    //     // Send the new user an email to confirm their info.
-    //     sendEmail(savedUser.email, templates.confirm(savedUser._id))
-    .then(savedCourse => res.json({message: 'Successfully uploaded a new course.'})
-    ).catch(err => console.log('Course.create error:\n', err))
+
+        const {owner} = req.body.owner
+        const {price} = req.body.price
+        const {title} = req.body.title
+        const {tags} = req.body.tags
+        imagesBuffer = req.body.images
+
+         const course = await Course.create(req.body)
+         
+        res.status(201).json({
+            success: true,
+            course
+        })
+        
+    } catch (error) {
+        console.log(error);
+        next(error);
+        
+    }
+   
 })
 
 
 // Upload Photos to DB
-router.post('/upload', async (req, res, next) => {
+// router.post('/upload', async (req, res, next) => {
 
-    try {
-    // const {image} = req.body;
-    let images = [...req.body.images]
-    let imagesBuffer = [];
-    for (i=0; i<images.length; i++) {
-        const result = await cloudinary.uploader.upload(images[i], {
-        folder: "classRooms",
-            // width: 300,
-            // crop: "scale"
-        });
-        imagesBuffer.push({
-            public_id: result.public_id,
-            url: result.secure_url
-        })
-    }
+//     try {
+//     // const {image} = req.body;
+//     let images = [...req.body.images]
+//     let imagesBuffer = [];
+//     for (i=0; i<images.length; i++) {
+//         const result = await cloudinary.uploader.upload(images[i], {
+//         folder: "classRooms",
+//             // width: 300,
+//             // crop: "scale"
+//         });
+//         imagesBuffer.push({
+//             public_id: result.public_id,
+//             url: result.secure_url
+//         })
+//     }
 
-    req.body.images = imagesBuffer
-        const product = await Image.create(req.body);
+//     req.body.images = imagesBuffer
+//         const product = await Image.create(req.body);
 
-        res.status(201).json({
-            success: true,
-            product
-        })
+//         res.status(201).json({
+//             success: true,
+//             product
+//         })
 
-    } catch (error) {
-        console.log(error);
-        next(error);
-    }
-})
+//     } catch (error) {
+//         console.log(error);
+//         next(error);
+//     }
+// })
 
 module.exports = router;
