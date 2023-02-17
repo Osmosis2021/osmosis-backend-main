@@ -2,15 +2,14 @@ const router = require('express').Router()
 const User = require('../models/user')
 // const bcrypt = require('bcryptjs');
 // const jwt = require('jsonwebtoken');
-// const multer = require('multer');
-// const fs = require('fs')
+const cloudinary = require('cloudinary');
 
 router.get('/login/:email/:password', async (req, res) => {
     console.log('in router.get /login');
     const {email, password} = req.params
     User.findOne({email, password}, (err, data) => {
         if (data) {
-            res.json({userID: data._id, userName: data.userName})
+            res.json({userID: data._id, userName: data.userName, isTeacher:data.isTeacher})
         } else {
             res.json({message: "Could not get user's id."})
         }
@@ -112,7 +111,7 @@ router.post('/getTeacherData', async (req, res) => {
 //     });
 
 
-// Get user profile (student)
+// Get user profile (TEACHER AND STUDENT)
 
 router.get('/getUserInfo/:userName', async (req, res) => {
     const {userName} = req.params
@@ -128,19 +127,50 @@ router.get('/getUserInfo/:userName', async (req, res) => {
     })
 })
 
-// const photosMiddleware = multer({dest:'uploads/'})
-// router.post('/upload', photosMiddleware.array('photos', 10), (req, res) => {
-//     const uploadedFiles = [];
-//     for (let i = 0; i < req.files.length; i++) {
-//         const {path, originalname} = req.files[i];
-//         const parts = originalname.split('.');
-//         const ext = parts[parts.length - 1];
-//         const newPath = path + '.' + ext;
-//         fs.renameSync(path, newPath)
-//         uploadedFiles.push(newPath.replace('uploads/',''));
-//     }
-//     res.json(uploadedFiles)
-// });
+// UPDATE USER PROFILE
+
+router.put('/updateProfile/:id', async (req, res) => {
+    console.log('in updateProfile with this id', req.params.id)
+    
+        const currentUser = await User.findById(req.params.id)
+        
+         //build the data object
+         const data = {
+            name: req.body.name,
+            description: req.body.description,
+            userName: req.body.userName
+        }
+   
+
+        if (req.body.image !== '') {
+            const ImgId = currentUser.profileImage.public_id;
+            if (ImgId) {
+                await cloudinary.uploader.destroy(ImgId);
+            }
+
+            const newImage = await cloudinary.uploader.upload(req.body.image, {
+                // folder: "products",
+                // width: 1000,
+                // crop: "scale"
+            });
+
+            
+            data.profileImage = {
+                public_id: newImage.public_id,
+                url: newImage.secure_url
+            }
+        }
+
+    
+        
+        const userUpdate = await User.findOneAndUpdate({_id: req.params.id}, {$set: data}, {new: true})
+
+        res.status(200).json({
+            success: true,
+            userUpdate,
+        })
+});
+
 
 
 module.exports = router;

@@ -29,9 +29,10 @@ router.get('/getCourses/:latitude/:longitude', async (req, res) => {
 router.get('/getCourses/:userName', async (req, res) => {
     const {userName} = req.params
     console.log('in /getCourses with this teachers username', {userName});
-    Course.findOne ({userName}, (err, data) => {
+    Course.find ({userName}, (err, data) => {
             if (data) {
-                res.json(data)
+                res.json(...data)
+                console.log(...data)
             } else {
                 console.log("Could not get course.")
                 res.json({message: "Could not get courses.", err})
@@ -76,7 +77,7 @@ router.post('/registerCourse', async (req, res, next) => {
         const {price} = req.body.price
         const {title} = req.body.title
         const {tags} = req.body.tags
-        imagesBuffer = req.body.images
+        req.body.images = imagesBuffer
 
          const course = await Course.create(req.body)
          
