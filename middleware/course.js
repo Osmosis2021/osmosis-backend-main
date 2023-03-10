@@ -75,13 +75,21 @@ router.post('/registerCourse', async (req, res, next) => {
 
         const {owner} = req.body.owner
         const {price} = req.body.price
-        const {title} = req.body.title
+        const {courseTitle} = req.body.courseTitle
         const {tags} = req.body.tags
+        const {longitude} = req.body.longitude
+        const {latitude} = req.body.latitude
+        const {userName} = req.body.userName
+        const {zipCode} = req.body.zipCode
+        const {address} = req.body.address
+        const {city} = req.body.city
+        const {capacity} = req.body.capacity
+
         req.body.images = imagesBuffer
 
          const course = await Course.create(req.body)
          
-        res.status(201).json({
+        res.json({
             success: true,
             course
         })
@@ -95,37 +103,67 @@ router.post('/registerCourse', async (req, res, next) => {
 })
 
 
-// Upload Photos to DB
-// router.post('/upload', async (req, res, next) => {
+// UPDATE COURSE 
 
-//     try {
-//     // const {image} = req.body;
-//     let images = [...req.body.images]
-//     let imagesBuffer = [];
-//     for (i=0; i<images.length; i++) {
-//         const result = await cloudinary.uploader.upload(images[i], {
-//         folder: "classRooms",
-//             // width: 300,
-//             // crop: "scale"
-//         });
-//         imagesBuffer.push({
-//             public_id: result.public_id,
-//             url: result.secure_url
-//         })
-//     }
+router.put('/updateCourse/:id', async (req, res) => {
+    console.log('in updateProfile with this id', req.params.id)
+    
+        const currentCourse = await Course.findById(req.params.id)
+        
+         //build the data object
+         const data = {
+            name: req.body.name,
+            description: req.body.description,
+            userName: req.body.userName
+        }
+   
 
-//     req.body.images = imagesBuffer
-//         const product = await Image.create(req.body);
+        if (req.body.image !== '') {
+            const ImgId = currentCourse.images.public_id;
+            if (ImgId) {
+                await cloudinary.uploader.destroy(ImgId);
+            }
 
-//         res.status(201).json({
-//             success: true,
-//             product
-//         })
+            const newImage = await cloudinary.uploader.upload(req.body.image, {
+                // folder: "products",
+                // width: 1000,
+                // crop: "scale"
+            });
 
-//     } catch (error) {
-//         console.log(error);
-//         next(error);
-//     }
+            
+            data.profileImage = {
+                public_id: newImage.public_id,
+                url: newImage.secure_url
+            }
+        }
+
+    
+        
+        const userUpdate = await User.findOneAndUpdate({_id: req.params.id}, {$set: data}, {new: true})
+
+        res.status(200).json({
+            success: true,
+            userUpdate,
+        })
+});
+
+
+// DELETE COURSE
+
+// router.delete('/deleteCourse/:id', async (req, res) => {
+//     console.log('deleting course with this id', '63ffde506c33467b94f60033')
+
+//     const deleteCourse = await Course.findById('63ffde506c33467b94f60033');
+//     // retrieve image(s)
+//     const imgId = deleteCourse.images.public_id;
+//     await cloudinary.uploader.destroy(imgId)
+//     const removeCourse = await Course.findByIdAndDelete('63ffde506c33467b94f60033');
+
+//     res.status(200).json({
+//         success: true,
+//         removeCourse,
+//     })
+
 // })
 
 module.exports = router;

@@ -8,13 +8,17 @@ const CourseSchema = new mongoose.Schema({
 	courseDescription: String,
     industry: String,
     userName: String,
-    minCapacity: Number,
-    maxCapacity: Number,
+    capacity: Number,
     price: Number,
     tags: [String],
 	schedule: {
         type: [Date],
 	},
+    longitude: Number,
+    latitude: Number,
+    city: String,
+    zipCode: Number,
+    address: String,
 	images: [{
         public_id: {
             type: String,
