@@ -4,8 +4,10 @@ const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const authRoute = require('./middleware/auth')
-const cloudinary = require('cloudinary').v2
 const courseRoute = require('./middleware/course')
+const bookingRoute = require('./middleware/booking')
+const cookieParser = require('cookie-parser');
+const cloudinary = require('cloudinary').v2
 const PORT = process.env.PORT || 8126;
 
 
@@ -18,11 +20,15 @@ mongoose.connect('mongodb+srv://osmosisAdmin:OsmosisV1production@osmosis.ckm2gk7
 //=============================================================================
 // Middleware
 //=============================================================================
+app.use(cookieParser());
 app.use(express.json({
     limit: '100mb'
   }));
 // enable CORS to allow requests from clients of other origins
-app.use(cors());
+app.use(cors({
+    credentials: true,
+    origin: 'http://localhost:3000'
+}));
 // `express.json` parses application/json request data and
 //  adds it to the request object as request.body
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -63,6 +69,7 @@ const reviewController  = require('./controllers/reviewController.js')
 
 app.use('/user', authRoute)
 app.use('/course', courseRoute)
+app.use('/booking', bookingRoute)
 
 
 // SERVER
