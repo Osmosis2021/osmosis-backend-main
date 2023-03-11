@@ -106,44 +106,52 @@ router.post('/registerCourse', async (req, res, next) => {
 // UPDATE COURSE 
 
 router.put('/updateCourse/:id', async (req, res) => {
-    console.log('in updateProfile with this id', req.params.id)
+    console.log('in updateCourse with this id', req.params.id)
     
         const currentCourse = await Course.findById(req.params.id)
         
          //build the data object
-         const data = {
-            name: req.body.name,
-            description: req.body.description,
-            userName: req.body.userName
-        }
-   
-
-        if (req.body.image !== '') {
-            const ImgId = currentCourse.images.public_id;
-            if (ImgId) {
-                await cloudinary.uploader.destroy(ImgId);
+            const courseInfo = { 
+                profileImage: req.body.image,
+                owner: req.body.owner,
+                price: req.body.price,
+                courseTitle: req.body.courseTitle,
+                tags: req.body.tags,
+                longitude: req.body.longitude,
+                latitude: req.body.latitude,
+                userName: req.body.userName,
+                zipCode: req.body.zipCode,
+                address: req.body.address,
+                city: req.body.city,
+                capacity: req.body.capacity   
             }
 
-            const newImage = await cloudinary.uploader.upload(req.body.image, {
-                // folder: "products",
-                // width: 1000,
-                // crop: "scale"
-            });
+        // if (req.body.image !== '') {
+        //     const ImgId = currentCourse.images.public_id;
+        //     if (ImgId) {
+        //         await cloudinary.uploader.destroy(ImgId);
+        //     }
+
+        //     const newImage = await cloudinary.uploader.upload(req.body.image, {
+        //         // folder: "products",
+        //         // width: 1000,
+        //         // crop: "scale"
+        //     });
 
             
-            data.profileImage = {
-                public_id: newImage.public_id,
-                url: newImage.secure_url
-            }
-        }
+        //     data.profileImage = {
+        //         public_id: newImage.public_id,
+        //         url: newImage.secure_url
+        //     }
+        // }
 
     
         
-        const userUpdate = await User.findOneAndUpdate({_id: req.params.id}, {$set: data}, {new: true})
+        const courseUpdate = await Course.findOneAndUpdate({_id: req.params.id}, {$set: courseInfo}, {new: true})
 
         res.status(200).json({
             success: true,
-            userUpdate,
+            courseUpdate,
         })
 });
 
