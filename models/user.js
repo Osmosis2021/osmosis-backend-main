@@ -32,6 +32,18 @@ const UserSchema = new mongoose.Schema(
 			type: Boolean,
 			default: false
 		},
+		profileImage: {
+			public_id: {
+				type: String,
+				
+				// required: true
+			},
+			url: {
+				type: String,
+				default: ''
+				// required: true
+			}
+		},
 		industries: {
 			type: [String],
 			default: [],

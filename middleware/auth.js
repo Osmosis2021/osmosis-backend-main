@@ -1,21 +1,30 @@
 const router = require('express').Router()
 const User = require('../models/user')
-// const bcrypt = require('bcryptjs');
-// const jwt = require('jsonwebtoken');
-const multer = require('multer');
-const fs = require('fs')
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const cloudinary = require('cloudinary');
 
-router.get('/login/:email/:password', async (req, res) => {
-    console.log('in router.get /login');
+const bcryptSalt = bcrypt.genSaltSync(7);
+const jwtSecret = 'randomString';
+
+router.post('/login/:email/:password', async (req, res) => {
+
     const {email, password} = req.params
-    User.findOne({email, password}, (err, data) => {
-        if (data) {
-            res.json({userID: data._id, userName: data.userName, isTeacher: data.isTeacher, isStudent: data.isStudent,
-                firstName: data.firstName, lastName: data.lastName})
+    const userDoc = await User.findOne({email});
+    
+    if (userDoc) {
+        const passOk = bcrypt.compareSync(password, userDoc.password)
+        if(passOk) {
+            jwt.sign({email: userDoc.email, id: userDoc._id, firstName: userDoc.firstName, lastName: userDoc.lastName, profileImage: userDoc.profileImage.url}, jwtSecret, {}, (err, token) => {
+                if (err) throw err;
+                res.cookie('token', token).json(userDoc);
+            })
         } else {
-            res.json({message: "Could not get user's id."})
+            res.status(422).json('pass not ok')
         }
-    })
+    } else {
+        res.json('not found')
+    }
 });
 
 //jacklerner7 is taken
@@ -39,7 +48,7 @@ router.post('/registerUser', async (req, res) => {
     }
     const userInfo = {
         email: req.body.email,
-        password: req.body.password,
+        password: bcrypt.hashSync(req.body.password, bcryptSalt),
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         userName: req.body.userName,
@@ -57,6 +66,7 @@ router.post('/registerUser', async (req, res) => {
             delete userInfo[key]
         }
     })
+
     User.create(userInfo)
     // .then(savedUser => {
     //     // Send the new user an email to confirm their info.
@@ -66,19 +76,145 @@ router.post('/registerUser', async (req, res) => {
 })
 
 router.post('/getTeacherData', async (req, res) => {
-    console.log('in backend with this req', req.body);
+    // console.log('in backend with this req', req.body);
     // const {teacherUserName} = req.params
     // const teacherObj = await User.findOne({teacherUserName: "rader-jake"})
     User.findOne({userName: req.body.userName}, (err, data) => {
         if (data) {
             res.json(data)
-            console.log(data)
+            // console.log(data)
         } else {
             res.json({message: "Could not get teacher's info.", err})
         }
     })
 })
 
+// GET USER WITH COOKIES
+router.get('/profile', (req, res) => {
+    const {token} = req.cookies;
+    if (token) {
+        jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+            if(err) throw err;
+            const userDoc = await User.findById(userData.id);
+            res.json(userData)
+        })
+    }
+})
+
+// GET USER PROFILE (FOR BOTH TEACHER AND STUDENT)
+router.get('/getUserInfo/:userName', async (req, res) => {
+    const {userName} = req.params
+    // console.log('in router.get /getUserInfo, name:', userName);
+    User.findOne({userName}, (err, data) => {
+        // console.log(data)
+        if (data) {
+            res.json(data)
+            console.log(data)
+        } else {
+            res.json({message: "Could not get user's info.", err})
+        }
+    })
+})
+
+// UPDATE USER PROFILE
+router.put('/updateProfile/:id', async (req, res) => {
+    // console.log('in updateProfile with this id', req.params.id)
+    const {token} = req.cookies
+    const data = {
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        description: req.body.description,
+        userName: req.body.userName,
+        email: req.body.email,
+        // password: req.body.password
+    }
+    
+    jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+        if (err) throw err;
+        const currentUser = await User.findById(req.params.id)
+        if(userData.id === currentUser.id) {
+            console.log('herree..................in the jwt authentication')
+            const userUpdate = await User.findOneAndUpdate({_id: req.params.id}, {$set: data}, {new: true})
+                res.status(200).json({
+                    success: true,
+                    userUpdate,
+                })
+        }
+    })
+});
+
+// UPDATE PROFILE IMAGE
+router.put('/updateProfileImage/:id', async (req, res) => {
+    // console.log('in updateProfileImage with this id', req.params.id)
+    const {token} = req.cookies
+    const data = { profileImage: req.body.image }
+
+    jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+        if (err) throw err;
+        const currentUser = await User.findById(req.params.id)
+        try {
+            if(userData.id === currentUser.id) {
+                // console.log('herree..................in the jwt authentication')
+                if (req.body.image !== '') {
+                    const ImgId = currentUser.profileImage.public_id;
+                    if (ImgId) {
+                        await cloudinary.uploader.destroy(ImgId);
+                    }
+
+                    const newImage = await cloudinary.uploader.upload(req.body.image, {
+                        // folder: "products",
+                        // width: 1000,
+                        // crop: "scale"
+                    });
+
+                    data.profileImage = {
+                        public_id: newImage.public_id,
+                        url: newImage.secure_url
+                    }
+                }
+
+                const userUpdate = await User.findOneAndUpdate({_id: req.params.id}, {$set: data}, {new: true})
+
+                res.status(200).json({
+                    success: true,
+                    userUpdate,
+                })
+            } 
+        }   catch(err) {
+                console.log(err)
+            }
+    })
+});
+
+
+
+// DELETE USER
+router.delete('/deleteProfile/:id', async (req, res) => {
+    console.log('deleting profile with this id', req.params.id)
+
+    const foundUser = await User.findById(req.params.id);
+    // retrieve image(s)
+
+    if(foundUser.profileImage.url !== ''){
+
+        const profileImage = foundUser.profileImage.public_id;
+        
+        await cloudinary.uploader.destroy(profileImage)
+        
+        console.log('got through deleting on cloudinary')
+    }
+
+    // What if they have a course offering or a booked course  
+
+    const removeUser = await User.findByIdAndDelete(req.params.id)
+
+    res.json({
+        success: true,
+        removeUser,
+    })
+})
+
+module.exports = router;
 
 // router.post('/register', async (req, res) => {
 //     // TODO: do schema validation here
@@ -113,37 +249,15 @@ router.post('/getTeacherData', async (req, res) => {
 //     });
 
 
-// Get user profile (student)
-
-router.get('/getUserInfo/:userName', async (req, res) => {
-    const {userName} = req.params
-    console.log('in router.get /getUserInfo, name:', userName);
-    User.findOne({userName}, (err, data) => {
-        console.log(data)
-        if (data) {
-            res.json(data)
-            console.log(data)
-        } else {
-            res.json({message: "Could not get user's info.", err})
-        }
-    })
-})
-
-// Upload Photos to DB
-
-const photosMiddleware = multer({dest:'uploads/'})
-router.post('/upload', photosMiddleware.array('photos', 10), (req, res) => {
-    const uploadedFiles = [];
-    for (let i = 0; i < req.files.length; i++) {
-        const {path, originalname} = req.files[i];
-        const parts = originalname.split('.');
-        const ext = parts[parts.length - 1];
-        const newPath = path + '.' + ext;
-        fs.renameSync(path, newPath)
-        uploadedFiles.push(newPath.replace('uploads/',''));
-    }
-    res.json(uploadedFiles)
-});
-
-
-module.exports = router;
+// ORIGINAL LOGIN ROUTE
+// router.get('/login/:email/:password', async (req, res) => {
+//     console.log('in router.get /login');
+//     const {email, password} = req.params
+//     User.findOne({email, password}, (err, data) => {
+//         if (data) {
+//             res.json({userID: data._id, userName: data.userName, isTeacher:data.isTeacher})
+//         } else {
+//             res.json({message: "Could not get user's id."})
+//         }
+//     })
+// })

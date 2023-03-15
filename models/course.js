@@ -11,20 +11,33 @@ const CourseSchema = new mongoose.Schema({
     longitude: Number,
     industry: String,
     userName: String,
-    minCapacity: Number,
-    maxCapacity: Number,
+    capacity: Number,
     price: Number,
-    tag: [String],
+    tags: [String],
 	schedule: {
         type: [Date],
 	},
-	photos: [String],
+    longitude: Number,
+    latitude: Number,
+    city: String,
+    zipCode: Number,
+    address: String,
+	images: [{
+        public_id: {
+            type: String,
+            required: true
+        },
+        url: {
+            type: String,
+            required: true
+        }
+    }],
 	online: Boolean,
 	// students: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
     owner: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
         required: true,
+        ref: 'User',
     },
 });
 
