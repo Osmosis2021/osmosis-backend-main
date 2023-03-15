@@ -186,6 +186,34 @@ router.put('/updateProfileImage/:id', async (req, res) => {
     })
 });
 
+
+
+// DELETE USER
+router.delete('/deleteProfile/:id', async (req, res) => {
+    console.log('deleting profile with this id', req.params.id)
+
+    const foundUser = await User.findById(req.params.id);
+    // retrieve image(s)
+
+    if(foundUser.profileImage.url !== ''){
+
+        const profileImage = foundUser.profileImage.public_id;
+        
+        await cloudinary.uploader.destroy(profileImage)
+        
+        console.log('got through deleting on cloudinary')
+    }
+
+    // What if they have a course offering or a booked course  
+
+    const removeUser = await User.findByIdAndDelete(req.params.id)
+
+    res.json({
+        success: true,
+        removeUser,
+    })
+})
+
 module.exports = router;
 
 // router.post('/register', async (req, res) => {
