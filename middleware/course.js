@@ -106,72 +106,124 @@ router.post('/registerCourse', async (req, res, next) => {
 // UPDATE COURSE 
 
 router.put('/updateCourse/:id', async (req, res) => {
-    console.log('in updateCourse with this id', req.params.id)
-    
-        const currentCourse = await Course.findById(req.params.id)
         
-         //build the data object
-            const courseInfo = { 
-                profileImage: req.body.image,
-                owner: req.body.owner,
-                price: req.body.price,
-                courseTitle: req.body.courseTitle,
-                tags: req.body.tags,
-                longitude: req.body.longitude,
-                latitude: req.body.latitude,
-                userName: req.body.userName,
-                zipCode: req.body.zipCode,
-                address: req.body.address,
-                city: req.body.city,
-                capacity: req.body.capacity   
-            }
+    console.log('in updateCourse with this id', req.params.id)
 
-        // if (req.body.image !== '') {
-        //     const ImgId = currentCourse.images.public_id;
-        //     if (ImgId) {
-        //         await cloudinary.uploader.destroy(ImgId);
-        //     }
+        // let images = [...req.body.images];
+        // let imagesBuffer = [];
 
-        //     const newImage = await cloudinary.uploader.upload(req.body.image, {
-        //         // folder: "products",
-        //         // width: 1000,
-        //         // crop: "scale"
+        // for (let i = 0; i < images.length;  i++) {
+        //     const result = await cloudinary.uploader.upload(images[i], {
+        //       folder: "banners",
+        //       width: 1920,
+        //       crop: "scale"
         //     });
 
-            
-        //     data.profileImage = {
-        //         public_id: newImage.public_id,
-        //         url: newImage.secure_url
-        //     }
+        //     imagesBuffer.push({
+        //         public_id: result.public_id,
+        //         url: result.secure_url
+        //     })
         // }
 
+  
     
-        
-        const courseUpdate = await Course.findOneAndUpdate({_id: req.params.id}, {$set: courseInfo}, {new: true})
 
-        res.status(200).json({
-            success: true,
-            courseUpdate,
-        })
+    //build the data object
+    const data = { 
+        owner: req.body.owner,
+        price: req.body.price,
+        courseTitle: req.body.courseTitle,
+        tags: req.body.tags,
+        longitude: req.body.longitude,
+        latitude: req.body.latitude,
+        userName: req.body.userName,
+        zipCode: req.body.zipCode,
+        address: req.body.address,
+        city: req.body.city,
+        capacity: req.body.capacity   
+    }
+        // req.body.images = imagesBuffer
+    
+    const courseUpdate = await Course.findOneAndUpdate({_id: req.params.id}, {$set: data}, {new: true})
+    
+    res.json({
+        courseUpdate
+    })
+
+});
+
+// DELETE ALREADY UPLOADED image FROM COURSE 
+
+router.put('/deletePhoto/:id', async (req, res) => {
+    
+    console.log('In deletePhoto with this id:', req.params.id)
+    Course.findByIdAndUpdate(req.params.id, { $pull: { images: {_id: req.body.image._id} } }, async (err, results) => {
+        if (err) {                                                       
+            return res.status(500).json({ error: 'error in deleting image' });
+        }
+        console.log(req.body.image.public_id)
+        res.json(results);
+    });
+})
+
+
+// UPLOAD PHOTOS 
+
+router.put('/updatePhoto/:id', async (req, res) => {
+        
+    console.log('in updatePhoto with this id', req.params.id)
+
+        let images = [...req.body.images];
+        let imagesBuffer = [];
+
+        for (let i = 0; i < images.length;  i++) {
+            const result = await cloudinary.uploader.upload(images[i], {
+              folder: "banners",
+              width: 1920,
+              crop: "scale"
+            });
+
+            imagesBuffer.push({
+                public_id: result.public_id,
+                url: result.secure_url
+            })
+        }
+
+  
+        req.body.images = imagesBuffer
+        console.log(imagesBuffer)
+    
+    const photoUpdate = await Course.findByIdAndUpdate(req.params.id, { $push: { images: imagesBuffer } }, {new: true})
+                            //   Course.findByIdAndUpdate(req.params.id, { $pull: { images: {_id: req.body.image._id} } }, async (err, results) => {
+
+    res.json({
+        photoUpdate
+    })
+
 });
 
 
-// DELETE COURSE
+  // DELETE COURSE
+router.delete('/deleteCourse/:id', async (req, res) => {
+    console.log('deleting course with this id', req.params.id)
 
-// router.delete('/deleteCourse/:id', async (req, res) => {
-//     console.log('deleting course with this id', '63ffde506c33467b94f60033')
+    const foundCourse = await Course.findById(req.params.id);
+    // retrieve image(s)
+    const imgIds = foundCourse.images;
 
-//     const deleteCourse = await Course.findById('63ffde506c33467b94f60033');
-//     // retrieve image(s)
-//     const imgId = deleteCourse.images.public_id;
-//     await cloudinary.uploader.destroy(imgId)
-//     const removeCourse = await Course.findByIdAndDelete('63ffde506c33467b94f60033');
+    for (let i = 0; i < imgIds.length; i++) {
+        const public_ids = imgIds[i].public_id
+        await cloudinary.uploader.destroy(public_ids)
+    }
+    console.log('got through deleting on cloudinary')
 
-//     res.status(200).json({
-//         success: true,
-//         removeCourse,
-//     })
-
-// })
+    // What if somebody has booked this course already? 
+    
+    const removeCourse = await Course.findByIdAndDelete(req.params.id)
+    res.json({
+        success: true,
+        removeCourse,
+    })
+})
 
 module.exports = router;
