@@ -12,12 +12,11 @@ router.post('/bookings', async (req, res) => {
     const {
         // date, 
         // checkIn, 
-        // checkOut, 
-        name,
+        // checkOut,
         numberOfGuests,
         cost,
         course, 
-        owner
+        teacher
     } = req.body 
 
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
@@ -29,14 +28,14 @@ router.post('/bookings', async (req, res) => {
             // date, 
             // checkIn,
             // CheckOut,
-            firstName: userData.firstName,
-            lastName: userData.lastName,
+            studentFirstName: userData.firstName,
+            studentLastName: userData.lastName,
             numberOfGuests, 
             cost,
             profileImage: userData.profileImage,
             course, 
-            user: userData.id,
-            owner,
+            student: userData.id,
+            teacher,
         }).then((doc) => {
             res.json(doc);
         }).catch((err) => {
