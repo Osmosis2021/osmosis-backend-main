@@ -85,6 +85,13 @@ router.post('/registerCourse', async (req, res, next) => {
         const {city} = req.body.city
         const {capacity} = req.body.capacity
 
+        
+        
+        const {schedule} = [...req.body.schedule]
+        
+
+        console.log(schedule)
+
         req.body.images = imagesBuffer
 
          const course = await Course.create(req.body)

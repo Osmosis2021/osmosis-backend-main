@@ -71,10 +71,10 @@ router.get('/teacherBookings', async (req, res) => {
 
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
         if(err) throw err;
-        console.log('ID', userData.id)
-        const owner = await Booking.find({owner: userData.id}).populate('course')
-        console.log('owner', owner)
-        res.json( owner )
+        console.log('ID to get booking', userData.id)
+        const teacher = await Booking.find({teacher: userData.id}).populate('course')
+        console.log('teacher', teacher)
+        res.json( teacher )
         
     })
 

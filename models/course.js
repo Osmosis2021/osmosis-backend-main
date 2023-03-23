@@ -14,9 +14,15 @@ const CourseSchema = new mongoose.Schema({
     capacity: Number,
     price: Number,
     tags: [String],
-	schedule: {
-        type: [Date],
-	},
+	schedule: [{
+        // type: [Date],
+        courseLength: {type: Number},
+        dayOfWeek: {type: String},
+        endTime: {type: String},
+        enrolledStudents:  {type: Array},
+        startDate: {type: String},
+        startTime: {type: String},
+	}],
     longitude: Number,
     latitude: Number,
     city: String,

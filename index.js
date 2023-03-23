@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const authRoute = require('./middleware/auth')
 const courseRoute = require('./middleware/course')
 const bookingRoute = require('./middleware/booking')
+const stripe = require('./middleware/stripe')
 const cookieParser = require('cookie-parser');
 const cloudinary = require('cloudinary').v2
 const PORT = process.env.PORT || 8126;
@@ -70,7 +71,7 @@ const reviewController  = require('./controllers/reviewController.js')
 app.use('/user', authRoute)
 app.use('/course', courseRoute)
 app.use('/booking', bookingRoute)
-
+app.use('/stripe', stripe)
 
 // SERVER
 app.listen(PORT, () =>
