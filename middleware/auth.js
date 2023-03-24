@@ -109,7 +109,6 @@ router.get('/getUserInfo/:userName', async (req, res) => {
         // console.log(data)
         if (data) {
             res.json(data)
-            console.log(data)
         } else {
             res.json({message: "Could not get user's info.", err})
         }

@@ -26,6 +26,8 @@ router.get('/getCourses/:latitude/:longitude', async (req, res) => {
     )
 })
 
+// Get all courses from the teacher
+
 router.get('/getCourses/:userName', async (req, res) => {
     const {userName} = req.params
     console.log('in /getCourses with this teachers username', {userName});
@@ -39,6 +41,21 @@ router.get('/getCourses/:userName', async (req, res) => {
             }
         }
     )
+})
+
+// Get specific course from the teacher
+
+router.get('/getCourse/:courseID', async (req, res) => {
+    const {courseID} = req.params
+    Course.findById (courseID, (err, data) => {
+        if (data) {
+            res.json(data)
+            console.log(data)
+        } else {
+            console.log("Could not get course.")
+            res.json({message: "Could not get courses.", err})
+        }
+    })
 })
 
 // Get Classes from DB

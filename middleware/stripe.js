@@ -61,8 +61,6 @@ const stripe = Stripe(STRIPE_API_TEST_KEY);
     // })
 
 
-
-
     router.post('/create-payment-intent', async(req, res) => {
 
         const {item} = req.body
