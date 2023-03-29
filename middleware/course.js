@@ -33,8 +33,9 @@ router.get('/getCourses/:userName', async (req, res) => {
     console.log('in /getCourses with this teachers username', {userName});
     Course.find ({userName}, (err, data) => {
             if (data) {
-                res.json(...data)
-                console.log(...data)
+                // THIS IS A BUG (data, {...data}, ...data ? which is it???)
+                res.json(data)
+                console.log(data)
             } else {
                 console.log("Could not get course.")
                 res.json({message: "Could not get courses.", err})

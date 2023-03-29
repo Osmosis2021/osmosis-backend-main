@@ -3,7 +3,10 @@ const Course = require('./course');
 const User = require('./user');
 
 const BookingSchema = new mongoose.Schema({
-    // date: {type: Date, required: true},
+    date: {
+        startDate: {type: String},
+        startTime: {type: String},
+    },
     // checkIn: {type: TimeRanges, required: true},
     // checkOut: {type: TimeRanges, required: true},
     studentFirstName: {type: String, required: true},

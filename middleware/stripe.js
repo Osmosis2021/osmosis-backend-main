@@ -63,13 +63,13 @@ const stripe = Stripe(STRIPE_API_TEST_KEY);
 
     router.post('/create-payment-intent', async(req, res) => {
 
-        const {item} = req.body
-        console.log('THIS IS THE ITEM:', item)
+        const {amount, capacity} = req.body
+        console.log('THIS IS THE request:', amount * capacity)
 
         try {
             const paymentIntent = await stripe.paymentIntents.create(
                 {
-                    amount: 90,
+                    amount: (amount * capacity) * 100,
                     currency: 'usd',
                     payment_method_types: ['card'],
                         // application_fee_amount: 123,
