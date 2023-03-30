@@ -1,33 +1,31 @@
 const mongoose = require('mongoose');
+const Booking = require('./booking');
 // const mongoose = require('../db/connection');
 // const Teacher = require('./teacher').schema;
 
 
 const CourseSchema = new mongoose.Schema({
-    address: String,
+    address: {
+        line1,
+        line2,
+        city,
+        zipCode,
+        state,
+        country,
+    },
+    duration: Number,
     courseTitle: String,
 	courseDescription: String,
-    latitude: Number,
-    longitude: Number,
     industry: String,
     userName: String,
     capacity: Number,
-    price: Number,
+    pricePerStudent: Number,
     tags: [String],
-	schedule: [{
-        // type: [Date],
-        courseLength: {type: Number},
-        dayOfWeek: {type: String},
-        endTime: {type: String},
-        enrolledStudents:  {type: Array},
-        startDate: {type: String},
-        startTime: {type: String},
-	}],
+    // city: String,
+    // zipCode: Number,
+    // address: String,
     longitude: Number,
     latitude: Number,
-    city: String,
-    zipCode: Number,
-    address: String,
 	images: [{
         public_id: {
             type: String,
@@ -40,7 +38,7 @@ const CourseSchema = new mongoose.Schema({
     }],
 	online: Boolean,
 	// students: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
-    owner: {
+    teacherID: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: 'User',

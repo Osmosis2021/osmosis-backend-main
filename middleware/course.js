@@ -1,5 +1,6 @@
 const router = require('express').Router()
 const Course = require('../models/course')
+const CourseTimeslot = require('../models/courseTimeslot')
 const Image = require('../models/image')
 const cloudinary = require('cloudinary');
 
@@ -50,6 +51,13 @@ router.get('/getCourse/:courseID', async (req, res) => {
     const {courseID} = req.params
     Course.findById (courseID, (err, data) => {
         if (data) {
+            const timeslots = []
+            await CourseTimeslot.find({courseID}, (_err, _data) => {
+                if (_data) {
+                    timeslots.push(_data)
+                }
+            })
+            data.schedule = timeslots
             res.json(data)
             console.log(data)
         } else {
@@ -91,29 +99,44 @@ router.post('/registerCourse', async (req, res, next) => {
 
         }
 
-        const {owner} = req.body.owner
-        const {price} = req.body.price
-        const {courseTitle} = req.body.courseTitle
-        const {tags} = req.body.tags
-        const {longitude} = req.body.longitude
-        const {latitude} = req.body.latitude
-        const {userName} = req.body.userName
-        const {zipCode} = req.body.zipCode
-        const {address} = req.body.address
-        const {city} = req.body.city
-        const {capacity} = req.body.capacity
+        const {
+        teacherID,
+        userName,
+        address,
+        longitude,
+        latitude,
+        industry,
+        tags,
+        pricePerStudent, 
+        courseTitle,
+        capacity,
+        duration,
+        schedule } = {...req.body}        
 
-        
-        
-        const {schedule} = [...req.body.schedule]
-        
+        const newCourseObj = {
+            teacherID,
+            userName,
+            address,
+            longitude,
+            latitude,
+            industry,
+            tags,
+            pricePerStudent, 
+            courseTitle,
+            capacity,
+            duration,
+            images: imagesBuffer
+        }
 
-        console.log(schedule)
+        // create new course
+        const course = await Course.create(newCourseObj)
 
-        req.body.images = imagesBuffer
+        // create a new timeslot associated with the new course for each timeslot in the schedule
+        schedule.map(_timeslot => {
+            const timeslotObj = {..._timeslot, courseID: course._id, enrollment: 0}
+            await CourseTimeslot.create(timeslotObj)
+        })
 
-         const course = await Course.create(req.body)
-         
         res.json({
             success: true,
             course
@@ -122,9 +145,7 @@ router.post('/registerCourse', async (req, res, next) => {
     } catch (error) {
         console.log(error);
         next(error);
-        
     }
-   
 })
 
 
