@@ -1,11 +1,13 @@
 const mongoose = require('mongoose');
+const Course = require('./course');
 
-const courseTimeslotSchema = new mongoose.Schema({
+const CourseTimeslotSchema = new mongoose.Schema({
 
-    dayOfWeek: Number,
-    startTime: Number,
+    dayOfWeek: String,
+    startTime: String,
     courseLength: Number,
     startDate: Date,
+    courseID: {type: mongoose.Schema.Types.ObjectId, ref: 'Course'},
     isRepeating: Boolean,
     remainingCapacity: Number,
     enrolledStudents: String,
@@ -13,5 +15,5 @@ const courseTimeslotSchema = new mongoose.Schema({
 
 })
 
-const courseTimeslot = mongoose.model('courseTimeslot', courseTimeslotSchema);
-module.exports = courseTimeslot;
+const CourseTimeslot = mongoose.model('CourseTimeslot', CourseTimeslotSchema);
+module.exports = CourseTimeslot;

@@ -6,12 +6,12 @@ const Booking = require('./booking');
 
 const CourseSchema = new mongoose.Schema({
     address: {
-        line1,
-        line2,
-        city,
-        zipCode,
-        state,
-        country,
+        line1: String,
+        line2: String,
+        city: String,
+        zipCode: Number,
+        state: String,
+        country: String,
     },
     duration: Number,
     courseTitle: String,
@@ -26,6 +26,7 @@ const CourseSchema = new mongoose.Schema({
     // address: String,
     longitude: Number,
     latitude: Number,
+    schedule: [],
 	images: [{
         public_id: {
             type: String,

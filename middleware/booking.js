@@ -11,14 +11,14 @@ router.post('/bookings', async (req, res) => {
     const {token} = req.cookies;
     
     const { 
-        date, 
-        profileImage,
-        checkIn, 
-        checkOut,
+        timestamp,
         numberOfGuests,
-        pricePerGuest,
-        course, 
-        teacherID
+        total, 
+        courseTimeslotID,
+        courseID, 
+        teacherID,
+        time,
+        date, 
     } = req.body 
 
     console.log(req.body)
@@ -27,19 +27,17 @@ router.post('/bookings', async (req, res) => {
         if(err) throw err;
         // return userData;
         console.log('here.......................... inside jwt verify')
-
+        console.log('userData......................', userData)
         await Booking.create({
-            date: date, 
-            // checkIn,
-            // CheckOut,
-            studentFirstName: userData.firstName,
-            studentLastName: userData.lastName,
+            timestamp: timestamp,
+            studentID: userData.id,
             numberOfGuests: numberOfGuests, 
-            cost: pricePerGuest * numberOfGuests,
-            profileImage: profileImage,
-            course: course, 
-            student: userData.id,
-            teacher: teacherID,
+            courseTimeslotID: courseTimeslotID,
+            courseID: courseID,
+            total: total, 
+            teacherID: teacherID,
+            time: time,
+            date: date, 
             // address: courseAddress,
             // city: courseCity,
             // zipCode: courseZipcode,
@@ -65,8 +63,10 @@ router.get('/bookings', async (req, res) => {
 
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
         if(err) throw err;
-        
-        res.json( await Booking.find({student:userData.id}).populate('course') )
+        console.log('ID to get booking', userData.id)
+        const student = await Booking.find({studentID: userData.id}).populate('courseID teacherID')
+        console.log('student', student)
+        res.json( student )
         
     })
 
@@ -80,13 +80,42 @@ router.get('/teacherBookings', async (req, res) => {
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
         if(err) throw err;
         console.log('ID to get booking', userData.id)
-        const teacher = await Booking.find({teacher: userData.id}).populate('course')
+        const teacher = await Booking.find({teacherID: userData.id}).populate('courseID studentID')
         console.log('teacher', teacher)
         res.json( teacher )
         
     })
+})
+
+// ROUTE FOR TEACHER SINGLE BOOKING
+
+router.get('/teacherBookingInfo', async (req, res) => {
+    const {token} = req.cookies;
+
+    jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+        if(err) throw err;
+        console.log('ID to get booking', userData.id)
+        const teacher = await Booking.find({teacherID: userData.id}).populate('courseID studentID')
+        console.log('teacher', teacher)
+        res.json( teacher )
+        
+    })
+})
 
 
+// ROUTE FOR STUDENT SINGLE BOOKING
+
+router.get('/studentBookingInfo', async (req, res) => {
+    const {token} = req.cookies;
+
+    jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+        if(err) throw err;
+        console.log('ID to get booking', userData.id)
+        const student = await Booking.find({studentID: userData.id}).populate('courseID teacherID')
+        console.log('student', student)
+        res.json( student )
+        
+    })
 })
 
 
