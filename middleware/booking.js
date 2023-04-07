@@ -89,13 +89,14 @@ router.get('/teacherBookings', async (req, res) => {
 
 // ROUTE FOR TEACHER SINGLE BOOKING
 
-router.get('/teacherBookingInfo', async (req, res) => {
+router.get('/teacherBookingInfo/:bookingID', async (req, res) => {
     const {token} = req.cookies;
-
+    const {bookingID} = req.params
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
         if(err) throw err;
-        console.log('ID to get booking', userData.id)
-        const teacher = await Booking.find({teacherID: userData.id}).populate('courseID studentID')
+        // Verification check to see if userData.id = bookingID.teacherID ???
+        console.log('Booking ID', bookingID)
+        const teacher = await Booking.find({_id: bookingID}).populate('courseID studentID')
         console.log('teacher', teacher)
         res.json( teacher )
         
@@ -105,13 +106,14 @@ router.get('/teacherBookingInfo', async (req, res) => {
 
 // ROUTE FOR STUDENT SINGLE BOOKING
 
-router.get('/studentBookingInfo', async (req, res) => {
+router.get('/studentBookingInfo/:bookingID', async (req, res) => {
     const {token} = req.cookies;
-
+    const {bookingID} = req.params
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
         if(err) throw err;
-        console.log('ID to get booking', userData.id)
-        const student = await Booking.find({studentID: userData.id}).populate('courseID teacherID')
+        // Verification check to see if userData.id = bookingID.teacherID ???
+        console.log('Booking ID', bookingID)
+        const student = await Booking.find({_id: bookingID}).populate('courseID teacherID')
         console.log('student', student)
         res.json( student )
         
