@@ -9,7 +9,10 @@ const bookingRoute = require('./middleware/booking')
 const stripe = require('./middleware/stripe')
 const cookieParser = require('cookie-parser');
 const cloudinary = require('cloudinary').v2
+const dotenv = require('dotenv')
+dotenv.config()
 const PORT = process.env.PORT || 8126;
+console.log({PORT})
 
 
 mongoose.connect('mongodb+srv://osmosisAdmin:OsmosisV1production@osmosis.ckm2gk7.mongodb.net/?retryWrites=true&w=majority',
@@ -74,6 +77,10 @@ app.use('/booking', bookingRoute)
 app.use('/stripe', stripe)
 
 // SERVER
-app.listen(PORT, () =>
-    console.log('API is listening on port: ' + PORT)
+let port = process.env.PORT;
+if (port == null || port == "") {
+  port = 8126;
+}
+app.listen(port, () =>
+    console.log('API is listening on port: ' + port)
 );
