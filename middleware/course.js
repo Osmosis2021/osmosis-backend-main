@@ -3,6 +3,7 @@ const Course = require('../models/course')
 const CourseTimeslot = require('../models/courseTimeslot')
 const Image = require('../models/image')
 const cloudinary = require('cloudinary');
+const ObjectID = require("bson-objectid")
 
 cloudinary.config({ 
     cloud_name: 'dv5yztb2q', 
@@ -51,21 +52,17 @@ router.get('/getCourse/:courseID', async (req, res) => {
     const {courseID} = req.params
     Course.findById (courseID, async (err, data) => {
         if (data) {
-            const timeslots = []
-            const find = CourseTimeslot.find({courseID: courseID}, (_err, _data) => {
+            data.set('schedule', [])
+            await CourseTimeslot.find({courseID: courseID})
+            .then(_data => {
                 if (_data) {
-                    timeslots.push(..._data)
-                    console.log('timeslots', timeslots)
+                    data.set('schedule', [..._data])
                 }
             })
-            await find.clone()
-            // data.schedule = timeslots
-            data.set('schedule', timeslots)
             res.json(data)
-            console.log('data is' , data)
         } else {
             console.log("Could not get course.")
-            res.json({message: "Could not get courses.", err})
+            res.json({message: "Could not get course XXXXXXXXX.", err})
         }
     })
 })
