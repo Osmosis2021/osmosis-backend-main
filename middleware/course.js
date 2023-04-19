@@ -3,7 +3,6 @@ const Course = require('../models/course')
 const CourseTimeslot = require('../models/courseTimeslot')
 const Image = require('../models/image')
 const cloudinary = require('cloudinary');
-const ObjectID = require("bson-objectid")
 
 cloudinary.config({ 
     cloud_name: 'dv5yztb2q', 
