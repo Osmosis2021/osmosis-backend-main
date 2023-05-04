@@ -43,6 +43,7 @@ const TeacherProfile = (props) => {
     
 	useEffect(() => {
         const controller = new AbortController()
+        console.log({backendURL});
 		fetch(`${backendURL}course/getCourses/${Teacher.userName}`, {signal: controller.signal})
 		.then((res) => {
 			return res.json();
@@ -57,13 +58,7 @@ const TeacherProfile = (props) => {
 		}).catch((err) => {
 			console.log('Error getting teacher info:\n', err);
 		});
-        return () => {
-            controller.abort()
-        }
-	}, [Teacher.userName]);
 
-    useEffect(() => {
-        const controller = new AbortController()
         getTeacher(Teacher);
         fetch (`${backendURL}user/getUserInfo/${Teacher.userName}`)
         .then((res) => {

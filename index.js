@@ -12,7 +12,6 @@ const cloudinary = require('cloudinary').v2
 const dotenv = require('dotenv')
 dotenv.config()
 const PORT = process.env.PORT || 8126;
-const path = require('path')
 console.log({PORT})
 
 
@@ -34,14 +33,6 @@ app.use(cors({
     credentials: true,
     origin: 'http://localhost:3000'
 }));
-
-// Serve static files from the React frontend app
-app.use(express.static(path.join(__dirname, '../frontend/build')))
-
-// AFTER defining routes: Anything that doesn't match what's above, send back index.html; (the beginning slash ('/') in the string is important!)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname + '/../frontend/build/index.html'))
-})
 // `express.json` parses application/json request data and
 //  adds it to the request object as request.body
 app.use(bodyParser.urlencoded({ extended: false }));
