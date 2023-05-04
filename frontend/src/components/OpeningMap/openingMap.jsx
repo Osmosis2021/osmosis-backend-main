@@ -8,7 +8,8 @@ import Tabs, { tabsClasses } from '@mui/material/Tabs';
 import theme from '../../theme.js';
 import { IndustryOptions } from '../TopAppBar/IndustryOptions';
 import './openingMap.css';
-const backendURL = 'http://localhost:8126/';
+const backendURL = process.env.NODE_ENV === 'production' ? 'https://osmosis.herokuapp.com/' : 'http://localhost:8126/'
+
 
 const MAPBOX_TOKEN =
 	'pk.eyJ1IjoicmFkZXItamFrZSIsImEiOiJjbDU4dXdnMXcyNDZ2M2pvY2k2OW1yajY5In0.VoWote3L5R1CdSF1RPKaZg';

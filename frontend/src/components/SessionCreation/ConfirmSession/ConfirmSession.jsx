@@ -6,7 +6,8 @@ import useStore from '../../../store';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const backendURL = 'http://localhost:8126/';
+const backendURL = process.env.NODE_ENV === 'production' ? 'https://osmosis.herokuapp.com/' : 'http://localhost:8126/'
+
 
 export const ConfirmSession = () => {
 

@@ -16,7 +16,8 @@ import PayPopUp from './PayPopUp';
 import { PeopleAltRounded } from '@mui/icons-material';
 import axios from 'axios';
 
-const backendURL = 'http://localhost:8126/';
+const backendURL = process.env.NODE_ENV === 'production' ? 'https://osmosis.herokuapp.com/' : 'http://localhost:8126/'
+
 
 // TO DO:
 // - Figure out Gallery Resizing for larger screens
