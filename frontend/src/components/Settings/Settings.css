@@ -1,0 +1,8 @@
+.MuiListItemText-root {
+    color: #00aeef;
+    font-weight: bold;
+}
+
+.MuiListItemIcon-root {
+    color: #00aeef !important;   
+}

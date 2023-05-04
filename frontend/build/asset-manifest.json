@@ -1,0 +1,35 @@
+{
+  "files": {
+    "main.css": "/static/css/main.ff6ee3f4.css",
+    "main.js": "/static/js/main.38c53a9d.js",
+    "static/js/483.a91eb265.chunk.js": "/static/js/483.a91eb265.chunk.js",
+    "static/media/Receiving.png": "/static/media/Receiving.0d9bc56dcfde825128d1.png",
+    "static/media/many.png": "/static/media/many.8bca10a1739303c8a9d2.png",
+    "static/media/little.png": "/static/media/little.7cc0eb34760e06a53ea3.png",
+    "static/media/Sharing.png": "/static/media/Sharing.75413ba09a6ed7c544db.png",
+    "static/media/few.png": "/static/media/few.fcb3bee615bad093b717.png",
+    "static/media/language.png": "/static/media/language.552811a816fbd702d6ee.png",
+    "static/media/Osmosis_Logo.png": "/static/media/Osmosis_Logo.b57c7918b0757ca0a4ac.png",
+    "static/media/cook.png": "/static/media/cook.8a07b0b55aed0c5acf99.png",
+    "static/media/sports.png": "/static/media/sports.cdfe99e4d9cb7a9b2bbb.png",
+    "static/media/business.png": "/static/media/business.93f064bfb4f8bb8c6dfa.png",
+    "static/media/music.png": "/static/media/music.ee59099fded0b0542cd5.png",
+    "static/media/art.png": "/static/media/art.73fe264702ea1367766a.png",
+    "static/media/dance.png": "/static/media/dance.343aba24d6c028d41730.png",
+    "static/media/yoga.png": "/static/media/yoga.7f307aeeaabef95f9a3a.png",
+    "static/media/upload.png": "/static/media/upload.68cb0bff29e4bb329a2d.png",
+    "static/media/camera.png": "/static/media/camera.8863c1d2789825f76759.png",
+    "static/media/slick.svg": "/static/media/slick.2630a3e3eab21c607e21.svg",
+    "static/media/slick.eot": "/static/media/slick.a4e97f5a2a64f0ab1323.eot",
+    "static/media/slick.ttf": "/static/media/slick.c94f7671dcc99dce43e2.ttf",
+    "static/media/slick.woff": "/static/media/slick.295183786cd8a1389865.woff",
+    "index.html": "/index.html",
+    "main.ff6ee3f4.css.map": "/static/css/main.ff6ee3f4.css.map",
+    "main.38c53a9d.js.map": "/static/js/main.38c53a9d.js.map",
+    "483.a91eb265.chunk.js.map": "/static/js/483.a91eb265.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.ff6ee3f4.css",
+    "static/js/main.38c53a9d.js"
+  ]
+}

@@ -1,0 +1,13 @@
+.carouselImg {
+  object-fit: contain;
+  width: 100%; 
+  height: 250px;
+}
+
+.slick-dots li button:before {
+  color: #00aeef;
+}
+
+.slick-dots li.slick-active button:before {
+  color: #00aeef;
+}

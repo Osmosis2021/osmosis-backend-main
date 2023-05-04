@@ -1,0 +1,110 @@
+{ "sessions": [
+    {
+        "id": "0",
+        "industry": "sports",
+        "generalTag": "Baseball",
+        "specificTags":"Batting, Fielding, Pitching, Running",
+        "firstName": "Jacob",
+        "lastName": "Rader",
+        "length": "30 min",
+        "time": "morning",
+        "photos": "https://media-exp1.licdn.com/dms/image/C4E03AQECfNtO5QdSOg/profile-displayphoto-shrink_200_200/0/1622760962532?e=1669852800&v=beta&t=5cVyzHmTzqmfxdwwlfv6QTJcLfSkSCRI3mFe9EgeCbE",
+        "latitude": 40.7407527,
+        "longitude": -73.6608236,
+        "capacityIcon":"many.png",
+        "capacity": "9",
+        "price": "$50",
+        "stars": 5,
+        "images": {
+            "first": "https://source.unsplash.com/random"
+        },
+        "description": "I love baseball. It's a lot of fun. I was a former D-1 athlete at Harvard community college."
+    },
+    {
+        "id": "1",
+        "industry":"yoga",
+        "generalTag": "Yoga",
+        "specificTags":"Meditation, Poses, Relaxing",
+        "firstName": "Sarah",
+        "lastName": "Brijlall",
+        "length": "60 min",
+        "time": "evening",
+        "photos": "https://media-exp1.licdn.com/dms/image/C5603AQHdM4H77XUS3w/profile-displayphoto-shrink_800_800/0/1656020165827?e=1669852800&v=beta&t=Clvwcp-DXhi8xYSkUs_-NnKcQp9qYkz4r748k7Jvy8I",
+        "latitude": 40.73033971927901,
+        "longitude": -73.77357331345905,
+        "capacityIcon":"little.png",
+        "capacity": "2",
+        "price": "$45",
+        "stars": 3,
+        "images": {
+            "first": "https://source.unsplash.com/random"
+        },
+        "description": "I love yoga. I practice yoga everyday. Namaste!"
+    },
+
+    {
+        "id": "2",
+        "industry": "languages",
+        "generalTag": "Spanish",
+        "specificTags":"Introductions, Conjugation, Vocabulary",
+        "firstName": "Imany",
+        "lastName": "Baez",
+        "length": "90 min",
+        "time": "evenings",
+        "photos": "https://media-exp1.licdn.com/dms/image/C4E03AQGCNZ9d55gljg/profile-displayphoto-shrink_200_200/0/1623462956933?e=1669852800&v=beta&t=tIm5sFsji5aPXhVNig7-EYW8bYd5TQ7J2Y6qwfnzBkM",
+        "latitude": 40.75054537701217,
+        "longitude": -73.84122297394723,
+        "capacityIcon":"few.png",
+        "capacity": "5",
+        "price": "$75",
+        "stars": 3,
+        "images": {
+            "first": "https://source.unsplash.com/random"
+        },
+        "description": "I love spanish. It's a lot of fun. Spanish was my first language and I understand the difficulties of learning a new language. You will learn from my mistakes."
+    },
+
+    {
+        "id": "3",
+        "industry": "sports",
+        "generalTag": "Tennis",
+        "specificTags":"Backhand, serving, receiving, doubles",
+        "firstName": "Emmanuel",
+        "lastName": "Kobara",
+        "length": "60 min",
+        "time": "afternoon",
+        "photos": "https://media-exp1.licdn.com/dms/image/D4D35AQGwF2LgWOZ09Q/profile-framedphoto-shrink_200_200/0/1634343832609?e=1664748000&v=beta&t=-rVijlqJW2RjZHtLarzH3uuoruQ012NfwByTti7Xens",
+        "latitude": 40.73116683959961,
+        "longitude": -73.7442855834961,
+        "capacityIcon":"little.png",
+        "capacity": "2",
+        "price": "$5",
+        "stars": 5,
+        "images": {
+            "first": "https://source.unsplash.com/random"
+        },
+        "description": "I love tennis. It's a lot of fun."
+    },
+    {
+        "id": "4",
+        "industry": "chef",
+        "generalTag": "French Cuisine",
+        "specificTags":"Croissants, Pastries, Baking, Sweets",
+        "firstName": "Alexander",
+        "lastName": "Morgan",
+        "length": "60 min",
+        "time": "morning",
+        "photos": "https://media-exp1.licdn.com/dms/image/C4E03AQGyADGVKGxhOw/profile-displayphoto-shrink_200_200/0/1655136142500?e=1669852800&v=beta&t=7Xf_erzo0nylc9MeCYp50CPdt04VORcCMxZf-oSnqo8",
+        "latitude": 40.75456869119296,
+        "longitude": -73.74626494467041,
+        "capacityIcon":"many.png",
+        "capacity": "9",
+        "price": "$50",
+        "stars": 2,
+        "images": {
+            "first": "https://source.unsplash.com/random"
+        },
+        "description": "I love cooking French pastries. It tastes great."
+    }
+]
+}

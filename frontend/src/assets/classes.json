@@ -1,0 +1,57 @@
+[
+    {
+        "id": "1",
+        "name": "Hip Hop Dancing",
+        "instructor": "Emmanuel Kobara",
+        "bio": "Learn how to create the hip and hop to rap music",
+        "price": "$45",
+        "capacity": "5",
+        "images": {
+            "first": "https://source.unsplash.com/random"
+        }
+    },
+    {
+        "id": "2",
+        "name": "Cooking",
+        "instructor": "Kwadi Cap",
+        "bio": "Learn how to create the hip and hop to rap music",
+        "price": "$45",
+        "capacity": "5",
+        "images": {
+            "first": "https://source.unsplash.com/random"
+        }
+    },
+    {
+        "id": "3",
+        "name": "Networking",
+        "instructor": "Jacob Bands",
+        "bio": "Leanr how to make connections and take your business to the next level",
+        "price": "$45",
+        "capacity": "5",
+        "images": {
+            "first": "https://source.unsplash.com/random"
+        }
+    },
+    {
+        "id": "4",
+        "name": "Basket Ball",
+        "instructor": "Sahira Bibi",
+        "bio": "Take your game up a notch with the best instructor in the business",
+        "price": "$60",
+        "capacity": "5",
+        "images": {
+            "first": "https://source.unsplash.com/random"
+        }
+    },
+    {
+        "id": "5",
+        "name": "Swift Development",
+        "instructor": "Oscar Sweat",
+        "bio": "Come create modern and responsive swift apps to land you a job at Apple Inc",
+        "price": "$20",
+        "capacity": "5",
+        "images": {
+            "first": "https://source.unsplash.com/random"
+        }
+    }
+]

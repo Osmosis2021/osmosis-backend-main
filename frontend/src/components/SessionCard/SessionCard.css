@@ -1,0 +1,32 @@
+.carousel-image {
+    object-fit: contain;
+    width: 100%;
+    /* background-color: white; */
+}
+
+.card-title .industry {
+    /* font-size: 18px; */
+    margin: 1%;
+    padding-left:3%;
+}
+
+.card-title .tags {
+    font-size: 10px;
+    margin-top: 0;
+    padding-left: 3%;
+}
+
+.more-info {
+    line-height: .75;
+    font-family: Poppins;
+    font-size: 10px;
+    margin: 0;
+    line-height: 2;
+}
+
+.name {
+    /* color: white; */
+    font-family: Poppins;
+    font-size: 8px;
+    flex-wrap: wrap;
+}

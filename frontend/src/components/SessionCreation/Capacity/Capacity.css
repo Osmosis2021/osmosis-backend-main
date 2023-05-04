@@ -1,0 +1,20 @@
+.footer-button {
+    position: absolute;
+    bottom: 65px;
+}
+
+.capButton {
+    border-radius: 50% !important;
+    width: 125px;
+    height: 125px;
+    display: flex;
+    flex-direction: column;
+    color: #fff !important;
+    font-weight: medium !important;
+}
+
+svg {
+    pointer-events: none;
+    width: 75px;
+    z-index: 1;
+}

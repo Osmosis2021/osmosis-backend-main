@@ -1,0 +1,77 @@
+import { useState } from 'react';
+import { Box, IconButton, Stack, Typography } from '@mui/material';
+import PhotoCamera from '@mui/icons-material/PhotoCamera';
+import DeleteIcon from '@mui/icons-material/Delete';
+import useStore from '../../../../store';
+
+export default function UploadPhotos() {
+
+	const {images, setImages} = useStore();
+
+	//Handle and convert image to base 64 
+    const addImage = (e) =>{
+        const files = Array.from(e.target.files);
+        files.forEach(file => {
+			const reader = new FileReader();
+			reader.readAsDataURL(file);
+			reader.onloadend = () => {
+				setImages([...images, reader.result])
+			}
+		})
+    }
+
+	//Remove image from array
+	function removeImage(e) {
+    	const remove = images.filter((item, index) => index !== e);
+    	setImages(remove);
+  	}
+
+	return (
+		<div>
+			<Box>
+				<Typography variant='h6' mt={8} align='center' fontSize={21}>
+					Upload your Photos:
+				</Typography>
+
+				<Stack style={{ alignItems: 'center' }}>
+					<form
+						method='POST'
+						encType='multipart/form-data'
+						action='uploadfile'
+						style={{display: 'flex', flexDirection: 'column'}}
+						>
+						<IconButton
+							style={{ height: 150, width: 150 }}
+							color='primary'
+							aria-label='upload picture'
+							component='label'>
+							<input
+							style={{zIndex:10}}
+							hidden
+							type="file"
+							className="form-control"
+							onChange={addImage}
+						/>
+							<PhotoCamera />
+						</IconButton>
+					</form>
+						{
+							images.map((item, index) => {
+								return (
+									<div style={{position: 'relative'}} key={item}>
+										<img src={item} alt="" style={{width:'250px', height:'125px', objectFit:'cover'}}/>
+										
+										<div style={{position:'absolute', bottom: 0, right: 0}}>
+											<IconButton type="button" color='error' onClick={() => removeImage(index)}>
+												<DeleteIcon style={{height:25, width:25, background:'white', opacity:'.75', borderRadius:'50%', padding:'1px'}}/>
+											</IconButton>
+										</div>
+									</div>
+								)
+							})
+						}
+				</Stack>
+			</Box>
+		</div>
+	);
+}

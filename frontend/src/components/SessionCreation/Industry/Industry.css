@@ -1,0 +1,24 @@
+.industryButton {
+    border-radius: 50% !important;
+    width: 125px;
+    height: 125px;
+    display: flex;
+    flex-direction: column;
+    color: #fff !important;
+    font-weight: medium !important;
+}
+
+.industryButton img {
+    width: 70px;
+    height: 70px;
+    z-index: 1;
+}
+
+button h5, button img {
+    pointer-events: none;
+}
+
+.footer-button {
+    position: absolute;
+    bottom: 65px;
+}

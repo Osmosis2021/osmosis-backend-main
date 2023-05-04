@@ -1,0 +1,303 @@
+/* ----------------------- PARTICLES ----------------------- */
+
+.particles {
+    position: absolute;
+    top: -100px;
+    left: 10px;
+    right: 10px;
+    height: 100vh;
+  }
+  
+    .particle {
+      position: absolute;
+      opacity: 0.1;
+      background: #00aeef;
+      -webkit-animation-iteration-count: infinite !important;
+      animation-iteration-count: infinite !important;
+    }
+  
+  
+  .particle:nth-child(1) {
+    height: 25px;
+    width: 25px;
+    border-radius: 100%;
+    -webkit-animation: floating 2s linear;
+    animation: floating 23s linear;
+    top: 65%;
+    left: 10%;
+  }
+  
+  .particle:nth-child(2) {
+    height: 12px;
+    width: 12px;
+    border-radius: 100%;
+    -webkit-animation: floating 30s linear;
+    animation: floating 30s linear;
+    top: 15%;
+    left: 33%;
+  }
+  
+  .particle:nth-child(25),
+  .particle:nth-child(3) {
+    -webkit-animation: floating 23s linear;
+    border-radius: 100%;
+  }
+  
+  .particle:nth-child(3) {
+    height: 21px;
+    width: 21px;
+    animation: floating 23s linear;
+    top: 48%;
+    left: 36%;
+  }
+  
+  .particle:nth-child(4) {
+    height: 16px;
+    width: 16px;
+    border-radius: 100%;
+    -webkit-animation: floating 20s linear;
+    animation: floating 20s linear;
+    top: 85%;
+    left: 75%;
+  }
+  
+  .particle:nth-child(5) {
+    height: 10px;
+    width: 10px;
+    border-radius: 100%;
+    -webkit-animation: floating 27s linear;
+    animation: floating 27s linear;
+    top: 36%;
+    left: 78%;
+  }
+  
+  .particle:nth-child(6) {
+    height: 22px;
+    width: 22px;
+    border-radius: 100%;
+    -webkit-animation: floating 18s linear;
+    animation: floating 18s linear;
+    top: 87%;
+    left: 18%;
+  }
+  
+  .particle:nth-child(7) {
+    height: 16px;
+    width: 16px;
+    border-radius: 100%;
+    -webkit-animation: floating 31s linear;
+    animation: floating 31s linear;
+    top: 63%;
+    left: 78%;
+  }
+  
+  .particle:nth-child(8) {
+    height: 17px;
+    width: 17px;
+    border-radius: 100%;
+    -webkit-animation: floating 22s linear;
+    animation: floating 22s linear;
+    top: 35%;
+    left: 76%;
+  }
+  
+  .particle:nth-child(9) {
+    height: 15px;
+    width: 15px;
+    border-radius: 100%;
+    -webkit-animation: floating 26s linear;
+    animation: floating 26s linear;
+    top: 20%;
+    left: 70%;
+  }
+  
+  .particle:nth-child(10) {
+    height: 13px;
+    width: 13px;
+    border-radius: 100%;
+    -webkit-animation: floating 27s linear;
+    animation: floating 27s linear;
+    top: 42%;
+    left: 23%;
+  }
+  
+  .particle:nth-child(11) {
+    height: 14px;
+    width: 14px;
+    border-radius: 100%;
+    -webkit-animation: floating 25s linear;
+    animation: floating 25s linear;
+    top: 62%;
+    left: 17%;
+  }
+  
+  .particle:nth-child(12) {
+    height: 13px;
+    width: 13px;
+    border-radius: 100%;
+    -webkit-animation: floating 24s linear;
+    animation: floating 24s linear;
+    top: 9%;
+    left: 63%;
+  }
+  
+  .particle:nth-child(13) {
+    height: 14px;
+    width: 14px;
+    border-radius: 100%;
+    -webkit-animation: floating 16s linear;
+    animation: floating 16s linear;
+    top: 14%;
+    left: 30%;
+  }
+  
+  .particle:nth-child(14) {
+    height: 11px;
+    width: 11px;
+    border-radius: 100%;
+    -webkit-animation: floating 29s linear;
+    animation: floating 29s linear;
+    top: 29%;
+    left: 33%;
+  }
+  
+  .particle:nth-child(15) {
+    height: 17px;
+    width: 17px;
+    border-radius: 100%;
+    -webkit-animation: floating 18s linear;
+    animation: floating 18s linear;
+    top: 68%;
+    left: 31%;
+  }
+  
+  .particle:nth-child(16) {
+    height: 18px;
+    width: 18px;
+    border-radius: 100%;
+    -webkit-animation: floating 16s linear;
+    animation: floating 16s linear;
+    top: 29%;
+    left: 57%;
+  }
+  
+  .particle:nth-child(17) {
+    height: 18px;
+    width: 18px;
+    border-radius: 100%;
+    -webkit-animation: floating 27s linear;
+    animation: floating 27s linear;
+    top: 49%;
+    left: 21%;
+  }
+  
+  .particle:nth-child(18) {
+    height: 7px;
+    width: 7px;
+    border-radius: 100%;
+    -webkit-animation: floating 32s linear;
+    animation: floating 32s linear;
+    top: 35%;
+    left: 94%;
+  }
+  
+  .particle:nth-child(19) {
+    height: 10px;
+    width: 10px;
+    border-radius: 100%;
+    -webkit-animation: floating 30s linear;
+    animation: floating 30s linear;
+    top: 42%;
+    left: 33%;
+  }
+  
+  .particle:nth-child(20) {
+    height: 18px;
+    width: 18px;
+    border-radius: 100%;
+    -webkit-animation: floating 30s linear;
+    animation: floating 30s linear;
+    top: 94%;
+    left: 20%;
+  }
+  
+  .particle:nth-child(21) {
+    height: 24px;
+    width: 24px;
+    border-radius: 100%;
+    -webkit-animation: floating 32s linear;
+    animation: floating 32s linear;
+    top: 7%;
+    left: 23%;
+  }
+  
+  .particle:nth-child(22) {
+    height: 24px;
+    width: 24px;
+    border-radius: 100%;
+    -webkit-animation: floating 29s linear;
+    animation: floating 29s linear;
+    top: 49%;
+    left: 33%;
+  }
+  
+  .particle:nth-child(23) {
+    height: 25px;
+    width: 25px;
+    border-radius: 100%;
+    -webkit-animation: floating 24s linear;
+    animation: floating 24s linear;
+    top: 82%;
+    left: 58%;
+  }
+  
+  .particle:nth-child(24) {
+    height: 14px;
+    width: 14px;
+    border-radius: 100%;
+    -webkit-animation: floating 27s linear;
+    animation: floating 27s linear;
+    top: 60%;
+    left: 90%;
+  }
+  
+  .particle:nth-child(25) {
+    height: 25px;
+    width: 25px;
+    animation: floating 23s linear;
+    top: 53%;
+    left: 85%;
+  }
+  
+  .particle:nth-child(26) {
+    height: 23px;
+    width: 23px;
+    border-radius: 100%;
+    -webkit-animation: floating 23s linear;
+    animation: floating 23s linear;
+    top: 63%;
+    left: 94%;
+  }
+  
+  @keyframes floating {
+    0% {
+      -webkit-transform: translate(0, 0) scale(0.5);
+      transform: translate(0, 0) scale(0.5);
+      opacity: 0;
+    }
+    5% {
+      opacity: 0.1;
+    }
+    50% {
+      -webkit-transform: translate(0, -250px) scale(1.4);
+      transform: translate(0, -250px) scale(1.4);
+    }
+    95% {
+      opacity: 0;
+    }
+    100% {
+      -webkit-transform: translate(0, -500px) scale(0.5);
+      transform: translate(0, -500px) scale(0.5);
+    }
+  }
+  

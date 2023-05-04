@@ -1,0 +1,14 @@
+.footer-button {
+    position: absolute;
+    bottom: 30px;
+    left: 0;
+    display: flex; 
+    justify-content:space-between;
+    padding: 5%;
+    flex-direction:'row'; 
+    width: 100%;
+}
+
+.display-false {
+    display: none !important;
+}
