@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Course = require('./course');
 const User = require('./user');
-const CourseTimeslot = require('./CourseTimeslot');
+const CourseTimeslot = require('./courseTimeslot');
 
 const BookingSchema = new mongoose.Schema({
     timestamp: {type: Number},
@@ -32,5 +32,5 @@ const BookingSchema = new mongoose.Schema({
     // teacher: {type: mongoose.Schema.Types.ObjectId, required: true, ref: User}
 })
 
-const Booking = mongoose.model('Booking', BookingSchema);
+const Booking = mongoose.model('booking', BookingSchema);
 module.exports = Booking;

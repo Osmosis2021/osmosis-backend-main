@@ -15,5 +15,5 @@ const CourseTimeslotSchema = new mongoose.Schema({
 
 })
 
-const CourseTimeslot = mongoose.model('CourseTimeslot', CourseTimeslotSchema);
+const CourseTimeslot = mongoose.model('courseTimeslot', CourseTimeslotSchema);
 module.exports = CourseTimeslot;
