@@ -32,5 +32,5 @@ const BookingSchema = new mongoose.Schema({
     // teacher: {type: mongoose.Schema.Types.ObjectId, required: true, ref: User}
 })
 
-const Booking = mongoose.model('booking', BookingSchema);
+const Booking = mongoose.model('Booking', BookingSchema);
 module.exports = Booking;
