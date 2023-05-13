@@ -1,14 +1,14 @@
 const mongoose = require('mongoose');
 const Course = require('./course');
 const User = require('./user');
-const CourseTimeslot = require('./courseTimeslot')
+// const CourseTimeslot = require('./courseTimeSlot')
 
 const BookingSchema = new mongoose.Schema({
     timestamp: {type: Number},
     studentID: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     numberOfGuests: {type: Number, required: true},
     total: {type: Number},
-    courseTimeslotID: {type: mongoose.Schema.Types.ObjectId, ref: 'CourseTimeslot'},
+    courseTimeslotID: {type: mongoose.Schema.Types.ObjectId, ref: 'CourseTimeSlot'},
     courseID: {type: mongoose.Schema.Types.ObjectId, ref: 'Course'},
     teacherID: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     time: {type: String},
