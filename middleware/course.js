@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const Course = require('../models/course')
-const CourseTimeslot = require('../models/courseTimeSlot')
+const CourseTimeslot = require('../models/courseTimeslot')
 const Image = require('../models/image')
 const cloudinary = require('cloudinary');
 
