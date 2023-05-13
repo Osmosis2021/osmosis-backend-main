@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Course = require('./course');
 const User = require('./user');
-const CourseTimeslot = require('./courseTimeslot')
+const CourseTimeslot = require('./courseTimeSlot')
 
 const BookingSchema = new mongoose.Schema({
     timestamp: {type: Number},
