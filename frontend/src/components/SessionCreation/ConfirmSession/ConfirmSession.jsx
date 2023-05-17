@@ -41,7 +41,7 @@ export const ConfirmSession = () => {
                 schedule: newCourseTimeslots
             }
 
-            const {data} = await axios.post('http://localhost:8126/course/registerCourse', courseInfo)
+            const {data} = await axios.post(backendURL + 'course/registerCourse', courseInfo)
             
             if  (data.success === true) {
 

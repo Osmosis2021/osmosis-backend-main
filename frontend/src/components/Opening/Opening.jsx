@@ -9,7 +9,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 // import './Opening.css';
 
-const backendURL = 'http://localhost:8126/'
+const backendURL = process.env.NODE_ENV === 'production' ? 'https://osmosis.herokuapp.com/' : 'http://localhost:8126/'
 
 const Opening = () => {
 	const [email, setEmail] = useState('')
