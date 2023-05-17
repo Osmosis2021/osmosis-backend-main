@@ -26,9 +26,9 @@ const OpeningMap = () => {
 	const [selectedCourse, setSelectedCourse] = useState(null);
 
 	const [initialViewState, setInitialViewState] = useState({
-		zoom: 12,
-		latitude: 40.72825622558594,
-		longitude: -73.72755432128906,
+		zoom: 10,
+		latitude: 40.7076398,
+		longitude: -73.9596498,
 		// MAKE CURRENT LOCATION OF USER
 	});
 	const [courses, setCourses] = useState([]);
