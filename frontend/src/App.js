@@ -44,10 +44,13 @@ import axios from 'axios';
 import Payment from './components/Course/Payment';
 import SingleBookingPageForStudent from './components/Booking/SingleBookingPageForStudent';
 import Privacy from './components/Settings/Privacy';
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 
 axios.defaults.withCredentials = true;
 
 function App() {
+	const stripePromise = loadStripe('pk_test_51MngVdIVE7cwgof9GzZJfeu7r3wQcv5vb42koFkURzk6VG6cdafDw9ZHDM5WvHxMbRFoJtlmBQnNnN8P8JNjcxJa00qdQ8gXta');
 	return (
 		<ThemeProvider theme={theme}>
 			<CssBaseline />
@@ -77,9 +80,13 @@ function App() {
 					<Route path='/settings' element={<Settings />} />
 
 					<Route path='/edit' element={<EditProfile />} />
-
-					<Route path='/confirm' element={<Confirm />} />
-
+					<Route path='/confirm' element={
+						<Elements stripe={stripePromise}>
+                            <Confirm />
+                        </Elements>
+					} />
+					
+				
 					<Route path='/bookings' element={<BookingPage />} />
 
 					<Route path='teacher/bookings/:id' element={<SingleBookingPage />} />

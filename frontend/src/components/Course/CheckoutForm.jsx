@@ -1,6 +1,5 @@
-import { PaymentElement } from "@stripe/react-stripe-js";
+import { useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
 import { useState } from "react";
-import { useStripe, useElements } from "@stripe/react-stripe-js";
 import useStore from "../../store";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
@@ -8,37 +7,48 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 export default function CheckoutForm(props) {
   const stripe = useStripe();
   const elements = useElements();
-
+  const clientSecret = props.clientSecret
+  console.log('CheckoutForm props =>', props)
   const [message, setMessage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const {userName} = useStore;
+  const {userName} = useStore();
+
+  // const elements = stripe.elements({ clientSecret: props.clientSecret})
+  // const paymentElement = elements.create('payment')
+  // paymentElement.mount('#payment-element')
   
-  const handleSubmit = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!stripe || !elements) {
       // Stripe.js has not yet loaded.
       // Make sure to disable form submission until Stripe.js has loaded.
       return;
     }
+
     setIsProcessing(true);
-    const { error } = await stripe.confirmPayment({
+
+    // const elements = stripe.elements({props.clientSecret})
+
+    const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        // Make sure to change this to your payment completion page
-        return_url: `${window.location.origin}/students/${userName}`,
+        return_url: `${window.location.origin}/confirm`,
       },
     });
+
     setIsProcessing(false);
+
     if (error.type === "card_error" || error.type === "validation_error") {
       setMessage(error.message);
       return
     } 
     props.bookThisCourse()
+    console.log('bookThisCourse function RAN')
   };
 
   return (
     <form id="payment-form" onSubmit={handleSubmit}>
-      <PaymentElement id="payment-element" />
+      <PaymentElement />
       <button style={{display: 'flex', flexDirection: 'column', margin: 'auto', justifyContent: 'center', alignItems: 'center',
         background: 'transparent', border: 'none'}} disabled={isProcessing || !stripe || !elements} id="submit">
         <CheckCircleIcon style={{fontSize:'105px', color:'#00aeef'}}/>
@@ -48,6 +58,7 @@ export default function CheckoutForm(props) {
       </button>
       {/* Show any error or success messages */}
       {message && <div style={{color: 'red', fontSize: '20px'}} id="payment-message">{message}</div>}
+  
     </form>
   );
 }
