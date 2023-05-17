@@ -16,6 +16,14 @@ import PayPopUp from './PayPopUp';
 import { PeopleAltRounded } from '@mui/icons-material';
 import axios from 'axios';
 
+import mapboxgl from 'mapbox-gl'
+// The following is required to stop "npm build" from transpiling mapbox code.
+// notice the exclamation point in the import.
+// @ts-ignore
+// eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
+mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker').default;
+
+
 const backendURL = process.env.NODE_ENV === 'production' ? 'https://osmosis.herokuapp.com/' : 'http://localhost:8126/'
 
 
