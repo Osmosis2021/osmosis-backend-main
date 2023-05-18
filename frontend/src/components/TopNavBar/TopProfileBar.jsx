@@ -20,6 +20,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import useStore from '../../store';
 
 export default function TopProfileBar(props) {
 
@@ -34,6 +35,7 @@ export default function TopProfileBar(props) {
 
     const [isDrawerOpen, setIsDrawerOpen] = useState(false)
     const [open, setOpen] = React.useState(false);
+    const {isTeacher} = useStore();
 
     const handleClickOpen = () => {
         setOpen(true);
@@ -100,7 +102,10 @@ export default function TopProfileBar(props) {
           
 
           <Box sx={{ flexGrow: .5 }} /> 
+
             <Box rowSpacing={2}>
+                {
+                    isTeacher ?
                 <IconButton
                     style={{ marginRight:'7px'}}
                         size="medium"
@@ -115,46 +120,44 @@ export default function TopProfileBar(props) {
                     </Link>
                 </IconButton> 
 
-
+                : <></>
+                }
                 {/* DIALOG */}
 
-    
-      <Dialog
-        fullWidth
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle variant='h3' id="alert-dialog-title">
-        Create a <span style={{color:'#00aeef'}}>course</span> in 7 steps?
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            <List>
-                <ListItemText> 1. Industry </ListItemText>
-                <ListItemText> 2. Tags </ListItemText>
-                <ListItemText> 3. Availability </ListItemText>
-                <ListItemText> 4. Location </ListItemText>
-                <ListItemText> 5. Capacity </ListItemText>
-                <ListItemText> 6. Cost </ListItemText>
-                <ListItemText> 7. Photos </ListItemText>
-            </List>
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-            <Button onClick={handleClose}>Maybe Later</Button>
-            <Link to='/FLOW' style={{textDecoration:'none'}}>
-                <Button onClick={handleClose}>Lets Begin</Button>
-            </Link>
-        </DialogActions>
-      </Dialog>
-   
-  
-
-
+                
+                  <Dialog
+                    fullWidth
+                    open={open}
+                    onClose={handleClose}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                  >
+                    <DialogTitle variant='h3' id="alert-dialog-title">
+                    Create a <span style={{color:'#00aeef'}}>course</span> in 7 steps?
+                    </DialogTitle>
+                    <DialogContent>
+                      <DialogContentText id="alert-dialog-description">
+                        <List>
+                            <ListItemText> 1. Industry </ListItemText>
+                            <ListItemText> 2. Tags </ListItemText>
+                            <ListItemText> 3. Availability </ListItemText>
+                            <ListItemText> 4. Location </ListItemText>
+                            <ListItemText> 5. Capacity </ListItemText>
+                            <ListItemText> 6. Cost </ListItemText>
+                            <ListItemText> 7. Photos </ListItemText>
+                        </List>
+                      </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleClose}>Maybe Later</Button>
+                        <Link to='/FLOW' style={{textDecoration:'none'}}>
+                            <Button onClick={handleClose}>Lets Begin</Button>
+                        </Link>
+                    </DialogActions>
+                  </Dialog>
                 {/* DIALOG */}
 
+                
 
               
 
