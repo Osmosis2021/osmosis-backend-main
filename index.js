@@ -15,11 +15,14 @@ const PORT = process.env.PORT || 8126;
 console.log({PORT})
 
 
-mongoose.connect('mongodb+srv://osmosisAdmin:OsmosisV1production@osmosis.ckm2gk7.mongodb.net/?retryWrites=true&w=majority',
-    {useNewUrlParser: true, useUnifiedTopology: true})
-.then(async (res) => {
-    console.log(`Connected to DB 🌟`)
-}).catch((error) => console.log('Connection failed!', error));
+mongoose.connect(
+    'mongodb+srv://osmosisAdmin:OsmosisV1production@osmosis.ckm2gk7.mongodb.net/?retryWrites=true&w=majority',
+    {useNewUrlParser: true, useUnifiedTopology: true},
+    )
+    .then(async (res) => {
+        console.log(`Connected to DB 🌟`)
+    })
+    .catch((error) => console.log('Connection failed!', error));
 
 //=============================================================================
 // Middleware
