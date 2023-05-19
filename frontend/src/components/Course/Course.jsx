@@ -51,7 +51,6 @@ const Course = (props) => {
 		.then((res) => {
 			return res.json();
 		}).then((data) => {
-			console.log({courseData});
 			setCourseData(data)
 		}).catch((err) => {
 			console.log('Error getting course info:\n', err);

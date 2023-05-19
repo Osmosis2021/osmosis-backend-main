@@ -1,11 +1,10 @@
-import { PaymentElement } from "@stripe/react-stripe-js";
 import { useState } from "react";
-import { useStripe, useElements } from "@stripe/react-stripe-js";
+import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import useStore from "../../store";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 
-export default function CheckoutForm(props) {
+export default function CheckoutForm({ bookThisCourse }) {
   const stripe = useStripe();
   const elements = useElements();
 
@@ -29,11 +28,13 @@ export default function CheckoutForm(props) {
       },
     });
     setIsProcessing(false);
-    if (error.type === "card_error" || error.type === "validation_error") {
-      setMessage(error.message);
-      return
-    } 
-    props.bookThisCourse()
+    if (error.type === 'card_error' || error.type === 'validation_error') {
+			setMessage(error.message);
+		} else {
+			setMessage('An unexpected error occurred.');
+		};
+
+    bookThisCourse();
   };
 
   return (
