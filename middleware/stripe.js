@@ -19,18 +19,21 @@ const CLIENT_URL = 'http://localhost:3000';
     });
 
     router.post('/create-payment-intent', async(req, res) => {
-        const { amount, capacity } = req.body
-        console.log('in create-payment-intent route with this request:', amount * capacity)
+        const { amount, capacity, metadata} = req.body
+        console.log('in create-payment-intent route with this request:', amount * capacity, metadata)
     
         const paymentIntent = await stripe.paymentIntents.create({
             amount: (amount * capacity) * 100,
             currency: 'usd',
             automatic_payment_methods: { enabled: true },
+            metadata: metadata,
             // application_fee_amount: 123,
         })
+
+        console.log(paymentIntent);
             
         // Return client secret to frontend
-        res.send({ clientSecret: paymentIntent.client_secret })
+        res.send({ paymentIntent, clientSecret: paymentIntent.client_secret })
     });
 
     router.post('/webhook', bodyParser.raw({type: 'application/json'}), async (req, res) => {
@@ -68,7 +71,7 @@ const CLIENT_URL = 'http://localhost:3000';
                         courseTimeslotID: courseTimeslotID,
                         courseID: courseID,
                         total: total, 
-                        teacherID: teacherID,
+                        teacherUserName: teacherUserName,
                         time: time,
                         date: date, 
                     });
@@ -115,7 +118,7 @@ const CLIENT_URL = 'http://localhost:3000';
         //                 courseTimeslotID: courseTimeslotID,
         //                 courseID: courseID,
         //                 total: total, 
-        //                 teacherID: teacherID,
+        //                 teacherUserName: teacherUserName,
         //                 time: time,
         //                 date: date, 
         //             });

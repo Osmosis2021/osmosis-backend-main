@@ -16,6 +16,9 @@ function Confirm() {
         async function getStripeStuff() {
             // extract the 'payment_intent_client_secret'
             const clientSecret = new URLSearchParams(window.location.search).get("payment_intent_client_secret");
+            const teacherUserName = new URLSearchParams(window.location.search).get("teacherUserName");
+            const date = new URLSearchParams(window.location.search).get("date");
+            const time = new URLSearchParams(window.location.search).get("time");
 
             // get the client payment status information and payment id from STRIPE API
             let res = await stripe.retrievePaymentIntent(clientSecret);
@@ -27,26 +30,31 @@ function Confirm() {
             console.log("paymentId:", res.paymentIntent.id);
 
             // payment status
-            console.log("paymentStatus", res.paymentIntent.status);
+            console.log("paymentStatus", res.paymentIntent.status, res.paymentIntent);
 
             switch (res.paymentIntent.status) {
                 case "succeeded":
-                    setMessage("Success! Payment received.");
+                    console.log('in succeeded branch', res.paymentIntent);
+                    setMessage(`Success! Payment received. You're all set to join ${teacherUserName}'s class on ${date} at ${time}.`);
                     break;
 
                 case "processing":
+                    console.log('in processing branch');
+
                     setMessage(
                         "Payment processing. We'll update you when payment is received."
                     );
                     break;
 
                 case "requires_payment_method":
+                    console.log('in requirespaymentmethod branch');
                     // Redirect your user back to your payment page to attempt collecting
                     // payment again
                     setMessage("Payment failed. Please try another payment method.");
                     break;
 
                 default:
+                    console.log('in default branch');
                     setMessage("Something went wrong.");
                     break;
             }
@@ -68,7 +76,7 @@ function Confirm() {
             {/* <Bubbles/> */}
                 
             <Typography variant="h4">
-                You're all set to join xyz's class for {message}
+                {message}
             </Typography>
             <br/>
             <Typography variant="h5">

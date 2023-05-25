@@ -27,7 +27,8 @@ function Payment(props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           amount: props.item.pricePerStudent,
-          capacity: props.item.guests, 
+          capacity: props.item.guests,
+          metadata: props.paymentMetadata
         }),
       }).then(async (res) => {
           const { clientSecret } = await res.json();
@@ -49,6 +50,7 @@ function Payment(props) {
           <CheckoutForm
             clientSecret={clientSecret}
             bookThisCourse={props.bookThisCourse}
+            paymentMetadata={props.paymentMetadata}
           />
         </Elements>
       )}

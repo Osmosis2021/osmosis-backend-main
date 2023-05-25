@@ -28,11 +28,12 @@ export default function CheckoutForm(props) {
     setIsProcessing(true);
 
     // const elements = stripe.elements({props.clientSecret})
-
+    const {teacherUserName, date, time} = props.paymentMetadata
+    const paymentMetadataString = new URLSearchParams({teacherUserName, date, time}).toString()
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/confirm`,
+        return_url: `${window.location.origin}/confirm/?${paymentMetadataString}`,
       },
     });
 

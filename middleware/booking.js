@@ -17,6 +17,7 @@ router.post('/bookings', async (req, res) => {
         courseTimeslotID,
         courseID, 
         teacherID,
+        teacherUserName,
         time,
         date, 
     } = req.body 
@@ -36,6 +37,7 @@ router.post('/bookings', async (req, res) => {
             courseID: courseID,
             total: total, 
             teacherID: teacherID,
+            teacherUserName,
             time: time,
             date: date, 
             // address: courseAddress,

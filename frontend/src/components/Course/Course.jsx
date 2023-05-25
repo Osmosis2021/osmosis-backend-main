@@ -263,6 +263,7 @@ const Course = (props) => {
 					total={courseData.pricePerStudent * guestsEntered}
 					teacherFullName={`${teacherInfo?.firstName} ${teacherInfo?.lastName}`}
 					teacherID={courseData.teacherID}
+					teacherUserName={courseData.userName}
 				/>
 			</div>
 
@@ -283,7 +284,7 @@ const Course = (props) => {
 					profileImage={teacherInfo?.profileImage?.url}
 					total={courseData.pricePerStudent * guestsEntered}
 					teacherFullName={`${teacherInfo?.firstName} ${teacherInfo?.lastName}`}
-					teacherID={courseData.teacherID}
+					teacherUserName={courseData.userName}
 				/>
 			</div> */}
 

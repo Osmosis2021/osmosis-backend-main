@@ -11,6 +11,7 @@ const BookingSchema = new mongoose.Schema({
     courseTimeslotID: {type: mongoose.Schema.Types.ObjectId, ref: 'CourseTimeSlot'},
     courseID: {type: mongoose.Schema.Types.ObjectId, ref: 'Course'},
     teacherID: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    teacherUserName: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     time: {type: String},
     date: {type: String}
     // date: { startDate: {type: String}, startTime: {type: String},},

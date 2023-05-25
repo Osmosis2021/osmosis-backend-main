@@ -78,7 +78,7 @@ router.post('/registerUser', async (req, res) => {
 router.post('/getTeacherData', async (req, res) => {
     // console.log('in backend with this req', req.body);
     // const {teacherUserName} = req.params
-    // const teacherObj = await User.findOne({teacherUserName: "rader-jake"})
+    // const teacherObj = await User.findOne({userName: "rader-jake"})
     User.findOne({userName: req.body.userName}, (err, data) => {
         if (data) {
             res.json(data)

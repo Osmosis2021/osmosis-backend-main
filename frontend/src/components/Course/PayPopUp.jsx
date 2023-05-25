@@ -27,6 +27,11 @@ export default function PayPopUp(props) {
   const [open, setOpen] = React.useState(false);
   const {userName, isTeacher} = useStore();
   const navigate = useNavigate();
+  const paymentMetadata = {
+    teacherUserName: props.teacherUserName,
+    time: props.selectedDateAndTime.startTime,
+    date: String(props.selectedDateAndTime.startDate).split('T')[0]
+  }
 
   async function bookThisCourse() {
     await axios.post(`${backendURL}booking/bookings`, {
@@ -36,6 +41,7 @@ export default function PayPopUp(props) {
       courseTimeslotID: props.selectedTimeslotID,
       courseID: props.courseID,
       teacherID: props.teacherID,
+      teacherUserName: props.teacherUserName,
       time: props.selectedDateAndTime.startTime,
       date: props.selectedDateAndTime.startDate
     });
@@ -162,7 +168,7 @@ export default function PayPopUp(props) {
                 <hr style={{width:'90%', color:'black', border: 'solid .5px'}} />
 
                 <Grid container p={2} justifyContent='center'>
-                    <Payment item={props} bookThisCourse={bookThisCourse} />
+                    <Payment item={props} paymentMetadata={paymentMetadata} bookThisCourse={bookThisCourse} />
                 </Grid>
 
             </Dialog>
