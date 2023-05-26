@@ -97,7 +97,12 @@ const Signup = props => {
 				body: JSON.stringify(userObj),
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-			}).then(() => {
+			}).then((resp) => resp.json()
+            ).then(response => {
+                if(response?.message?.startsWith('Unsuccessful')) {
+                    console.log('Unable to register this user. ' + response.message)
+                    return
+                }
                 console.log('successfully registered a new user');
                 // update store with user data
                 setFirstName(userObj.firstName)

@@ -32,7 +32,6 @@ router.get('/isUserNameUnique/:userName', async (req, res) => {
     const {userName} = req.params
     console.log('in router.get /isUserNameUnique, name:', userName);
     User.findOne({userName}, (err, data) => {
-        console.log(data)
         if (data) {
             res.json({isAvailable: false})
         } else {
@@ -42,9 +41,13 @@ router.get('/isUserNameUnique/:userName', async (req, res) => {
 })
 
 router.post('/registerUser', async (req, res) => {
-    const exisitingUser = await User.findOne({email: req.body.email})
-    if (exisitingUser) {
-        return res.json({message: 'This email is already registered.'})
+    const exisitingUserName = await User.findOne({userName: req.body.userName})
+    if (exisitingUserName) {
+        return res.json({message: 'Unsuccessful. This username is already taken.'})
+    }
+    const exisitingUserEmail = await User.findOne({email: req.body.email})
+    if (exisitingUserEmail) {
+        return res.json({message: 'Unsuccessful. This email is already registered.'})
     }
     const userInfo = {
         email: req.body.email,

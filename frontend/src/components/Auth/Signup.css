@@ -2,3 +2,7 @@
     position: absolute;
     bottom: 65px;
 }
+
+.available-false {
+    border: 2px solid red !important;
+}
