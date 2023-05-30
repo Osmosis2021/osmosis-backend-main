@@ -8,6 +8,10 @@ function Cost(props) {
     const {newCourseCost, setNewCourseCost} = useStore()
     props.setIsNextDisabled(!Boolean(newCourseCost))
 
+	const setWholeNumberCost = val => {
+		setNewCourseCost(Math.max(Math.floor(val), 0))
+	}
+
 	return (
 		<>
 		{/* <TopNavBar back='/capacity' next='/address' activeStep='6'/> */}
@@ -24,10 +28,12 @@ function Cost(props) {
 				</Grid>
 				<Grid item xs={8}>
 					<OutlinedInput
-						onChange={(e) => setNewCourseCost(e.target.valueAsNumber)}
+						onChange={(e) => setWholeNumberCost(e.target.valueAsNumber)}
 						value={newCourseCost}
 						id='outlined-adornment-amount'
 						type='number'
+						min="0"
+						step="1"
 					/>
 				</Grid>
 			</Grid>
