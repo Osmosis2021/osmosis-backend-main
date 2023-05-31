@@ -38,7 +38,6 @@ const Opening = () => {
 		).then(res => res.json()
 		).then(userDoc => {
 			if (userDoc._id) {
-				console.log('found a user', userDoc);
 				setUserID(userDoc._id)
 				setUserName(userDoc.userName)
 				setIsTeacher(userDoc.isTeacher)

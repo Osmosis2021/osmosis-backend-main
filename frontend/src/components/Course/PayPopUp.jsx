@@ -25,7 +25,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 
 export default function PayPopUp(props) {
   const [open, setOpen] = React.useState(false);
-  const {userName, isTeacher} = useStore();
+  const {userID, userName, isTeacher} = useStore();
   const navigate = useNavigate();
   const paymentMetadata = {
     teacherUserName: props.teacherUserName,
@@ -67,7 +67,8 @@ export default function PayPopUp(props) {
           variant="contained" 
           style={{color:'white'}}
           onClick={handleClickOpen}
-          disabled={!props.selectedDateAndTime.hasOwnProperty('startDate')}>
+          // require timeslot to be selected and user to be signed in to be able to pay
+          disabled={((!props.selectedDateAndTime.hasOwnProperty('startDate')) || (!userID))}>
           Pay
         </Button>
         <Dialog
