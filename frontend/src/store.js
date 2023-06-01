@@ -89,6 +89,7 @@ const useStore = create(set => ({
     setNewCourseDuration: newCourseDuration => set({ newCourseDuration }),
 
     capacity: 1,
+    setCapacity: capacity => set({ capacity }),
     increaseCapacity: () => set(state => ({ capacity: state.capacity + 1 })),
     decreaseCapacity: () => set(state => ({ capacity: state.capacity - 1 })),
 

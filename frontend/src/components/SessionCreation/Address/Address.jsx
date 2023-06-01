@@ -42,6 +42,14 @@ const Address = props => {
     const [showFields, setShowFields] = useState(false);
 
     useEffect(() => {
+        setNewCourseAddressLine1('')
+        setNewCourseAddressLine2('')
+        setNewCourseAddressZipcode('')
+        setNewCourseAddressCity('')
+        setNewCourseAddressState('')
+        setNewCourseAddressCountry('')
+        setNewCourseLatitude(-73.9569994)
+        setNewCourseLongitude(40.7297027)
         const geo = new MapboxGeocoder({
             accessToken: MAPBOX_TOKEN,
             proximity: {longitude: -73.9569994, latitude: 40.7297027},

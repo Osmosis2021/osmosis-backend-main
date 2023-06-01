@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { Container, Input, Typography, Grid, TextField, Box, IconButton } from '@mui/material';
 import useStore from "../../../store"
 import './SessionTag.css';
@@ -7,6 +7,10 @@ import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 export default function SessionTag() {
     const {tags, setTags, courseTitle, setCourseTitle} = useStore()
 	// const [tags, setTags] = useState([]);
+	useEffect(() => {
+		setTags([])
+		setCourseTitle('')
+	}, [])
 
 	function handleTags(event) {
 		event.preventDefault();

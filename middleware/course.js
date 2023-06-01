@@ -98,9 +98,8 @@ router.post('/registerCourse', async (req, res, next) => {
           })
 
         }
-
+        const teacherID = req.body.teacherID.toString()
         const {
-        teacherID,
         userName,
         address,
         longitude,

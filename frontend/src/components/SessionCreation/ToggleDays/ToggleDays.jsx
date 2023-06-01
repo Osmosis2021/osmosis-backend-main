@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { styled } from '@mui/material/styles';
@@ -148,6 +148,10 @@ const ToggleDays = () => {
   const {newCourseTimeslots, setNewCourseTimeslots} = useStore();
   const [days, setDays] = useState([...initialState.slice((date.getDay() + 1) % 7), ...initialState.slice(0, (date.getDay() + 1) % 7)])
   
+  useEffect(() => {
+    setNewCourseTimeslots([])
+  }, [])
+
   const handleSave = (index, isRepeating, dayKey) => {
     const activeBtn = document.getElementById(`datePickerButton-${dayKey}`)
     const child = document.createElement('div')

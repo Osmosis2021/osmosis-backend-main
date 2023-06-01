@@ -1,5 +1,5 @@
 import { Grid, Typography, ToggleButton, ToggleButtonGroup } from '@mui/material';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { withStyles } from '@mui/styles';
 import useStore from '../../../store';
 
@@ -33,6 +33,10 @@ function LengthOfSession() {
     const [isClicked, setIsClicked] = useState(false);
     const { newCourseDuration, setNewCourseDuration } = useStore();
     const Length = [30, 60, 90]
+
+    useEffect(() => {
+        setNewCourseDuration(60)
+    }, [])
 
     const handleClick = (event) => {
 		setNewCourseDuration(Number(event.target.value));

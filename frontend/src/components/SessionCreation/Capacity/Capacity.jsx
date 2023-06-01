@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { Box,Typography, Grid, ButtonGroup, Button, Stack } from '@mui/material';
 import './Capacity.css';
 import { PeopleAltRounded } from '@mui/icons-material';
@@ -21,9 +21,11 @@ function Capacity() {
 	// };
 	// const [guests, setGuests] = useState(1);
 
-	const capacity = useStore(state => state.capacity)
-	const increaseCapacity = useStore(state => state.increaseCapacity)
-	const decreaseCapacity = useStore(state => state.decreaseCapacity)
+	const {capacity, setCapacity, increaseCapacity, decreaseCapacity} = useStore()
+
+	useEffect(() => {
+		setCapacity(1)
+	}, [])
 
 	// const increaseGuests = () => {
     //     setGuests((prevGuests) => (prevGuests + 1));
