@@ -12,6 +12,7 @@ const CourseTimeslotSchema = new mongoose.Schema({
     remainingCapacity: Number,
     enrolledStudents: String,
     endTime: Number,
+    status: ''
 
 })
 

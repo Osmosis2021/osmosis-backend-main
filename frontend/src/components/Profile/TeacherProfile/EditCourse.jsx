@@ -55,7 +55,6 @@ const EditCourse = (props) => {
 		}).then((data) => {
 			setTeacherData(...data);
 			setCourseInfo(...data)
-			console.log(teacherData)
 			setEditedTags(teacherData?.tags)
 			setIsLoading(false)
 

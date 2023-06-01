@@ -22,7 +22,6 @@ export default function SessionTag() {
 		event.preventDefault();
 		const courseTitle = event.target.value;
 		setCourseTitle(courseTitle);
-		console.log(courseTitle)
 	}
 
 	const removeTag = (tag) => {

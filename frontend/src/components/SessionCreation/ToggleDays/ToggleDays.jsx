@@ -154,23 +154,17 @@ const ToggleDays = () => {
     child.innerHTML = '<div class="addedTimeslotIndicator"></div>'
     activeBtn.appendChild(child)
     
-    let course_timeslot
-    setTimeout(() => {
-      course_timeslot = {
-        startTime: courseStartTime,
-        endTime: days[index]['End Time'],
-        enrollment: 0,
-        dayOfWeek: days[index]['key'],
-        startDate: days[index]['fullDate'],
-        isRepeating
-      }
-    }, 50)
-    setTimeout(() => {
-      const _updatedTimeslots = [...newCourseTimeslots, course_timeslot]
-      setSelectedDay('')
-      setNewCourseTimeslots(_updatedTimeslots)
-    }, 100)
-    console.log(newCourseTimeslots)
+    const course_timeslot = {
+      startTime: courseStartTime,
+      endTime: days[index]['End Time'],
+      enrollment: 0,
+      dayOfWeek: days[index]['key'],
+      startDate: days[index]['fullDate'],
+      isRepeating
+    }
+    const _updatedTimeslots = [...newCourseTimeslots, course_timeslot]
+    setSelectedDay('')
+    setNewCourseTimeslots(_updatedTimeslots)
   }
   useMemo(() => setClassDays(days), [days]);
 

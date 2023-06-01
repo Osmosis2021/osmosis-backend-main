@@ -18,6 +18,7 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.0",
+    "bson-objectid": "^2.0.4",
     "chai": "^4.3.4",
     "cloudinary": "^1.33.0",
     "cookie-parser": "^1.4.6",

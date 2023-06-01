@@ -3,6 +3,7 @@ const Course = require('../models/course')
 const CourseTimeslot = require('../models/courseTimeslot')
 const Image = require('../models/image')
 const cloudinary = require('cloudinary');
+const ObjectID = require("bson-objectid")
 
 cloudinary.config({ 
     cloud_name: 'dv5yztb2q', 
@@ -129,10 +130,11 @@ router.post('/registerCourse', async (req, res, next) => {
 
         // create new course
         const course = await Course.create(newCourseObj)
-
+        console.log('schedule:', schedule);
         // create a new timeslot associated with the new course for each timeslot in the schedule
         schedule.map(_timeslot => {
-            const timeslotObj = {..._timeslot, courseID: course._id, enrollment: 0}
+            const timeslotObj = {..._timeslot, courseID: ObjectID(course._id), enrollment: 0, status: 'created'}
+            console.log('about to create a coursetimeslot', timeslotObj);
             CourseTimeslot.create(timeslotObj)
         })
 
@@ -151,28 +153,7 @@ router.post('/registerCourse', async (req, res, next) => {
 // UPDATE COURSE 
 
 router.put('/updateCourse/:id', async (req, res) => {
-        
     console.log('in updateCourse with this id', req.params.id)
-
-        // let images = [...req.body.images];
-        // let imagesBuffer = [];
-
-        // for (let i = 0; i < images.length;  i++) {
-        //     const result = await cloudinary.uploader.upload(images[i], {
-        //       folder: "banners",
-        //       width: 1920,
-        //       crop: "scale"
-        //     });
-
-        //     imagesBuffer.push({
-        //         public_id: result.public_id,
-        //         url: result.secure_url
-        //     })
-        // }
-
-  
-    
-
     //build the data object
     const data = { 
         owner: req.body.owner,
@@ -185,7 +166,8 @@ router.put('/updateCourse/:id', async (req, res) => {
         zipCode: req.body.zipCode,
         address: req.body.address,
         city: req.body.city,
-        capacity: req.body.capacity   
+        capacity: req.body.capacity,
+        status: req.body.status
     }
         // req.body.images = imagesBuffer
     
@@ -248,27 +230,31 @@ router.put('/updatePhoto/:id', async (req, res) => {
 });
 
 
-  // DELETE COURSE
-  router.delete('/deleteCourse/:id', async (req, res) => {
-      console.log('deleting course with this id', req.params.id)
-      
-      const foundCourse = await Course.findById(req.params.id);
-      // retrieve image(s)
-      const imgIds = foundCourse.images;
-      
-      for (let i = 0; i < imgIds.length; i++) {
-          const public_ids = imgIds[i].public_id
-          await cloudinary.uploader.destroy(public_ids)
-        }
-        console.log('got through deleting on cloudinary')
-        
-    //   DELETE TIMESLOTS ASSOCIATED WITH COURSE
+// DELETE COURSE
+router.delete('/deleteCourse/:id', async (req, res) => {
+    const {id} = req.params
+    console.log('deleting course with this id', id)
+    
+    const foundCourse = await Course.findById(id);
+    console.log(foundCourse);
+    // retrieve image(s)
+    const imgIds = foundCourse.images;
+    
+    for (let i = 0; i < imgIds.length; i++) {
+        const public_ids = imgIds[i].public_id
+        await cloudinary.uploader.destroy(public_ids)
+    }
+    console.log('got through deleting on cloudinary')
+    
+    // DELETE TIMESLOTS ASSOCIATED WITH COURSE
+    const result = await CourseTimeslot.updateMany({courseID: foundCourse._id}, {status: 'removed by teacher'})
+    console.log('CourseTimeslot.updateMany result:\n', result);
     // const foundTimeslots = await CourseTimeslot.find({courseID: req.params.id});
     // CourseTimeslot.deleteMany(foundTimeslots);
     
     // What if somebody has booked this course already? 
     
-    const removeCourse = await Course.findByIdAndDelete(req.params.id)
+    const removeCourse = await Course.findByIdAndDelete(id)
     res.json({
         success: true,
         removeCourse,
