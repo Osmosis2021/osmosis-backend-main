@@ -11,7 +11,26 @@ const backendURL = process.env.NODE_ENV === 'production' ? 'https://osmosis.hero
 
 export const ConfirmSession = () => {
 
-    const { newCourseIndustry, tags, images, profileImage, capacity, newCourseDuration, newCourseCost, classDays, userID, userName, newCourseAddressLine1, newCourseAddressLine2, newCourseAddressZipcode, newCourseAddressCity, newCourseAddressState, newCourseAddressCountry, courseTitle, newCourseLatitude, newCourseLongitude, newCourseTimeslots } = useStore();
+    const {
+        newCourseIndustry, setNewCourseIndustry,
+        tags, setTags,
+        images, setImages,
+        capacity, setCapacity,
+        newCourseDuration, setNewCourseDuration,
+        newCourseCost, setNewCourseCost,
+        userID,
+        userName,
+        newCourseAddressLine1, setNewCourseAddressLine1,
+        newCourseAddressLine2, setNewCourseAddressLine2,
+        newCourseAddressZipcode, setNewCourseAddressZipcode,
+        newCourseAddressCity, setNewCourseAddressCity,
+        newCourseAddressState, setNewCourseAddressState,
+        newCourseAddressCountry, setNewCourseAddressCountry,
+        courseTitle, setCourseTitle,
+        newCourseLatitude, setNewCourseLatitude,
+        newCourseLongitude, setNewCourseLongitude,
+        newCourseTimeslots, setNewCourseTimeslots
+    } = useStore();
     const navigate = useNavigate();
 
     const handleCourseRegistration = async (e) => {
@@ -31,7 +50,7 @@ export const ConfirmSession = () => {
                 },
                 longitude: newCourseLongitude,
                 latitude: newCourseLatitude,
-                industry: newCourseIndustry, 
+                industry: newCourseIndustry,
                 tags,
                 pricePerStudent: newCourseCost, 
                 courseTitle,
@@ -44,7 +63,22 @@ export const ConfirmSession = () => {
             const {data} = await axios.post(backendURL + 'course/registerCourse', courseInfo)
             
             if  (data.success === true) {
-
+                setNewCourseIndustry('')
+                setTags([])
+                setImages([])
+                setCapacity(1)
+                setNewCourseDuration(60)
+                setNewCourseCost('')
+                setNewCourseAddressLine1('')
+                setNewCourseAddressLine2('')
+                setNewCourseAddressZipcode('')
+                setNewCourseAddressCity('')
+                setNewCourseAddressState('')
+                setNewCourseAddressCountry('')
+                setCourseTitle('')
+                setNewCourseLatitude(-73.9569994)
+                setNewCourseLongitude(40.7297027)
+                setNewCourseTimeslots([])
             }
             console.log(data);
             // alert('Course succesfully created!')
