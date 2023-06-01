@@ -11,7 +11,7 @@ import Stack from '@mui/material/Stack';
 import { useNavigate } from 'react-router-dom';
 
 import Slide from '@mui/material/Slide';
-import { Grid } from '@mui/material';
+import { Alert, Grid } from '@mui/material';
 import axios from 'axios';
 import useStore from '../../store';
 import Payment from './Payment';
@@ -69,7 +69,15 @@ export default function PayPopUp(props) {
           onClick={handleClickOpen}
           // require timeslot to be selected and user to be signed in to be able to pay
           disabled={((!props.selectedDateAndTime.hasOwnProperty('startDate')) || (!userID))}>
-          Pay
+
+          {
+            !props.selectedDateAndTime.hasOwnProperty('startDate') ? <Typography>Select Availability</Typography> :
+            
+            !userID ? <Typography>Must be a user to Pay</Typography> :
+            
+            !userID || !props.selectedDateAndTime.hasOwnProperty('startDate') ? <></> : <Typography>Pay</Typography>
+          }
+
         </Button>
         <Dialog
           fullScreen
