@@ -1,6 +1,6 @@
 import { Container, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-// import Bubbles from './Bubbles/Bubbles';
+import Bubbles from '../../components/Bubbles/Bubbles';
 import { useStripe } from "@stripe/react-stripe-js";
 
 function Confirm() {
@@ -35,7 +35,7 @@ function Confirm() {
             switch (res.paymentIntent.status) {
                 case "succeeded":
                     console.log('in succeeded branch', res.paymentIntent);
-                    setMessage(`Success! Payment received. You're all set to join ${teacherUserName}'s class on ${date} at ${time}.`);
+                    setMessage(`You're all set to join ${teacherUserName}'s class on ${date} at ${time}.`);
                     break;
 
                 case "processing":
@@ -71,16 +71,14 @@ function Confirm() {
         
   return (
     <>
-        <Typography variant='h3' mb={4} mt={4} align='center'>Congratulations!</Typography>
+        <Typography variant='h3' mb={4} mt={4} align='center'>Success!</Typography>
         <Container sx={{ py: 2, }}>
-            {/* <Bubbles/> */}
+            <Bubbles/>
                 
-            <Typography variant="h4">
-                {message}
-            </Typography>
+            
             <br/>
-            <Typography variant="h5">
-                Friday March 28th from 7:30AM - 9:00AM
+            <Typography variant="h4" align='center'>
+                {message}
             </Typography>
 
         </Container>
