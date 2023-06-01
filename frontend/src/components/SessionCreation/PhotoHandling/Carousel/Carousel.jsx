@@ -17,11 +17,13 @@ function Carousel({courseData}) {
     <div>
         <Slider style={{width: '100%'}} {...settings}>
           {
-            courseData?.images?.length > 0 && courseData.images.map(photo => (
+            courseData?.images?.length > 0 ?
+            courseData.images.map(photo => (
               <div>
                 <img src={`${photo.url}`} alt='' className="carouselImg" />
               </div>
             ))
+            : <div className="imagePlaceholderText">No photo provided</div>
           }
         </Slider>
     </div>

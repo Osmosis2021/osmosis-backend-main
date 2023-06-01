@@ -24,8 +24,6 @@ const TeacherProfile = (props) => {
     const Teacher = useParams();
     const [bookings, setBookings] = useState([]);
 
-    const isMyProfile = userID === teacherInfo?.id;
-
     useEffect(() => {
         axios.get(`${backendURL}booking/teacherBookings`).then(response => {
         setBookings(response.data);
@@ -112,7 +110,7 @@ const TeacherProfile = (props) => {
             <Container>
 
             {
-                bookings?.length > 0 && isMyProfile && bookings.map(booking => (
+                bookings?.length > 0 && (userID === teacherInfo?.id) && bookings.map(booking => (
                     <>
                         <Link to={`/teacher/bookings/${booking._id}`} style={{textDecoration: 'none'}}>
                         <Card style={{padding:'2%'}}>
@@ -153,9 +151,9 @@ const TeacherProfile = (props) => {
                         {sessionCard.map((course) => {
                             return(
                                 <Grid item xs={12} md={6} lg={4}>
-                                <LinkRouter to={isMyProfile ? `/editcourse/${course._id}` : `/teachers/${course.userName}/${course._id}`} style={{textDecoration:'none'}}>
-                                { isMyProfile ? 
-                                <Button style={{height:'50px', width:'75px', color:'white', backgroundColor: 'transparent', fontSize: '20px', position: 'absolute', right:'25px', zIndex:10}} variant="contained" startIcon={<EditIcon />}> Edit </Button> 
+                                <LinkRouter to={(userID === teacherInfo?.id) ? `/editcourse/${course._id}` : `/teachers/${course.userName}/${course._id}`} style={{textDecoration:'none'}}>
+                                { (userID === teacherInfo?.id) ? 
+                                <Button className='editCourseButton' style={{height:'50px', width:'75px', color:'white', fontSize: '20px', position: 'absolute', right:'25px', zIndex:10}} variant="contained" startIcon={<EditIcon />}> Edit </Button> 
                                 : <></>}
                                     <SessionCard 
                                         industry={course.industry}
