@@ -136,6 +136,6 @@ let port = process.env.PORT;
 if (port == null || port == "") {
   port = 8126;
 }
-app.listen(PORT, () =>
-    console.log('API is listening on port: ' + PORT)
+app.listen(port, () =>
+    console.log('API is listening on port: ' + port)
 );
