@@ -6,9 +6,9 @@ const cloudinary = require('cloudinary');
 const ObjectID = require("bson-objectid")
 
 cloudinary.config({ 
-    cloud_name: 'dv5yztb2q', 
-    api_key: '813545133896732', 
-    api_secret: '-AvzbZfxBUk72VeLNs04K8LG22w' 
+    cloud_name: 'dx3om7soc', 
+    api_key: '923359711288174', 
+    api_secret: 'GGR49H8I6KfS0k1fEglpTsYD7e8' 
   });
 
 router.get('/getCourses/:latitude/:longitude', async (req, res) => {

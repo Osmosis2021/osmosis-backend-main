@@ -2,8 +2,10 @@ import { Container, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import Bubbles from '../../components/Bubbles/Bubbles';
 import { useStripe } from "@stripe/react-stripe-js";
+import axios from 'axios';
 
 function Confirm() {
+    const backendURL = process.env.NODE_ENV === 'production' ? 'https://osmosis.herokuapp.com/' : 'http://localhost:8126/'
     const [message, setMessage] = useState("pending");
     const stripe = useStripe();
 
@@ -61,6 +63,26 @@ function Confirm() {
         }
 
         getStripeStuff();
+
+        // Send Payment Description To Backend
+        // async function sendPaymentDescription() {
+        //     fetch(`${backendURL}stripe/webhook`, {
+        //         method: 'POST',
+        //         headers: { 'Content-Type': 'application/json' },
+        //         body: JSON.stringify({
+        //         //   amount: props.item.pricePerStudent,
+        //         //   capacity: props.item.guests,
+        //         //   metadata: props.paymentMetadata
+        //         }),
+        //       }).then(async (res) => {
+        //           const { clientSecret } = await res.json();
+        //         //   console.log('Received client secret:', clientSecret);
+        //         //   setClientSecret(clientSecret);
+        //         }).catch((error) => {
+        //           console.error('Error creating payment intent:', error);
+        //         });
+        // }
+
 
     }, [stripe]);
             

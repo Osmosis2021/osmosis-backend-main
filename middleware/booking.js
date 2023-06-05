@@ -6,7 +6,7 @@ const User = require('../models/user');
 const jwtSecret = 'randomString';
 
 
-router.post('/bookings', async (req, res) => {
+router.post('/createBooking', async (req, res) => {
 
     const {token} = req.cookies;
     

@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
-import { useNavigate } from 'react-router-dom';
+
 
 import Slide from '@mui/material/Slide';
 import { Alert, Grid } from '@mui/material';
@@ -26,27 +26,13 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 export default function PayPopUp(props) {
   const [open, setOpen] = React.useState(false);
   const {userID, userName, isTeacher} = useStore();
-  const navigate = useNavigate();
   const paymentMetadata = {
     teacherUserName: props.teacherUserName,
     time: props.selectedDateAndTime.startTime,
     date: String(props.selectedDateAndTime.startDate).split('T')[0]
   }
 
-  async function bookThisCourse() {
-    await axios.post(`${backendURL}booking/bookings`, {
-      timestamp: Date.now(),
-      numberOfGuests: props.guests,
-      total: props.total,
-      courseTimeslotID: props.selectedTimeslotID,
-      courseID: props.courseID,
-      teacherID: props.teacherID,
-      teacherUserName: props.teacherUserName,
-      time: props.selectedDateAndTime.startTime,
-      date: props.selectedDateAndTime.startDate
-    });
-    navigate(`/${isTeacher ? 'teachers' : 'students'}/${userName}`)
-  }
+
   
   const handleClickOpen = () => {
     setOpen(true);
@@ -177,7 +163,7 @@ export default function PayPopUp(props) {
                 <hr style={{width:'90%', color:'black', border: 'solid .5px'}} />
 
                 <Grid container p={2} justifyContent='center'>
-                    <Payment item={props} paymentMetadata={paymentMetadata} bookThisCourse={bookThisCourse} />
+                    <Payment item={props} paymentMetadata={paymentMetadata} bookThisCourse={props.bookThisCourse} />
                 </Grid>
 
             </Dialog>

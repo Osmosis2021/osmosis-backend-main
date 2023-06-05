@@ -29,22 +29,27 @@ export default function CheckoutForm(props) {
 
     // const elements = stripe.elements({props.clientSecret})
     const {teacherUserName, date, time} = props.paymentMetadata
-    const paymentMetadataString = new URLSearchParams({teacherUserName, date, time}).toString()
+    const bookingResponse = await props.bookThisCourse()
+    console.log('bookThisCourse function RAN', bookingResponse)
+    const paymentMetadataString = new URLSearchParams({teacherUserName, date, time, bookingID: bookingResponse.bookingObj._id}).toString()
+    
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: {
         return_url: `${window.location.origin}/confirm/?${paymentMetadataString}`,
       },
     });
-
+    // import { useNavigate } from 'react-router-dom';
+    // const navigate = useNavigate();
+    // navigate(bookingResponse.navigate_to)
+    
     setIsProcessing(false);
-
+    
     if (error.type === "card_error" || error.type === "validation_error") {
       setMessage(error.message);
       return
     } 
-    props.bookThisCourse()
-    console.log('bookThisCourse function RAN')
+    
   };
 
   return (
