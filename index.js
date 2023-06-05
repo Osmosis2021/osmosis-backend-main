@@ -26,6 +26,32 @@ mongoose.connect(process.env.MONGOOSE_CONNECTION_STRING,
 // Middleware
 //=============================================================================
 app.use(cookieParser());
+app.use(express.json({
+    limit: '100mb'
+  }));
+// enable CORS to allow requests from clients of other origins
+app.use(cors({
+    credentials: true,
+    origin: 'http://localhost:3000'
+}));
+// app.use(cors())
+// `express.json` parses application/json request data and
+//  adds it to the request object as request.body
+app.use(bodyParser.urlencoded({ extended: false }));
+// app.use(express.json());
+// `express.urlencoded` parses x-ww-form-urlencoded request data and
+//  adds it to the request object as request.body
+app.use(express.urlencoded({ extended: true }));
+
+// Log each request as it comes in for debugging
+// const requestLogger = require('./middleware/request_logger');
+// app.use(requestLogger);
+
+
+
+//=============================================================================
+// ROUTES
+//=============================================================================
 
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET
 const _stripe = Stripe(process.env.STRIPE_TEST_KEY);
@@ -69,29 +95,7 @@ app.post('/stripe/webhook', express.raw({type: 'application/json'}), async (req,
         res.send();
     
     });
-app.use(express.json({
-    limit: '100mb'
-  }));
-// enable CORS to allow requests from clients of other origins
-app.use(cors({
-    credentials: true,
-    origin: 'http://localhost:3000'
-}));
-// `express.json` parses application/json request data and
-//  adds it to the request object as request.body
-app.use(bodyParser.urlencoded({ extended: false }));
-// app.use(express.json());
-// `express.urlencoded` parses x-ww-form-urlencoded request data and
-//  adds it to the request object as request.body
-app.use(express.urlencoded({ extended: true }));
 
-// Log each request as it comes in for debugging
-// const requestLogger = require('./middleware/request_logger');
-// app.use(requestLogger);
-
-//=============================================================================
-// ROUTES
-//=============================================================================
 
 // Redirect
 // redirect to all courses that are available on the platform
