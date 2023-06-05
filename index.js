@@ -32,7 +32,7 @@ app.use(express.json({
 // enable CORS to allow requests from clients of other origins
 app.use(cors({
     credentials: true,
-    origin: 'http://localhost:3000'
+    origin: process.env.NODE_ENV === 'production' ? 'https://getosmosis.io' : 'http://localhost:3000'
 }));
 // app.use(cors())
 // `express.json` parses application/json request data and
