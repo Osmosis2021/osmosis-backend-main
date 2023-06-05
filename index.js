@@ -13,11 +13,10 @@ const cookieParser = require('cookie-parser');
 const cloudinary = require('cloudinary').v2
 const dotenv = require('dotenv')
 dotenv.config()
-const PORT = process.env.PORT || 8126;
-console.log({PORT})
+const PORT = process.env.PORT
 
 
-mongoose.connect('mongodb+srv://osmosisAdmin:OsmosisV1production@osmosis.ckm2gk7.mongodb.net/?retryWrites=true&w=majority',
+mongoose.connect(process.env.MONGOOSE_CONNECTION_STRING,
     {useNewUrlParser: true, useUnifiedTopology: true})
 .then(async (res) => {
     console.log(`Connected to DB 🌟`)
@@ -28,8 +27,8 @@ mongoose.connect('mongodb+srv://osmosisAdmin:OsmosisV1production@osmosis.ckm2gk7
 //=============================================================================
 app.use(cookieParser());
 
-const STRIPE_WEBHOOK_SECRET = 'whsec_78e5b3362715eaa336fb1812d63371407efab34c48565079771b0ad141ad74a0'
-const _stripe = Stripe('sk_test_51NEDr1EXMtM9g5843QsnEpiIAtZU9jFQ8kXabGCCDuapFuYR79weeKf14YFSY7PlLBtDcSFRm2Oz5D21zJQKogKe00I53AamYY');
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET
+const _stripe = Stripe(process.env.STRIPE_TEST_KEY);
 
 app.post('/stripe/webhook', express.raw({type: 'application/json'}), async (req, res) => {
     const sig = req.headers['stripe-signature'];
@@ -137,6 +136,6 @@ let port = process.env.PORT;
 if (port == null || port == "") {
   port = 8126;
 }
-app.listen(port, () =>
-    console.log('API is listening on port: ' + port)
+app.listen(PORT, () =>
+    console.log('API is listening on port: ' + PORT)
 );

@@ -5,10 +5,14 @@ const Image = require('../models/image')
 const cloudinary = require('cloudinary');
 const ObjectID = require("bson-objectid")
 
+CLOUDINARY_CLOUD_NAME="dx3om7soc"
+CLOUDINARY_API_KEY="923359711288174"
+CLOUDINARY_API_SECRET="GGR49H8I6KfS0k1fEglpTsYD7e8"
+
 cloudinary.config({ 
-    cloud_name: 'dx3om7soc', 
-    api_key: '923359711288174', 
-    api_secret: 'GGR49H8I6KfS0k1fEglpTsYD7e8' 
+    cloud_name: CLOUDINARY_CLOUD_NAME, 
+    api_key: CLOUDINARY_API_KEY, 
+    api_secret: CLOUDINARY_API_SECRET 
   });
 
 router.get('/getCourses/:latitude/:longitude', async (req, res) => {
