@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 const express = require('express');
-const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const authRoute = require('./middleware/auth')
@@ -14,6 +13,14 @@ const cloudinary = require('cloudinary').v2
 const dotenv = require('dotenv')
 dotenv.config()
 const PORT = process.env.PORT
+const app = express();
+const allowList = ['https://getosmosis.io', 'https://osmosis.herokuapp.com', '/']
+if(process.env.NODE_ENV !== 'production') {
+    allowList.push('http://localhost:3000')
+}
+console.log({allowList})
+
+app.use(cors({ origin: allowList, credentials: true }))
 
 
 mongoose.connect(process.env.MONGOOSE_CONNECTION_STRING,
@@ -30,17 +37,6 @@ app.use(express.json({
     limit: '100mb'
   }));
 // enable CORS to allow requests from clients of other origins
-const allowList = ['https://getosmosis.io', 'https://osmosis.herokuapp.com']
-if(process.env.NODE_ENV !== 'production') {
-    allowList.push('http://localhost:3000')
-}
-console.log({allowList})
-
-const corsOptions = {
-  credentials: true,
-  origin: allowList
-}
-app.use(cors(corsOptions));
 // app.use(cors())
 // `express.json` parses application/json request data and
 //  adds it to the request object as request.body
@@ -143,7 +139,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // SERVER
-let port = process.env.PORT;
+let port = PORT;
 if (port == null || port == "") {
   port = 8126;
 }
