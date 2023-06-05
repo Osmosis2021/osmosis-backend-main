@@ -30,10 +30,23 @@ app.use(express.json({
     limit: '100mb'
   }));
 // enable CORS to allow requests from clients of other origins
-app.use(cors({
-    credentials: true,
-    origin: process.env.NODE_ENV === 'production' ? 'https://getosmosis.io' : 'http://localhost:3000'
-}));
+const allowList = ['https://getosmosis.io', 'https://osmosis.herokuapp.com']
+if(process.env.NODE_ENV !== 'production') {
+    allowList.push('http://localhost:3000')
+}
+console.log({allowList})
+
+const corsOptions = {
+  credentials: true,
+  origin: function (origin, callback) {
+    if (allowList.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}
+app.use(cors(corsOptions));
 // app.use(cors())
 // `express.json` parses application/json request data and
 //  adds it to the request object as request.body
