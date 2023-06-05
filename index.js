@@ -30,7 +30,7 @@ app.use(express.json({
     limit: '100mb'
   }));
 // enable CORS to allow requests from clients of other origins
-const allowList = ['https://getosmosis.io', 'https://osmosis.herokuapp.com']
+const allowList = ['https://getosmosis.io/', 'https://osmosis.herokuapp.com/']
 if(process.env.NODE_ENV !== 'production') {
     allowList.push('http://localhost:3000')
 }
@@ -42,6 +42,7 @@ const corsOptions = {
     if (allowList.indexOf(origin) !== -1) {
       callback(null, true)
     } else {
+      console.log({origin});
       callback(new Error('Not allowed by CORS'))
     }
   }
