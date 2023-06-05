@@ -29,7 +29,7 @@ router.post('/createBooking', async (req, res) => {
         // return userData;
         console.log('here.......................... inside jwt verify')
         console.log('userData......................', userData)
-        await Booking.create({
+        Booking.create({
             timestamp: timestamp,
             studentID: userData.id,
             numberOfGuests: numberOfGuests, 
@@ -40,22 +40,18 @@ router.post('/createBooking', async (req, res) => {
             teacherUserName,
             time: time,
             date: date, 
+            status: 'pending payment'
             // address: courseAddress,
             // city: courseCity,
             // zipCode: courseZipcode,
 
         }).then((doc) => {
+            console.log('newly created booking:', doc);
             res.json(doc);
         }).catch((err) => {
             throw err;
-        });
-    
-    
-    
+        })
     })
-
-    
-  
 });
 
 // ROUTE TO POPULATE BOOKINGS FOR STUDENT PROFILE 

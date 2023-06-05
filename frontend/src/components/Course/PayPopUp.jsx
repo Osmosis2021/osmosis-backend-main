@@ -33,7 +33,27 @@ export default function PayPopUp(props) {
   }
 
 
-  
+  async function bookThisCourse() {
+
+    const bookingObj = {
+      timestamp: Date.now(),
+      numberOfGuests: props.guests,
+      total: props.total,
+      courseTimeslotID: props.selectedTimeslotID,
+      courseID: props.courseID,
+      teacherID: props.teacherID,
+      teacherUserName: props.teacherUserName,
+      time: props.selectedDateAndTime.startTime,
+      date: props.selectedDateAndTime.startDate
+    }
+
+
+    const bookingResponse = await axios.post(`${backendURL}booking/createBooking`, bookingObj);
+    console.log({bookingResponse});
+    return bookingResponse;
+    // navigate(`/${isTeacher ? 'teachers' : 'students'}/${userName}`)
+  }
+
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -163,7 +183,7 @@ export default function PayPopUp(props) {
                 <hr style={{width:'90%', color:'black', border: 'solid .5px'}} />
 
                 <Grid container p={2} justifyContent='center'>
-                    <Payment item={props} paymentMetadata={paymentMetadata} bookThisCourse={props.bookThisCourse} />
+                    <Payment item={props} paymentMetadata={paymentMetadata} bookThisCourse={bookThisCourse} />
                 </Grid>
 
             </Dialog>
