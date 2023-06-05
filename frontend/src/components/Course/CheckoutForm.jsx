@@ -31,14 +31,14 @@ export default function CheckoutForm(props) {
     const {teacherUserName, date, time} = props.paymentMetadata
     const bookingResponse = await props.bookThisCourse()
     console.log('bookThisCourse function RAN', bookingResponse)
-    const paymentMetadataString = new URLSearchParams({teacherUserName, date, time, bookingID: bookingResponse.bookingObj._id}).toString()
-    
+    const paymentMetadataString = new URLSearchParams({teacherUserName, date, time, bookingID: bookingResponse.data._id}).toString()
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: {
         return_url: `${window.location.origin}/confirm/?${paymentMetadataString}`,
       },
     });
+
     // import { useNavigate } from 'react-router-dom';
     // const navigate = useNavigate();
     // navigate(bookingResponse.navigate_to)
@@ -49,7 +49,7 @@ export default function CheckoutForm(props) {
       setMessage(error.message);
       return
     } 
-    
+
   };
 
   return (
