@@ -12,7 +12,7 @@ import theme from '../../../theme.js';
 import useStore from '../../../store';
 import EditPhotos from './EditPhotos';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { PeopleAltRounded } from '@mui/icons-material';
 
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
@@ -46,15 +46,15 @@ const EditCourse = (props) => {
 	const [courseInfo, setCourseInfo] = useState({})
 	const navigate = useNavigate();
 	// const MAPBOX_TOKEN = 'pk.eyJ1IjoicmFkZXItamFrZSIsImEiOiJjbDU4dXdnMXcyNDZ2M2pvY2k2OW1yajY5In0.VoWote3L5R1CdSF1RPKaZg';
-
-
+	const { courseID } = useParams();
+	console.log(courseID)
 	useEffect(() => {
-		fetch(`${backendURL}course/getCourses/${userName}`)
+		fetch(`${backendURL}course/getCourse/${courseID}`)
 		.then((res) => {
 			return res.json();
 		}).then((data) => {
-			setTeacherData(...data);
-			setCourseInfo(...data)
+			setTeacherData(data);
+			setCourseInfo(data)
 			setEditedTags(teacherData?.tags)
 			setIsLoading(false)
 
