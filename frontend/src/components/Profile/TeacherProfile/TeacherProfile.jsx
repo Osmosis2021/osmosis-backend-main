@@ -1,28 +1,25 @@
-import SimpleBottomNavigation from '../../SimpleBottomNavigation/SimpleBottomNavigation';
 import { Avatar, AvatarGroup, Button, Card, Container, Grid, Skeleton, Typography } from '@mui/material';
+import { Link, Link as LinkRouter } from 'react-router-dom';
 import TopProfileBar from '../../TopNavBar/TopProfileBar';
 import SessionCard from '../../SessionCard/SessionCard';
-import { Link, Link as LinkRouter } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import { useParams } from "react-router-dom";
+import EditIcon from '@mui/icons-material/Edit';
+import useStore from '../../../store';
 import './TeacherProfile.css';
 import Prof from '../Prof';
-import upload from '../../../assets/upload.png'
-import EditIcon from '@mui/icons-material/Edit';
 import axios from 'axios';
-import useStore from '../../../store';
 
 const backendURL = process.env.NODE_ENV === 'production' ? 'https://osmosis.herokuapp.com/' : 'http://localhost:8126/'
-
 
 const TeacherProfile = (props) => {
     
     const [teacherInfo, setTeacherInfo] = useState({ profileImage:{} });
     const [sessionCard, setSessionCard] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [bookings, setBookings] = useState([]);
     const {userID, userName} = useStore();
     const Teacher = useParams();
-    const [bookings, setBookings] = useState([]);
 
     useEffect(() => {
         axios.get(`${backendURL}booking/teacherBookings`).then(response => {
@@ -74,36 +71,40 @@ const TeacherProfile = (props) => {
     
     return (
         <>
-        
+            <TopProfileBar userName={userName} />
             <div>  
-                <TopProfileBar userName={userName} />
-                <Grid container rowSpacing={2} style={{ margin: '2%', alignItems: 'center', justifyContent:'center' }}>
-                    {isLoading ? <Skeleton/> : 
-                    <Prof
-                        name={`${teacherInfo.firstName} ${teacherInfo.lastName}`}
-                        // avatar={teacherInfo.profileImage.url}
-                        avatar={teacherInfo?.profileImage?.url || upload}
-                    />}
+                <Grid container rowSpacing={2} style={{ margin: '2%', alignItems: 'center', justifyContent:'left' }}>
+                    {
+                        isLoading ? <Skeleton/> : 
+                        <Grid item xs={3} style={{display:'flex', justifyContent:'center'}}>
+                            <Prof
+                                name={`${teacherInfo.firstName} ${teacherInfo.lastName}`}
+                                avatar={teacherInfo?.profileImage?.url}
+                            />
+                        </Grid>
+                    }
                     
-                    <Grid item xs={8} style={{ paddingBottom: 5 }}>
-                        {/* <UserInfo /> */}
-                    </Grid>
-
                     { 
-                        teacherInfo.description 
-                        ? 
-                        <Grid item textAlign='left' fullWidth style={{padding:'2%'}}>
-                            {teacherInfo.description} 
+                        teacherInfo.description ? 
+                        <Grid item xs={8} textAlign='left' fullWidth style={{padding:'2%'}}>
+                            {teacherInfo.description}
                         </Grid> 
-                        :
-                        <Typography style={{textAlign:'left'}}>Bio goes here...</Typography>
+                        : <Typography style={{textAlign:'left'}}>Bio goes here...</Typography>
                     }
 
+                    {
+                        teacherInfo.userName === userName ? 
+                            <Grid item xs={3} style={{display:'flex', justifyContent:'center'}}>
+                                <Link to='/edit' style={{ textDecoration: 'none' }}>
+                                    <Button variant='contained' style={{color:'white'}}>Edit Profile</Button>
+                                </Link>
+                            </Grid>
+                        : <></>
+                    }
 
                 </Grid>
             </div>
 
-        
             <hr style={{ color: 'black', width: '90%', border: 'solid .5px' }} />
             <br />
             
@@ -188,7 +189,7 @@ const TeacherProfile = (props) => {
                 <br/>
                 <br/>
             </Container>
-            <SimpleBottomNavigation />
+            
         </>
     );
 };
