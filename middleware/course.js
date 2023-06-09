@@ -112,6 +112,7 @@ router.post('/registerCourse', async (req, res, next) => {
         tags,
         pricePerStudent, 
         courseTitle,
+        courseDescription,
         capacity,
         duration,
         schedule } = {...req.body}        
@@ -126,6 +127,7 @@ router.post('/registerCourse', async (req, res, next) => {
             tags,
             pricePerStudent, 
             courseTitle,
+            courseDescription,
             capacity,
             duration,
             images: imagesBuffer
