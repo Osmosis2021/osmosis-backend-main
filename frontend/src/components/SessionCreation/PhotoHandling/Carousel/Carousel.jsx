@@ -23,7 +23,7 @@ function Carousel({courseData}) {
                 <img src={`${photo.url}`} alt='' className="carouselImg" />
               </div>
             ))
-            : <div className="imagePlaceholderText">No photo provided</div>
+            : <div className="imagePlaceholderText"><h3>No photo provided</h3></div>
           }
         </Slider>
     </div>

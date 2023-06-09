@@ -11,3 +11,7 @@
 .slick-dots li.slick-active button:before {
   color: #00aeef;
 }
+
+.imagePlaceholderText {
+  text-align: center;
+}
