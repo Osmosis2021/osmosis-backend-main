@@ -68,7 +68,6 @@ export const ConfirmSession = () => {
             setIsLoading(false);
             console.log(data);
             // alert('Course succesfully created!')
-            console.log('!!!!!!!!!!!!!!here 1');
             if  (data.success === true) {
                 // setNewCourseIndustry('')
                 // setTags([])
@@ -87,9 +86,7 @@ export const ConfirmSession = () => {
                 // setNewCourseLongitude(40.7297027)
                 // setNewCourseTimeslots([])
             }
-            console.log('!!!!!!!!!!!!!!here 2');
             navigate(`/teachers/${userName}`)
-            console.log('!!!!!!!!!!!!!!here 3');
         } catch (error) {
             console.log(error)
         }
