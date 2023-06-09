@@ -13,8 +13,10 @@ const industries = [
     { id: 3, label: 'dance', icon: 'dance', },
     { id: 4, label: 'art', icon: 'art', },
     { id: 5, label: 'business', icon: 'business', },
-    { id: 6, label: 'yoga', icon: 'yoga', },
+    { id: 6, label: 'mindfulness', icon: 'yoga', },
     { id: 7, label: 'sports', icon: 'sports', },
+	{ id: 8, label: 'tech', icon: 'tech', },
+	{ id: 9, label: 'fitness', icon: 'fitness', }
   ];
 
 
@@ -38,8 +40,8 @@ export default function Industry(props) {
 		{/* <TopNavBar next='empty' back='/role' activeStep='1'/> */}
 
 		<Container maxWidth='sm' align='center'>
-			<Stack mb={4} mt={6} style={{ alignItems: 'center' }}>
-				<Typography variant='h3'>
+			<Stack mb={2} mt={2} style={{ alignItems: 'center' }}>
+				<Typography variant='h4'>
 					Select your overall{' '}
 					<span style={{ color: '#00aeef' }}>industry: </span>
 				</Typography>
@@ -60,10 +62,10 @@ export default function Industry(props) {
 								className='industryButton'
 								style={{border:'#00aeef solid 1px', backgroundColor: newCourseIndustry === _industry.label ? '#00aeef' : 'white'}} 
 							>
-								<img alt={_industry.label} src={require(`../../../assets/icons/${_industry.icon}.png`)} style={{ width: 70, height: 70 }}/>
+								<img alt={_industry.label} src={require(`../../../assets/icons/${_industry.icon}.png`)} style={{ width: 65, height: 65 }}/>
 								<Typography
 								gutterBottom
-								variant='h5'
+								variant='h6'
 								mt={1}
 								color={newCourseIndustry === _industry.label ? 'white' : '#00aeef'}
 								fontWeight='medium'>

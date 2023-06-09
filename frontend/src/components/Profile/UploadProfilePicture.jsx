@@ -51,7 +51,7 @@ export default function UploadProfilePicture() {
 			axios.put(`${backendURL}user/updateProfileImage/${userID}`, {
 				image
 			}).then(res => {
-				alert('image updated?')
+				alert('Image updated')
 		})
     }
 	
@@ -85,7 +85,7 @@ export default function UploadProfilePicture() {
 							{/* Change Profile */}
 						</IconButton>
 
-						<Button variant='contained' type="submit" style={{color:'white'}}>submit</Button>
+						<Button variant='contained' type="submit" style={{color:'white'}}>Confirm Photo</Button>
 
 				</form>
 

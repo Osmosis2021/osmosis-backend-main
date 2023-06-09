@@ -84,7 +84,7 @@ const Course = (props) => {
 			
 			<br />
 
-			<Grid container style={{alignItems:'center', justifyContent:'left', padding: '4%' }}>
+			<Grid container direction='column' style={{alignItems:'flex-start', justifyContent:'left', padding: '4%' }}>
 				<Typography variant='h3'>
 					{courseData.courseTitle}
 				</Typography>
@@ -159,7 +159,21 @@ const Course = (props) => {
 
 			<br />
 			<hr style={{ color: theme.palette.mode === 'light' ? 'black' : 'white', width: '90%', border: 'solid .5px' }} />
-			{/* <br /> */}
+			<br />
+
+			<Container>
+				<Grid container spacing={2} alignItems='center'>
+					<Grid item style={{ alignItems: 'flexEnd' }}>
+						<Typography variant='h5'>Course Description:</Typography>
+						<br/>
+						<Typography>{courseData?.courseDescription}</Typography>
+					</Grid>
+				</Grid>
+			</Container>
+
+			<br />
+			<hr style={{ color: theme.palette.mode === 'light' ? 'black' : 'white', width: '90%', border: 'solid .5px' }} />
+			<br />
 
 			<Grid container mt={2} style={{ alignItems: 'center' }}>
 				

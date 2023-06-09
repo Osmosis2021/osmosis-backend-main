@@ -18,22 +18,22 @@ function Cost(props) {
 
 	return (
 		<>
-		{/* <TopNavBar back='/capacity' next='/address' activeStep='6'/> */}
 		<Container align='center'>
-			<Typography variant='h6' mt={8} mb={12} align='center' fontSize={21}>
+			<Typography variant='h4' mt={2} mb={12} align='center'>
 				<span style={{ color: '#00aeef' }}>Cost </span>of your Sessions:
 			</Typography>
 
 			<Grid container style={{ alignItems: 'center', justifyContent:'center'}}>
-				<Grid item xs={4}>
-					<Typography variant='h3' style={{ textAlign: 'right' }}>
+				<Grid item xs={2}>
+					<Typography variant='h1' style={{ textAlign: 'center' }}>
 						$
 					</Typography>
 				</Grid>
-				<Grid item xs={8}>
+				<Grid item xs={4}>
 					<OutlinedInput
 						onChange={(e) => setWholeNumberCost(e.target.valueAsNumber)}
 						value={newCourseCost}
+						style={{fontSize:'50px'}}
 						id='outlined-adornment-amount'
 						type='number'
 						min="0"

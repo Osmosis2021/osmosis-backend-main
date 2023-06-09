@@ -1,27 +1,26 @@
-import SimpleBottomNavigation from '../../SimpleBottomNavigation/SimpleBottomNavigation';
-import { Container, Grid, Typography } from '@mui/material';
+import { Button, Container, Grid, Typography } from '@mui/material';
 import TopProfileBar from '../../TopNavBar/TopProfileBar';
 import SessionCard from '../../SessionCard/SessionCard';
 import React, {useState, useEffect} from 'react';
 import { Link, useParams } from "react-router-dom";
+import useStore from '../../../store';
 import './StudentProfile.css';
 import Prof from '../Prof';
 import axios from 'axios';
-// import UserInfo from '../UserInfo';
 
 const backendURL = process.env.NODE_ENV === 'production' ? 'https://osmosis.herokuapp.com/' : 'http://localhost:8126/'
-
 
 const StudentProfile = (props) => {
     
     const [userInfo, setUserInfo] = useState({});
-    const User = useParams();
     const [bookings, setBookings] = useState([]);
+    const {userName} = useStore();
+    const User = useParams();
 
     useEffect(() => {
         axios.get(`${backendURL}booking/bookings`).then(response => {
         setBookings(response.data);
-        console.log(bookings)
+        console.log(response.data)
         })
 
     }, [])
@@ -41,6 +40,7 @@ const StudentProfile = (props) => {
 			return res.json();
 		}).then((data) => {
 			setUserInfo(data);
+            console.log(data)
 		}).catch((err) => {
 			console.log('Error getting users info:\n', err);
 		});
@@ -50,23 +50,33 @@ const StudentProfile = (props) => {
         <>
             <TopProfileBar userName={userInfo.userName}/>
             <div>
-                <Grid container rowSpacing={2} style={{ margin: '2%', alignItems: 'center', justifyContent:'center' }}>
-                    
+                <Grid container rowSpacing={2} style={{ margin: '2%', alignItems: 'center', justifyContent:'left' }}>
+                   
+                    <Grid item xs={3} style={{display:'flex', justifyContent:'center'}}>
                         <Prof
                             avatar={userInfo?.profileImage?.url}
                             name={`${userInfo.firstName} ${userInfo.lastName}`}
                         />
-                                
-                    
-                    <Grid item xs={8} style={{ paddingBottom: 5 }}>
-                        {/* <UserInfo /> */}
                     </Grid>
 
-                    <Grid item fullWidth>
-                        <Typography style={{ padding: '0 5%' }}>
+                    {
+                        userInfo?.description ?
+                        <Grid item xs={8} textAlign='left' fullWidth style={{padding:'2%'}}>
                             {userInfo?.description}
-                        </Typography>
-                    </Grid>
+                        </Grid>
+                        : <Typography style={{textAlign:'left'}}>Bio goes here...</Typography>
+                    }
+
+                    
+                    {
+                        userInfo.userName === userName ? 
+                            <Grid item xs={3} style={{display:'flex', justifyContent:'center'}}>
+                                <Link to='/edit' style={{ textDecoration: 'none' }}>
+                                    <Button variant='contained' style={{color:'white'}}>Edit Profile</Button>
+                                </Link>
+                            </Grid>
+                        : <></>
+                    }
 
                 </Grid>
 		    </div>
@@ -76,27 +86,12 @@ const StudentProfile = (props) => {
             <br />
         
             <Container>
-                <Typography variant="h4">Upcoming Sessions You're Attending:</Typography>
-                <br/>
-                {/* Pull from array in DB of upcoming classes and taken classes */}
-
+                {/* <Typography variant="h4">Start learning today</Typography> */}
+                
                 {/* {
-                    userInfo.map((upcomingCoure) => {
-                        return (
-                            <>
-                                <SessionCard 
-                                    industry = {upcomingCourse.industry} 
-                                    
-                                />
-                            </>
-                        )
-                    })
-                } */}
-
-                {/* {
-                    userInfo.courseTaken ? 
+                    bookings ? 
                     <>
-                    <Typography variant="h4">Sessions You've Attended:</Typography>
+                    <Typography variant="h4">Upcoming:</Typography>
                         {
                             userInfo.courseTaken.map((courseTaken) => {
                                 return(
@@ -106,9 +101,11 @@ const StudentProfile = (props) => {
                                 )
                             })
                         }
-                    </> : <Typography>Take one today!</Typography>
+                    </> : <Typography>Start learning today!</Typography>
                 } */}
 
+                {bookings?.length > 0 ? <Typography variant="h4">Upcoming:</Typography> : <Typography variant="h4">Start Learning Today</Typography>}
+                <br/>
                 {
                     bookings?.length > 0 && bookings.map(booking => (
                     <>
@@ -140,8 +137,6 @@ const StudentProfile = (props) => {
 
 
             </Container>
-
-            <SimpleBottomNavigation />
         </>
     );
 };

@@ -5,7 +5,7 @@ import './SessionTag.css';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 
 export default function SessionTag() {
-    const {tags, setTags, courseTitle, setCourseTitle} = useStore()
+    const {tags, setTags, courseTitle, setCourseTitle, courseDescription, setCourseDescription} = useStore()
 	// const [tags, setTags] = useState([]);
 	useEffect(() => {
 		setTags([])
@@ -28,6 +28,12 @@ export default function SessionTag() {
 		setCourseTitle(courseTitle);
 	}
 
+	function handleCourseDescription (event) {
+		event.preventDefault();
+		const courseDescription = event.target.value;
+		setCourseDescription(courseDescription);
+	}
+
 	const removeTag = (tag) => {
 		console.log(tags)
 		let filteredTags = tags.filter((specTag) =>  specTag !== tag )
@@ -41,12 +47,12 @@ export default function SessionTag() {
 	return (
 		<>
 		<Container maxWidth='sm'>
-			<Typography variant='h3' mb={2} mt={4} align='center'>
-				Enter the title of your course:
+			<Typography variant='h4' mb={2} mt={2} align='center'>
+				Title of your course:
 			</Typography>
 
 			
-				<Box style={{ textAlign: 'center', marginTop:'5%' }}>
+				<Box style={{ textAlign: 'left', marginTop:'5%' }}>
 					<Typography variant='h6'>
 						{courseTitle}
 					</Typography>
@@ -64,17 +70,45 @@ export default function SessionTag() {
 					
 				</Box>
 			
-
+				<br/>
 			<br/>
 
-			<Typography variant='h3' mb={2} mt={4} align='center'>
-				Enter any tags associated to your course:
+			<Typography variant='h4' mb={2} mt={2} align='center'>
+				Course description:
+			</Typography>
+
+			
+				<Box style={{ textAlign: 'left', marginTop:'5%' }}>
+					<Typography variant='h6'>
+						{courseDescription}
+					</Typography>
+
+					<br/>
+
+
+					<TextField
+						onChange={handleCourseDescription}
+						fullWidth
+						multiline
+						label='Course Description'
+						placeholder='We meet outside my local cafe called Grey Cafe and we grab a cup of coffee and chat about the financial markets'
+						name='title'
+						>
+					</TextField>
+					
+				</Box>
+
+				<br/>
+				<br/>
+
+				<Typography variant='h4' mb={4} mt={2} align='center'>
+				Any tags related to your course:
 			</Typography>
 
 			{
 				tags.map((tag, index) => {
 					return (
-						<Grid container alignItems='center'>
+						<Grid container alignItems='left'>
 							<Grid item>
 								<Typography 
 									variant='h5' 
@@ -103,8 +137,8 @@ export default function SessionTag() {
 				<TextField
 					fullWidth
 					id='outlined-basic'
-					label='General Tags'
-					placeholder='#baseball, #basketball, #soccer, #football'
+					label='Tags'
+					placeholder='#raisingCapital, #goToMarket, #MVP, #leanStartup'
 					// onChange={handleChange}
 					name='generalTags'
 					// value={generalTags}
@@ -113,6 +147,10 @@ export default function SessionTag() {
 				<Input type="submit" >Add Tag ^^</Input>
 			</form>
 			</Box>
+
+
+
+
 		</Container>
 		</>
 	);

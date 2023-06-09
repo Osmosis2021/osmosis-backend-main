@@ -24,8 +24,8 @@ function SessionCard (props) {
             <Slider {...settings}>
                 <div>
                     { props.icon === '0' ? <Typography>Loading...</Typography> : 
-                      Boolean(props.images) ? <img src={props.images} alt='Course photo' className="carousel-image"/> :
-                      <h3>No image provided</h3>
+                      Boolean(props.images) ? <img src={props.images} alt='Course' className="carousel-image"/> :
+                      <h3 style={{alignText:'center'}}>No image provided</h3>
                     }
                 </div>
             </Slider>
@@ -35,7 +35,7 @@ function SessionCard (props) {
                 <Grid item xs={8}>
                     <div className="card-title">
                         <Stack direction='column' alignItems='left' spacing={1}>
-                            <Typography variant='h4' className="industry">{props.courseTitle}</Typography>
+                            <Typography variant='h4' className="industry" style={{textAlign:'left'}}>{props.courseTitle}</Typography>
                         
                             <Grid fullWidth item alignItems='left'>
                                 <Typography className='tags'>

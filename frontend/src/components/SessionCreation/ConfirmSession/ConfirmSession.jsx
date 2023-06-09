@@ -1,5 +1,5 @@
 import { Container, Grid, IconButton, Typography } from '@mui/material'
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import SessionCard from '../../SessionCard/SessionCard'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import useStore from '../../../store';
@@ -29,13 +29,16 @@ export const ConfirmSession = () => {
         courseTitle, setCourseTitle,
         newCourseLatitude, setNewCourseLatitude,
         newCourseLongitude, setNewCourseLongitude,
-        newCourseTimeslots, setNewCourseTimeslots
+        newCourseTimeslots, setNewCourseTimeslots,
+        courseDescription
     } = useStore();
     const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState();
+    const [teacherInfo, setTeacherInfo] = useState();
 
     const handleCourseRegistration = async (e) => {
 		e.preventDefault();
-
+        setIsLoading(true)
 		try {
             const courseInfo = {
                 teacherID: userID,
@@ -57,11 +60,12 @@ export const ConfirmSession = () => {
                 capacity: capacity,
                 duration: newCourseDuration,
                 images, 
-                schedule: newCourseTimeslots
+                schedule: newCourseTimeslots,
+                courseDescription: courseDescription,
             }
 
             const {data} = await axios.post(backendURL + 'course/registerCourse', courseInfo)
-            
+            setIsLoading(false);
             console.log(data);
             // alert('Course succesfully created!')
             console.log('!!!!!!!!!!!!!!here 1');
@@ -90,19 +94,31 @@ export const ConfirmSession = () => {
             console.log(error)
         }
     }
+    useEffect(() => {
+        fetch (`${backendURL}user/getUserInfo/${userName}`)
+            .then((res) => {
+                return res.json();
+            }).then((data) => {
+                setTeacherInfo(data)
+                console.log(data)
+            }).catch((err) => {
+                console.log('Error getting teacher info:\n', err)
+            });
+    }, [])
 
 
   return (
         <Container maxWidth='sm' align='center'>
-            <Grid container spacing={8} justifyContent='center' alignItems='center'>
+            <Grid container spacing={2} justifyContent='center' alignItems='center'>
 
                 <Grid item xs={12}>
-                    <Typography mt={8} variant='h6' fontSize={21}>Confirm your information</Typography>
+                    <Typography mt={2} variant='h4'>Confirm your information</Typography>
                 </Grid>
 
                 <Grid item xs={12}>
                     <SessionCard
                         images={images[0]}
+                        profileImage={teacherInfo?.profileImage?.url}
                         industry={newCourseIndustry}
                         tags={tags}
                         courseTitle={courseTitle}
@@ -115,13 +131,17 @@ export const ConfirmSession = () => {
                         zipCode={newCourseAddressZipcode}
                     />
                 </Grid>
-
+                
                 <Grid item xs={12}>
                     <IconButton type='submit' onClick={handleCourseRegistration} variant='contained' size='large'>
-                    <CheckCircleIcon sx={{fontSize:'150px', color:'#00aeef'}}>
-                    </CheckCircleIcon> 
+                        <CheckCircleIcon sx={{fontSize:'150px', color:'#00aeef'}}>
+                        </CheckCircleIcon> 
                     </IconButton>
-                    <Typography variant='h3' color='#00aeef'>Go Live Today</Typography>
+                       
+                    <Typography variant='h3' color='#00aeef'>
+                        { isLoading ?  'Pending' : 'Go Live Today' }
+                    </Typography>
+                        
                 </Grid>
                 
             </Grid>

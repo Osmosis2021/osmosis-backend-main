@@ -32,9 +32,9 @@ export default function UploadPhotos() {
 
 	return (
 		<div>
-			<Box>
-				<Typography variant='h6' mt={8} align='center' fontSize={21}>
-					Upload your Photos:
+			<Box style={{marginBottom:'20px'}}>
+				<Typography variant='h4' mt={2} mb={4} align='center' fontSize={21}>
+					Upload <span style={{color:'#00aeef'}}> Photos: </span>
 				</Typography>
 
 				<Stack style={{ alignItems: 'center' }}>
@@ -45,7 +45,7 @@ export default function UploadPhotos() {
 						style={{display: 'flex', flexDirection: 'column'}}
 						>
 						<IconButton
-							style={{ height: 150, width: 150 }}
+							style={{ height: 150, width: 150, border: 'solid 1px'}}
 							color='primary'
 							aria-label='upload picture'
 							component='label'>
@@ -56,13 +56,13 @@ export default function UploadPhotos() {
 							className="form-control"
 							onChange={addImage}
 						/>
-							<PhotoCamera />
+							<PhotoCamera style={{fontSize:'95px'}}/>
 						</IconButton>
 					</form>
 						{
 							images.map((item, index) => {
 								return (
-									<div style={{position: 'relative'}} key={item}>
+									<div style={{position: 'relative', marginTop:'3%'}} key={item}>
 										<img src={item} alt="" style={{width:'250px', height:'125px', objectFit:'cover'}}/>
 										
 										<div style={{position:'absolute', bottom: 0, right: 0}}>

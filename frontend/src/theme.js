@@ -28,9 +28,9 @@ const theme = createTheme({
 
 
 	  typography: {
-		htmlFontSize: 36,
+		htmlFontSize: 40,
 		fontFamily: 'Poppins',
-		fontSize: 18,
+		fontSize: 22,
 		h1: {
 		  fontFamily: 'Poppins',
 		},

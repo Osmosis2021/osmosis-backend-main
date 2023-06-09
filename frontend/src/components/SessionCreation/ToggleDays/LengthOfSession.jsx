@@ -46,8 +46,8 @@ function LengthOfSession() {
 
   return (
     <div>
-          <Typography variant='h3' mb={-2} mt={2} align='center'>
-            Enter the length of your session:
+          <Typography variant='h4' mb={2} mt={2} align='center'>
+            Choose length of your session:
           </Typography>
 
           <Grid container mt={2} mb={2} justifyContent='space-around' alignItems='center'>

@@ -10,12 +10,12 @@ const jwtSecret = 'randomString';
 router.post('/login/:email/:password', async (req, res) => {
 
     const {email, password} = req.params
-    const userDoc = await User.findOne({email});
+    const userDoc = await User.findOne({$or: [{email} , {userName: email}]});
     
     if (userDoc) {
         const passOk = bcrypt.compareSync(password, userDoc.password)
         if(passOk) {
-            jwt.sign({email: userDoc.email, id: userDoc._id, firstName: userDoc.firstName, lastName: userDoc.lastName, profileImage: userDoc.profileImage.url}, jwtSecret, {}, (err, token) => {
+            jwt.sign({email: userDoc.email, userName: userDoc.userName, id: userDoc._id, firstName: userDoc.firstName, lastName: userDoc.lastName, profileImage: userDoc.profileImage.url}, jwtSecret, {}, (err, token) => {
                 if (err) throw err;
                 res.cookie('token', token).json(userDoc);
             })
