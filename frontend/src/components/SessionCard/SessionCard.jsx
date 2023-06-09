@@ -35,7 +35,7 @@ function SessionCard (props) {
                 <Grid item xs={8}>
                     <div className="card-title">
                         <Stack direction='column' alignItems='left' spacing={1}>
-                            <Typography variant='h4' className="industry">{props.courseTitle}</Typography>
+                            <Typography variant='h4' className="industry" style={{textAlign:'left'}}>{props.courseTitle}</Typography>
                         
                             <Grid fullWidth item alignItems='left'>
                                 <Typography className='tags'>
