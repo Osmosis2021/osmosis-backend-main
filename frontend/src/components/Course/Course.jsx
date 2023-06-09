@@ -84,7 +84,7 @@ const Course = (props) => {
 			
 			<br />
 
-			<Grid container style={{alignItems:'center', justifyContent:'left', padding: '4%' }}>
+			<Grid container direction='column' style={{alignItems:'flex-start', justifyContent:'left', padding: '4%' }}>
 				<Typography variant='h3'>
 					{courseData.courseTitle}
 				</Typography>
