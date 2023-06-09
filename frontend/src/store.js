@@ -34,10 +34,10 @@ const useStore = create(set => ({
     tags: [],
     setTags: tags => set({ tags }),
 
-    courseTitle: [],
+    courseTitle: '',
     setCourseTitle: courseTitle => set({ courseTitle }),
 
-    courseDescription: [],
+    courseDescription: '',
     setCourseDescription: courseDescription => set({ courseDescription }),
 
     images: [],
@@ -84,9 +84,6 @@ const useStore = create(set => ({
 
     newCourseTimeslots: [],
     setNewCourseTimeslots: newCourseTimeslots => set({ newCourseTimeslots }),
-
-    newCourseCapacity: 1,
-    setNewCourseCapacity: newCourseCapacity => set({ newCourseCapacity }),
 
     newCourseDuration: 60,
     setNewCourseDuration: newCourseDuration => set({ newCourseDuration }),
