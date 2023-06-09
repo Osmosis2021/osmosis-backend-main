@@ -37,6 +37,9 @@ const useStore = create(set => ({
     courseTitle: [],
     setCourseTitle: courseTitle => set({ courseTitle }),
 
+    courseDescription: [],
+    setCourseDescription: courseDescription => set({ courseDescription }),
+
     images: [],
     setImages: images => set({ images }),
 
