@@ -24,8 +24,8 @@ function SessionCard (props) {
             <Slider {...settings}>
                 <div>
                     { props.icon === '0' ? <Typography>Loading...</Typography> : 
-                      Boolean(props.images) ? <img src={props.images} alt='Course photo' className="carousel-image"/> :
-                      <h3>No image provided</h3>
+                      Boolean(props.images) ? <img src={props.images} alt='Course' className="carousel-image"/> :
+                      <h3 style={{alignText:'center'}}>No image provided</h3>
                     }
                 </div>
             </Slider>
