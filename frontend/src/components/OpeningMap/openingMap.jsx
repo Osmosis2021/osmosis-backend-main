@@ -162,6 +162,7 @@ const OpeningMap = () => {
 					<Popup
 						style={{
 							maxWidth:'min(60%, 300px)',
+							minWidth:'250px'
 							// backgroundColor: theme.palette.mode === 'dark' ? '#121212' : '#fff'
 						}}
 						latitude={selectedCourse.latitude}
