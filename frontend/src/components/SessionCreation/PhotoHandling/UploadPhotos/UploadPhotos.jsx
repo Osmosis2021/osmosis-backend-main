@@ -32,7 +32,7 @@ export default function UploadPhotos() {
 
 	return (
 		<div>
-			<Box>
+			<Box style={{marginBottom:'20px'}}>
 				<Typography variant='h4' mt={2} mb={4} align='center' fontSize={21}>
 					Upload <span style={{color:'#00aeef'}}> Photos: </span>
 				</Typography>
@@ -62,7 +62,7 @@ export default function UploadPhotos() {
 						{
 							images.map((item, index) => {
 								return (
-									<div style={{position: 'relative'}} key={item}>
+									<div style={{position: 'relative', marginTop:'3%'}} key={item}>
 										<img src={item} alt="" style={{width:'250px', height:'125px', objectFit:'cover'}}/>
 										
 										<div style={{position:'absolute', bottom: 0, right: 0}}>
