@@ -200,7 +200,7 @@ const ToggleDays = (props) => {
                             style={{ alignItems: 'center' }}
                             direction='row'>
                             
-                            <Grid item xs={3}>
+                            <Grid item xs={3} style={{minWidth: '66px'}}>
                                 <StyledToggleButtonGroup
                                     size='large'
                                     arial-label='Days of the week'
