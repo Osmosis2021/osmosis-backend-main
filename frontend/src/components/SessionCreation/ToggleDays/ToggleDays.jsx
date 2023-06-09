@@ -143,9 +143,8 @@ const initialState = [
 
 const ToggleDays = (props) => {
   const [courseStartTime, setCourseStartTime] = useState('12:00');
-  const { classDays, setClassDays, newCourseID} = useStore();
   const [selectedDay, setSelectedDay] = useState();
-  const {newCourseTimeslots, setNewCourseTimeslots} = useStore();
+  const { classDays, setClassDays, newCourseID, capacity, newCourseTimeslots, setNewCourseTimeslots} = useStore();
   const [days, setDays] = useState([...initialState.slice((date.getDay() + 1) % 7), ...initialState.slice(0, (date.getDay() + 1) % 7)])
 
   props.setIsNextDisabled(!Boolean(newCourseTimeslots.length))
@@ -166,6 +165,8 @@ const ToggleDays = (props) => {
       enrollment: 0,
       dayOfWeek: days[index]['key'],
       startDate: days[index]['fullDate'],
+      capacity,
+      enrolledStudents: [],
       isRepeating
     }
     const _updatedTimeslots = [...newCourseTimeslots, course_timeslot]
@@ -198,7 +199,9 @@ const ToggleDays = (props) => {
               style={{ alignItems: 'center' }}
               direction='row'
               spacing={2}>
-              <Grid item xs={4}>
+              <Grid
+                item xs={4}
+                style={{paddingTop: '0px', maxWidth: '98px'}}>
                 <StyledToggleButtonGroup
                   size='large'
                   arial-label='Days of the week'
