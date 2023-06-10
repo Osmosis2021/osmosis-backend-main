@@ -20,6 +20,7 @@ export const ConfirmSession = () => {
         newCourseCost, setNewCourseCost,
         userID,
         userName,
+        isTeacher,
         newCourseAddressLine1, setNewCourseAddressLine1,
         newCourseAddressLine2, setNewCourseAddressLine2,
         newCourseAddressZipcode, setNewCourseAddressZipcode,
@@ -130,13 +131,17 @@ export const ConfirmSession = () => {
                 </Grid>
                 
                 <Grid item xs={12}>
-                    <IconButton type='submit' onClick={handleCourseRegistration} variant='contained' size='large'>
+                    <IconButton type='submit' onClick={handleCourseRegistration} variant='contained' size='large'
+                        disabled={(!Boolean(userName) || !Boolean(isTeacher))}>
                         <CheckCircleIcon sx={{fontSize:'150px', color:'#00aeef'}}>
                         </CheckCircleIcon> 
                     </IconButton>
                        
                     <Typography variant='h3' color='#00aeef'>
-                        { isLoading ?  'Pending' : 'Go Live Today' }
+                        { isLoading ?  'Pending' : 
+                          !Boolean(userName) ? 'Please sign in to add a course' :
+                          !Boolean(isTeacher) ? "You're not signed up as a teacher" :
+                          'Go Live Today' }
                     </Typography>
                         
                 </Grid>
