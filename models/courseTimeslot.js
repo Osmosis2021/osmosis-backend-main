@@ -9,8 +9,8 @@ const CourseTimeslotSchema = new mongoose.Schema({
     startDate: Date,
     courseID: {type: mongoose.Schema.Types.ObjectId, ref: 'Course'},
     isRepeating: Boolean,
-    remainingCapacity: Number,
-    enrolledStudents: String,
+    capacity: {type: Number, default: 1},
+    enrolledStudents: {type: [String], default: []},
     endTime: Number,
     status: ''
 

@@ -18,7 +18,6 @@ const allowList = ['https://getosmosis.io', 'https://osmosis.herokuapp.com', '/'
 if(process.env.NODE_ENV !== 'production') {
     allowList.push('http://localhost:3000')
 }
-console.log({allowList})
 
 app.use(cors({ origin: allowList, credentials: true }))
 
