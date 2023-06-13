@@ -230,6 +230,14 @@ const Course = (props) => {
 							</ButtonGroup>
 				</Grid>
 
+				<Grid item xs={4} style={{justifyContent:'center', display:'flex'}}>
+				<Stack justifyContent='center'>
+					<Typography variant='h6'> Remaining Spots: </Typography>
+					<Typography variant='body'> {courseData.capacity - guestsEntered} left </Typography>
+				</Stack>
+
+				</Grid>
+
 			</Grid>
 
 			<br/>
