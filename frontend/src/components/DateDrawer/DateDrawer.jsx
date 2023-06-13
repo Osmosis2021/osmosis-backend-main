@@ -48,6 +48,9 @@ export default function DateDrawer(props) {
         }
 
         const selectionHandler = (startDate, startTime, timeslotID, enrolledStudents, enrollment, capacity) => {
+            if(enrollment >= capacity) {
+                return
+            }
             props.setSelectedDateAndTime({startDate, startTime})
             props.setSelectedTimeslotID(timeslotID)
             props.setSelectedEnrolledStudents(enrolledStudents)
@@ -86,15 +89,16 @@ export default function DateDrawer(props) {
                         <Grid container spacing={2} justifyContent='space-around'>
                         {isScheduleLoading ? <></> : schedule.map((availability) => {
                             return (
-                                <>
-                                <Grid item xs={4} 
+                                <Grid item xs={4}
                                     onClick={() => {selectionHandler(availability.startDate, availability.startTime, availability._id,
                                         availability.enrolledStudents, availability.enrollment, availability.capacity)}}
                                 >
-                                    <Item>
+                                    <Item style={(availability.enrollment >= availability.capacity) ? {opacity: .5} : {}}>
                                         {/* <Typography variant='h4'>{availability.dayOfWeek}</Typography> */}
                                         {/* <br/> */}
-                                        {/* <Typography variant='h4'>{availability.startDate.split('', 4)}</Typography> */}
+                                        {(availability.enrollment >= availability.capacity) &&
+                                        <Typography variant='h4' style={{color: 'red'}}>Full</Typography>
+                                        }
                                         {/* <br/> */}
                                         <Typography variant='h4'>{availability.dayOfWeek.split('', 3)}</Typography>
                                         <Typography variant='h4'>{availability.startDate.substr(5).split('', 5)}</Typography>
@@ -104,8 +108,6 @@ export default function DateDrawer(props) {
                                         <Typography variant='h6'>{timeConverter(availability.startTime)}</Typography>
                                     </Item>
                                 </Grid>
-                                </>
-        
                             )
                         })}
                         </Grid>
