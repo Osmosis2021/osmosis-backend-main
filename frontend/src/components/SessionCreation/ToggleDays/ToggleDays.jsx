@@ -1,6 +1,6 @@
 import { Button, Container, Grid, Stack, Typography } from '@mui/material';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import ToggleButton from '@mui/material/ToggleButton';
 import LoopIcon from '@mui/icons-material/Loop';
 import LengthOfSession from './LengthOfSession';
@@ -137,12 +137,21 @@ const initialState = [
 ];
 
 const ToggleDays = (props) => {
-  const [days, setDays] = useState([...initialState.slice((date.getDay() + 1) % 7), ...initialState.slice(0, (date.getDay() + 1) % 7)])
-  const [courseStartTime, setCourseStartTime] = useState('12:00');
-  const [selectedDay, setSelectedDay] = useState();
-  const { classDays, setClassDays, newCourseID, capacity, newCourseTimeslots, setNewCourseTimeslots} = useStore();
+    const [days, setDays] = useState([...initialState.slice((date.getDay() + 1) % 7), ...initialState.slice(0, (date.getDay() + 1) % 7)])
+    const [courseStartTime, setCourseStartTime] = useState('12:00');
+    const [selectedDay, setSelectedDay] = useState();
+    const { classDays, setClassDays, newCourseID, capacity, newCourseTimeslots, setNewCourseTimeslots} = useStore();
 
     props.setIsNextDisabled(!Boolean(newCourseTimeslots.length))
+
+    useEffect(() => {
+        newCourseTimeslots.forEach(slot => {
+            const activeBtn = document.getElementById(`datePickerButton-${slot.dayOfWeek}`)
+            const child = document.createElement('div')
+            child.innerHTML = '<div class="addedTimeslotIndicator"></div>'
+            activeBtn.appendChild(child)
+        })
+    })
 
     const handleSave = (index, isRepeating, dayKey) => {
         const activeBtn = document.getElementById(`datePickerButton-${dayKey}`)
