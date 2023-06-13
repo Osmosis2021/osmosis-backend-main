@@ -57,6 +57,7 @@ export default function Industry(props) {
 							>
 								<img alt={_industry.label} src={require(`../../../assets/icons/${_industry.icon}.png`)} style={{ width: 65, height: 65 }}/>
 								<Typography
+								style={{pointerEvents: 'none'}}
 								gutterBottom
 								variant='h6'
 								mt={1}
