@@ -35,7 +35,6 @@ const OpeningMap = () => {
 	const [courseFilter, setCourseFilter] = useState('all');
 	const [teacherInfo, setTeacherInfo] = useState({});
 	const [filteredCourses, setFilteredCourses] = useState([]);
-	const [major, setMajor] = useState('');
 	const [value, setValue] = useState(0);
 
 	const handleChange = (event, newValue) => {
@@ -46,10 +45,10 @@ const OpeningMap = () => {
 		const newValue = e.target.textContent.toLowerCase()
 		if ((courseFilter === newValue) || (newValue === 'all')) {
 			setCourseFilter('all');
-			setFilteredCourses(courses)
+			// setFilteredCourses(courses)
 		} else {
 			setCourseFilter(newValue)
-			setFilteredCourses(courses.filter((course) => (course.industry === newValue)))
+			// setFilteredCourses(courses.filter((course) => (course.industry === newValue)))
 		}
 	}
 
@@ -135,6 +134,7 @@ const OpeningMap = () => {
 						longitude={course.longitude}>
 						<div>
 							<button
+								className={`opaque-${[course.industry, 'all'].indexOf(courseFilter) > -1}`}
 								style={{
 									background: 'none',
 									border: 'none',
