@@ -2,6 +2,7 @@ import { useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js"
 import { useState } from "react";
 import useStore from "../../store";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { useNavigate } from "react-router-dom";
 
 
 export default function CheckoutForm(props) {
@@ -11,8 +12,8 @@ export default function CheckoutForm(props) {
   console.log('CheckoutForm props =>', props)
   const [message, setMessage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const {userName} = useStore();
-
+  const {userName, isTeacher} = useStore();
+  const navigate = useNavigate();
   // const elements = stripe.elements({ clientSecret: props.clientSecret})
   // const paymentElement = elements.create('payment')
   // paymentElement.mount('#payment-element')
@@ -27,29 +28,46 @@ export default function CheckoutForm(props) {
 
     setIsProcessing(true);
 
-    // const elements = stripe.elements({props.clientSecret})
-    const {teacherUserName, date, time} = props.paymentMetadata
-    const bookingResponse = await props.bookThisCourse()
-    console.log('bookThisCourse function RAN', bookingResponse)
-    const paymentMetadataString = new URLSearchParams({teacherUserName, date, time, bookingID: bookingResponse.data._id}).toString()
-    const { error, paymentIntent } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/confirm/?${paymentMetadataString}`,
+    const response = await stripe.confirmPayment({
+     elements,
+     confirmParams: {
       },
+     redirect: 'if_required'
     });
 
-    // import { useNavigate } from 'react-router-dom';
-    // const navigate = useNavigate();
-    // navigate(bookingResponse.navigate_to)
+    // const {teacherUserName, date, time} = props.paymentMetadata
+    // const paymentMetadataString = new URLSearchParams({teacherUserName, date, time, bookingID: bookingResponse.data._id}).toString()
     
+    if (response.error) {
+      setMessage(response.error.message);
+    } else {
+      setMessage(`Payment Succeeded: ${response.paymentIntent.id}`);
+      const bookingResponse = await props.bookThisCourse()
+      console.log('bookThisCourse function RAN', bookingResponse)
+      navigate(`/${isTeacher ? 'teachers' : 'students'}/${userName}`)
+    }
     setIsProcessing(false);
-    
-    if (error.type === "card_error" || error.type === "validation_error") {
-      setMessage(error.message);
-      return
-    } 
 
+    // const elements = stripe.elements({props.clientSecret})
+    // const {teacherUserName, date, time} = props.paymentMetadata
+    // const bookingResponse = await props.bookThisCourse()
+    // console.log('bookThisCourse function RAN', bookingResponse)
+    // const paymentMetadataString = new URLSearchParams({teacherUserName, date, time, bookingID: bookingResponse.data._id}).toString()
+  //   const { error, paymentIntent } = await stripe.confirmPayment({
+  //     elements,
+  //     confirmParams: {
+  //       return_url: `${window.location.origin}/confirm/?${paymentMetadataString}`,
+  //     },
+  //     redirect: 'if_required'
+  //   });
+    
+  //   setIsProcessing(false);
+    
+  //   if (error.type === "card_error" || error.type === "validation_error") {
+  //     setMessage(error.message);
+  //     return
+  //   } 
+  
   };
 
   return (
