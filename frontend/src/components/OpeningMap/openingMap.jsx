@@ -67,16 +67,16 @@ const OpeningMap = () => {
 
 // MAKE fetch ${selectedCourse.userName}
 
-		useEffect(() => {
-			fetch (`${backendURL}user/getUserInfo/${selectedCourse?.userName}`)
-			.then((res) => {
-				return res.json();
-			}).then((data) => {
-				setTeacherInfo(data)
-			}).catch((err) => {
-				console.log('Error getting teacher info:\n', err)
-			});
-		}, [selectedCourse]);
+	useEffect(() => {
+		fetch (`${backendURL}user/getUserInfo/${selectedCourse?.userName}`)
+		.then((res) => {
+			return res.json();
+		}).then((data) => {
+			setTeacherInfo(data)
+		}).catch((err) => {
+			console.log('Error getting teacher info:\n', err)
+		});
+	}, [selectedCourse]);
 
 	return (
 		<div>
