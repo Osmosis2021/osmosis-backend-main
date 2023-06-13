@@ -46,8 +46,7 @@ export default function Industry(props) {
 			{
 				industries.map((_industry, id) => {
 					return (
-						<Grid item xs={6} style={{textAlign:'center'}}>
-							
+						<Grid item xs={6} style={{textAlign:'center', paddingBottom: '22px'}}>
 							<ToggleButton
 								key={id}
 								value={_industry.label}
