@@ -12,7 +12,6 @@ const cookieParser = require('cookie-parser');
 const cloudinary = require('cloudinary').v2
 const dotenv = require('dotenv')
 dotenv.config()
-const PORT = process.env.PORT
 const app = express();
 const allowList = ['https://getosmosis.io', 'https://osmosis.herokuapp.com', '/']
 if(process.env.NODE_ENV !== 'production') {
@@ -138,7 +137,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // SERVER
-let port = PORT;
+let port = process.env.PORT;
 if (port == null || port == "") {
   port = 8126;
 }
