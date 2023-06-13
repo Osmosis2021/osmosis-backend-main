@@ -140,9 +140,9 @@ export default function TopProfileBar(props) {
                         <List>
                             <ListItemText> 1. Industry </ListItemText>
                             <ListItemText> 2. Tags </ListItemText>
-                            <ListItemText> 3. Availability </ListItemText>
-                            <ListItemText> 4. Location </ListItemText>
-                            <ListItemText> 5. Capacity </ListItemText>
+                            <ListItemText> 3. Capacity </ListItemText>
+                            <ListItemText> 4. Availability </ListItemText>
+                            <ListItemText> 5. Location </ListItemText>
                             <ListItemText> 6. Cost </ListItemText>
                             <ListItemText> 7. Photos </ListItemText>
                         </List>
