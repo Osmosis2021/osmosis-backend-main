@@ -19,6 +19,6 @@ import BiotechIcon from '@mui/icons-material/Biotech';
     { id: 7, label: 'yoga', icon: <SelfImprovementIcon size={20} /> },
     { id: 8, label: 'sports', icon: <SportsBasketballIcon size={20} /> },
     { id: 9, label: 'fitness', icon: <MonitorHeartIcon size={20} /> },
-    { id: 10, label: 'technology', icon: <BiotechIcon size={20} /> }
+    { id: 10, label: 'tech', icon: <BiotechIcon size={20} /> }
     
   ];
