@@ -23,6 +23,7 @@ const Signup = props => {
     const [tempUserName, setTempUserName] = useState('')
     const [tempEmail, setTempEmail] = useState('')
     const [tempPassword, setTempPassword] = useState('')
+    const [repeatedTempPassword, setRepeatedTempPassword] = useState('')
     const [isTempTeacher, setIsTempTeacher] = useState(false)
     const [isTempStudent, setIsTempStudent] = useState(false)
     // const [open, setOpen] = useState(false)
@@ -66,6 +67,10 @@ const Signup = props => {
         setTempPassword(e.target.value)
     }
 
+    const changeRepeatedPassword = e => {
+        setRepeatedTempPassword(e.target.value)
+    }
+
     const changeUserType = e => {
         const val = e.target.value
         if(val === 'student') {
@@ -82,6 +87,10 @@ const Signup = props => {
     
     const handleUserRegistration = async (e) => {
 		e.preventDefault();
+        if (tempPassword !== repeatedTempPassword) {
+            alert("Passwords don't match, please fix.")
+            return
+        }
 		const userObj = {
 			firstName: tempFirstName,
 			lastName: tempLastName,
@@ -187,6 +196,14 @@ const Signup = props => {
                     <Grid item xs={12}>
                     <Typography style={{textAlign:'left'}} variant="body1">Password</Typography>
                         <TextField onChange={changePassword} type="password" value={tempPassword} fullWidth placeholder='Your Password'></TextField>
+                    </Grid>
+                </Grid>
+                <Grid container>
+                    <Grid item xs={12}>
+                    <Typography style={{textAlign:'left'}} variant="body1">Repeat Password</Typography>
+                        <TextField onChange={changeRepeatedPassword} type="password" value={repeatedTempPassword} placeholder='Repeat Your Password'
+                            style={repeatedTempPassword === tempPassword ? {} : {border: '3px solid pink', borderRadius: '5px'}} fullWidth>
+                        </TextField>
                     </Grid>
                 </Grid>
                 <Grid container py={2}>
