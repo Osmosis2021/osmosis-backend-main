@@ -9,7 +9,7 @@ dotenv.config()
 const STRIPE_WEBHOOK_SECRET = 'whsec_78e5b3362715eaa336fb1812d63371407efab34c48565079771b0ad141ad74a0'
 const CLIENT_URL = 'http://localhost:3000';
 
-const stripe = Stripe(process.env.STRIPE_API_TEST_KEY)
+const stripe = Stripe(process.env.STRIPE_API_LIVE_KEY)
 
     router.get('/config', (req, res) => {
         res.send({

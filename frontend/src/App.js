@@ -50,7 +50,7 @@ import { loadStripe } from "@stripe/stripe-js";
 axios.defaults.withCredentials = true;
 
 function App() {
-	const stripePromise = loadStripe('pk_test_51NEDr1EXMtM9g584HjgedDTZJQK6VCS810wg1mhHV4PigyXkFv2js5E8FSF7gEvqERXpAihzdEQdars4D7GyxlI600TaSVvn2v');
+	const stripePromise = loadStripe('pk_live_51NEDr1EXMtM9g584AK4nAQEYtR0SPnJe9j26tOFo1NuIQo1oYCgltKv3RNp7mHKDIMIRpo98lU3it2MPCCTfJJay002KYxktGX');
 	return (
 		<ThemeProvider theme={theme}>
 			<CssBaseline />
