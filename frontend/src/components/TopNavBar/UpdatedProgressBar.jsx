@@ -32,11 +32,11 @@ export default function UpdatedProgressBar() {
       case 1:
         return <SessionTag setIsNextDisabled={setIsNextDisabled}/>
       case 2: 
-        return <ToggleDays setIsNextDisabled={setIsNextDisabled}/>
+      return <Capacity setIsNextDisabled={setIsNextDisabled}/>
       case 3:
-        return <Address setIsNextDisabled={setIsNextDisabled}/>
-      case 4:
-        return <Capacity setIsNextDisabled={setIsNextDisabled}/>
+        return <ToggleDays setIsNextDisabled={setIsNextDisabled}/>
+        case 4:
+          return <Address setIsNextDisabled={setIsNextDisabled}/>
       case 5:
         return <Cost setIsNextDisabled={setIsNextDisabled}/>
       case 6:
