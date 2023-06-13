@@ -69,7 +69,7 @@ const Opening = () => {
 						<img src={logo} alt='Osmosis Logo' style={{width: 125, height: 135}} align='center' />
 					</Grid>
 					
-					<Typography variant='h3' mt={2}> Welcome to <span style={{color:'#00aeef'}}>Osmosis</span> </Typography>
+					<Typography variant='h3' mt={2} style={{textAlign: 'center'}}> Welcome to <span style={{color:'#00aeef'}}>Osmosis</span> </Typography>
 					<Typography variant='h4' mt={2} mb={2} align='center'>Learning through <br/>human connections 🤝</Typography>
 					<Typography variant='subtitle1' mt={2} mb={2}>Already have an account:</Typography>
 		
