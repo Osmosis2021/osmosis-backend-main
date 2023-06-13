@@ -1,6 +1,6 @@
 import { Button, Container, Grid, Stack, Typography } from '@mui/material';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import ToggleButton from '@mui/material/ToggleButton';
 import LoopIcon from '@mui/icons-material/Loop';
 import LengthOfSession from './LengthOfSession';
@@ -143,10 +143,6 @@ const ToggleDays = (props) => {
   const { classDays, setClassDays, newCourseID, capacity, newCourseTimeslots, setNewCourseTimeslots} = useStore();
 
     props.setIsNextDisabled(!Boolean(newCourseTimeslots.length))
-
-    useEffect(() => {
-        setNewCourseTimeslots([])
-    }, [])
 
     const handleSave = (index, isRepeating, dayKey) => {
         const activeBtn = document.getElementById(`datePickerButton-${dayKey}`)

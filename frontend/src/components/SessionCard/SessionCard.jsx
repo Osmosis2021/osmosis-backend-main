@@ -60,7 +60,7 @@ function SessionCard (props) {
                         
                             <Stack direction='row' alignItems='center'>
                                 {/* WHEN NEWLY CREATED USER THERE IS NO ICON TO DISPLAY */}
-                                <img src={require(`../../assets/icons/${props?.icon}.png`)} alt={props.icon} style={{ marginLeft:'3%', width:'22px', height:'22px'}}/>
+                                <img src={require(`../../assets/icons/${props?.icon || 'Sharing'}.png`)} alt={props.icon} style={{ marginLeft:'3%', width:'22px', height:'22px'}}/>
                                 <Typography variant='h4' className="industry">{props.industry}</Typography>
                             </Stack>
                             

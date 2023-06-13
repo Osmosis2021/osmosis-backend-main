@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import { Container, OutlinedInput, Typography, Grid } from '@mui/material';
 import useStore from "../../../store";
 
@@ -11,10 +11,6 @@ function Cost(props) {
 	const setWholeNumberCost = val => {
 		setNewCourseCost(Math.max(Math.floor(val), 0))
 	}
-
-	useEffect(() => {
-		setNewCourseCost('')
-	}, [])
 
 	return (
 		<>

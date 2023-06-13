@@ -1,8 +1,6 @@
-import React, {useEffect} from 'react';
-import { Grid, Container, Typography, ToggleButton, Stack, Fab } from '@mui/material';
-import { Link as LinkRouter } from 'react-router-dom';
+import React from 'react';
+import { Grid, Container, Typography, ToggleButton, Stack } from '@mui/material';
 import './Industry.css';
-import TopNavBar from '../../TopNavBar/TopNavBar';
 import useStore from '../../../store';
 
 
@@ -27,10 +25,6 @@ export default function Industry(props) {
 		setIcon(event.target.innerText.toLowerCase());
 	}
 	const {newCourseIndustry, setNewCourseIndustry, setIcon} = useStore();
-
-	useEffect(() => {
-		setNewCourseIndustry('')
-	}, [])
 
     props.setIsNextDisabled(!Boolean(newCourseIndustry))
   

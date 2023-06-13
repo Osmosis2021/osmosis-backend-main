@@ -28,10 +28,10 @@ export const ConfirmSession = () => {
         newCourseAddressState, setNewCourseAddressState,
         newCourseAddressCountry, setNewCourseAddressCountry,
         courseTitle, setCourseTitle,
+        courseDescription, setCourseDescription,
         newCourseLatitude, setNewCourseLatitude,
         newCourseLongitude, setNewCourseLongitude,
         newCourseTimeslots, setNewCourseTimeslots,
-        courseDescription
     } = useStore();
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState();
@@ -67,24 +67,26 @@ export const ConfirmSession = () => {
 
             const {data} = await axios.post(backendURL + 'course/registerCourse', courseInfo)
             setIsLoading(false);
+            console.log('finished submitting course registration. resp:', data);
             // alert('Course succesfully created!')
             if  (data.success === true) {
-                // setNewCourseIndustry('')
-                // setTags([])
-                // setImages([])
-                // setCapacity(1)
-                // setNewCourseDuration(60)
-                // setNewCourseCost('')
-                // setNewCourseAddressLine1('')
-                // setNewCourseAddressLine2('')
-                // setNewCourseAddressZipcode('')
-                // setNewCourseAddressCity('')
-                // setNewCourseAddressState('')
-                // setNewCourseAddressCountry('')
-                // setCourseTitle('')
-                // setNewCourseLatitude(-73.9569994)
-                // setNewCourseLongitude(40.7297027)
-                // setNewCourseTimeslots([])
+                setNewCourseIndustry('')
+                setTags([])
+                setImages([])
+                setCapacity(1)
+                setNewCourseDuration(60)
+                setNewCourseCost('')
+                setNewCourseAddressLine1('')
+                setNewCourseAddressLine2('')
+                setNewCourseAddressZipcode('')
+                setNewCourseAddressCity('')
+                setNewCourseAddressState('')
+                setNewCourseAddressCountry('')
+                setCourseTitle('')
+                setCourseDescription('')
+                setNewCourseLatitude(-73.9569994)
+                setNewCourseLongitude(40.7297027)
+                setNewCourseTimeslots([])
             }
             navigate(`/teachers/${userName}`)
         } catch (error) {

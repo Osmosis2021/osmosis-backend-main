@@ -6,7 +6,6 @@ import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder'
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css'
 import theme from '../../../theme.js';
 import './Address.css';
-import art from '../../../assets/icons/business.png'
 
 import mapboxgl from 'mapbox-gl'
 // The following is required to stop "npm build" from transpiling mapbox code.
@@ -18,7 +17,6 @@ mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worke
 // import Geocoder from 'react-map-gl-geocoder'
 const MAPBOX_TOKEN =
     'pk.eyJ1IjoicmFkZXItamFrZSIsImEiOiJjbDU4dXdnMXcyNDZ2M2pvY2k2OW1yajY5In0.VoWote3L5R1CdSF1RPKaZg';
-const courseAddressMapRef = 'kjfh10w487hg'
 
 
 const Address = props => {
@@ -42,14 +40,6 @@ const Address = props => {
     const [showFields, setShowFields] = useState(false);
 
     useEffect(() => {
-        setNewCourseAddressLine1('')
-        setNewCourseAddressLine2('')
-        setNewCourseAddressZipcode('')
-        setNewCourseAddressCity('')
-        setNewCourseAddressState('')
-        setNewCourseAddressCountry('')
-        setNewCourseLatitude(-73.9569994)
-        setNewCourseLongitude(40.7297027)
         const geo = new MapboxGeocoder({
             accessToken: MAPBOX_TOKEN,
             proximity: {longitude: -73.9569994, latitude: 40.7297027},
@@ -89,37 +79,6 @@ const Address = props => {
     props.setIsNextDisabled([newCourseAddressLine1, newCourseAddressCity, newCourseAddressZipcode,
       newCourseAddressState, newCourseLatitude].some(val => !Boolean(val)))
     
-    const _map = <ReactMapGL mapboxAccessToken={MAPBOX_TOKEN}
-        initialViewState={{zoom: 14, latitude: newCourseLatitude, longitude: newCourseLongitude}}
-        mapStyle={`mapbox://styles/mapbox/${theme.palette.mode}-v11`}
-        style={{ width: '100%', height: '30vh' }}
-        // onLoad={onMapLoad}
-    />
-    // _map.loadImage(art, function(error, image) {
-    //     if (error) {
-    //         throw error;
-    //     } else {
-    //         _map.addImage('art', image, { 'sdf': true });
-    //     }
-    // });
-
-
-
-
-
-    // const onMapLoad = (e) => {
-    //     if (courseAddressMapRef.current) {
-    //         const pinImage = new Image();
-    //         pinImage.onload = () => {
-    //         if (!mapRef.current.hasImage('pin')) {
-    //             mapRef.current.addImage('pin', pinImage, { sdf: true });
-    //         }
-    //         }
-    //         pinImage.src = pin; // pin is your svg import
-    //     }
-    // }
-
-
 
     return (
     <div>

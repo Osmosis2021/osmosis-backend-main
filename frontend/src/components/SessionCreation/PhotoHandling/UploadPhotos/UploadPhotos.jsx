@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React from 'react';
 import { Box, IconButton, Stack, Typography } from '@mui/material';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -7,10 +7,6 @@ import useStore from '../../../../store';
 export default function UploadPhotos() {
 
 	const {images, setImages} = useStore();
-
-	useEffect(() => {
-		setImages([])
-	}, [])
 
 	//Handle and convert image to base 64 
     const addImage = (e) =>{

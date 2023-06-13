@@ -1,16 +1,12 @@
-import { Box,Typography, Grid, ButtonGroup, Button, Stack } from '@mui/material';
+import { Typography, Grid, ButtonGroup, Button, Stack } from '@mui/material';
 import { PeopleAltRounded } from '@mui/icons-material';
-import React, { useEffect } from 'react';
+import React from 'react';
 import useStore from '../../../store';
 import './Capacity.css';
 
 function Capacity() {
 
-	const {capacity, setCapacity, increaseCapacity, decreaseCapacity} = useStore()
-
-	useEffect(() => {
-		setCapacity(1)
-	}, [])
+	const {capacity, increaseCapacity, decreaseCapacity} = useStore()
 
 	return (
 		<div>
