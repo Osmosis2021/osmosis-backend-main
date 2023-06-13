@@ -13,7 +13,7 @@ import Alert from '@mui/material/Alert';
 import Checkbox from '@mui/material/Checkbox';
 
 
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://osmosis.herokuapp.com/' : 'http://localhost:8126/'
+const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
 
 
 const Signup = props => {		

@@ -8,7 +8,7 @@ import './StudentProfile.css';
 import Prof from '../Prof';
 import axios from 'axios';
 
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://osmosis.herokuapp.com/' : 'http://localhost:8126/'
+const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
 
 const StudentProfile = (props) => {
     

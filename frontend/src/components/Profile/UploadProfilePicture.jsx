@@ -10,7 +10,7 @@ import CameraAltIcon from '@mui/icons-material/CameraAlt';
 // import { useParams } from 'react-router-dom';
 // import useStore from '../../../../store';
 
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://osmosis.herokuapp.com/' : 'http://localhost:8126/'
+const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
 
 
 export default function UploadProfilePicture() {
