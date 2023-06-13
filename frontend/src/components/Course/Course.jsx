@@ -219,6 +219,7 @@ const Course = (props) => {
 
 				<Grid item xs={4} style={{justifyContent:'center', display:'flex'}}>
 						{/* <br/> */}
+								{(selectedDateAndTime.hasOwnProperty('startDate')) &&
 							<ButtonGroup variant='contained'>
 								<Button onClick={decreaseGuests}>
 									<Typography variant='h6' fontWeight='bold' color='white'>
@@ -236,14 +237,16 @@ const Course = (props) => {
 									</Typography>
 								</Button>
 							</ButtonGroup>
+								}
 				</Grid>
 
 				<Grid item xs={4} style={{justifyContent:'center', display:'flex'}}>
+				{(selectedDateAndTime.hasOwnProperty('startDate')) &&
 				<Stack justifyContent='center'>
 					<Typography variant='h6'> Remaining Spots: </Typography>
 					<Typography variant='body'> {courseData.capacity - selectedEnrollment} left </Typography>
 				</Stack>
-
+				}
 				</Grid>
 
 			</Grid>
