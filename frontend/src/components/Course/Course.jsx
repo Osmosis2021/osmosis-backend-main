@@ -37,6 +37,9 @@ const Course = (props) => {
 	const [courseData, setCourseData] = useState({})
 	const [selectedDateAndTime, setSelectedDateAndTime] = useState({})
 	const [selectedTimeslotID, setSelectedTimeslotID] = useState('')
+	// const [selectedCapacity, setSelectedCapacity] = useState(1)
+	const [selectedEnrolledStudents, setSelectedEnrolledStudents] = useState([])
+	const [selectedEnrollment, setSelectedEnrollment] = useState(0)
 	const [isLoading, setIsLoading] = useState(true);
 	const [teacherInfo, setTeacherInfo] = useState();
 	const [guestsEntered, setGuestsEntered] = useState(1);
@@ -44,13 +47,16 @@ const Course = (props) => {
 	const MAPBOX_TOKEN = 'pk.eyJ1IjoicmFkZXItamFrZSIsImEiOiJjbDU4dXdnMXcyNDZ2M2pvY2k2OW1yajY5In0.VoWote3L5R1CdSF1RPKaZg';
 
 	const increaseGuests = () => {
-		setGuestsEntered(Math.min(guestsEntered + 1, courseData.capacity));
+		const proposedTotal = guestsEntered + 1 + selectedEnrollment
+		if(Boolean(courseData.capacity) && (proposedTotal <= courseData.capacity)) {
+			setGuestsEntered(Math.min(guestsEntered + 1, courseData.capacity));
+		}
     };
-
+	
     const decreaseGuests = () => {
-        if (guestsEntered > 1) {
+		if (guestsEntered > 1) {
             setGuestsEntered(guestsEntered - 1);
-        };
+        }
     };
 
 
@@ -59,7 +65,6 @@ const Course = (props) => {
 		.then((res) => {
 			return res.json();
 		}).then((data) => {
-			console.log({courseData});
 			setCourseData(data)
 		}).catch((err) => {
 			console.log('Error getting course info:\n', err);
@@ -189,6 +194,9 @@ const Course = (props) => {
 						    selectedDateAndTime={selectedDateAndTime}
 							setSelectedDateAndTime={setSelectedDateAndTime}
 							setSelectedTimeslotID={setSelectedTimeslotID}
+							// setSelectedCapacity={setSelectedCapacity}
+							setSelectedEnrolledStudents={setSelectedEnrolledStudents}
+							setSelectedEnrollment={setSelectedEnrollment}
 						/>}
 					</Typography>
 				</Grid>
@@ -233,7 +241,7 @@ const Course = (props) => {
 				<Grid item xs={4} style={{justifyContent:'center', display:'flex'}}>
 				<Stack justifyContent='center'>
 					<Typography variant='h6'> Remaining Spots: </Typography>
-					<Typography variant='body'> {courseData.capacity - guestsEntered} left </Typography>
+					<Typography variant='body'> {courseData.capacity - selectedEnrollment} left </Typography>
 				</Stack>
 
 				</Grid>

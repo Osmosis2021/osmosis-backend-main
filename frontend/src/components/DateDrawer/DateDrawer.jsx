@@ -23,7 +23,7 @@ export default function DateDrawer(props) {
         const [isScheduleLoading, setIsScheduleLoading] = useState(true)
         const [schedule, setSchedule] = useState([])
 
-        const fetchSchedule = (recurssionDepth=0) => {
+        const fetchSchedule = () => {
             const temp = new Date()
             const today = new Date(temp.toDateString())
             const presentAndFutureCourses = props?.schedule.filter((_course) => {
@@ -47,9 +47,11 @@ export default function DateDrawer(props) {
             setIsDrawerOpen(true)
         }
 
-        const selectionHandler = (startDate, startTime, timeslotID) => {
+        const selectionHandler = (startDate, startTime, timeslotID, enrolledStudents, enrollment, capacity) => {
             props.setSelectedDateAndTime({startDate, startTime})
             props.setSelectedTimeslotID(timeslotID)
+            props.setSelectedEnrolledStudents(enrolledStudents)
+            props.setSelectedEnrollment(enrollment)
             setIsDrawerOpen(false)
         }
 
@@ -86,7 +88,8 @@ export default function DateDrawer(props) {
                             return (
                                 <>
                                 <Grid item xs={4} 
-                                    onClick={() => {selectionHandler(availability.startDate, availability.startTime, availability._id)}}
+                                    onClick={() => {selectionHandler(availability.startDate, availability.startTime, availability._id,
+                                        availability.enrolledStudents, availability.enrollment, availability.capacity)}}
                                 >
                                     <Item>
                                         {/* <Typography variant='h4'>{availability.dayOfWeek}</Typography> */}

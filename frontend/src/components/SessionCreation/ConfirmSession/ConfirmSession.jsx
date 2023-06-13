@@ -67,7 +67,6 @@ export const ConfirmSession = () => {
 
             const {data} = await axios.post(backendURL + 'course/registerCourse', courseInfo)
             setIsLoading(false);
-            console.log(data);
             // alert('Course succesfully created!')
             if  (data.success === true) {
                 // setNewCourseIndustry('')

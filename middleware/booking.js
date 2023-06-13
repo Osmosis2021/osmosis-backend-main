@@ -1,8 +1,7 @@
 const router = require('express').Router();
 const Booking = require('../models/booking');
+const CourseTimeslot = require('../models/courseTimeslot');
 const jwt = require('jsonwebtoken');
-const Course = require('../models/course');
-const User = require('../models/user');
 const jwtSecret = 'randomString';
 
 
@@ -40,14 +39,17 @@ router.post('/createBooking', async (req, res) => {
             teacherUserName,
             time: time,
             date: date, 
-            status: 'pending payment'
+            // status: 'pending payment'
             // address: courseAddress,
             // city: courseCity,
             // zipCode: courseZipcode,
 
-        }).then((doc) => {
-            console.log('newly created booking:', doc);
-            res.json(doc);
+        }).then(async(doc) => {
+            const courseTimeslotUpdate = await CourseTimeslot.findOneAndUpdate({_id: doc.courseTimeslotID},
+                {$push: {enrolledStudents: doc.studentID}, $inc: {enrollment: doc.numberOfGuests}}, {new: true})
+            if(courseTimeslotUpdate) {
+                res.json({'message': 'stored a courseTimeslotUpdate'});
+            }
         }).catch((err) => {
             throw err;
         })

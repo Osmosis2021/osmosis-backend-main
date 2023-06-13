@@ -2,7 +2,6 @@ import { Button, Container, Grid, Stack, Typography } from '@mui/material';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import React, { useState, useMemo, useEffect } from 'react';
 import ToggleButton from '@mui/material/ToggleButton';
-import TopNavBar from '../../TopNavBar/TopNavBar';
 import LoopIcon from '@mui/icons-material/Loop';
 import LengthOfSession from './LengthOfSession';
 import { styled } from '@mui/material/styles';
@@ -158,11 +157,11 @@ const ToggleDays = (props) => {
         const course_timeslot = {
             startTime: courseStartTime,
             endTime: days[index]['End Time'],
-            enrollment: 0,
             dayOfWeek: days[index]['key'],
             startDate: days[index]['fullDate'],
             capacity,
             enrolledStudents: [],        
+            enrollment: 0,
             isRepeating
         }
         const _updatedTimeslots = [...newCourseTimeslots, course_timeslot]
