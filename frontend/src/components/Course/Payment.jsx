@@ -14,10 +14,6 @@ function Payment(props) {
         fetch(`${backendURL}stripe/config`).then(async (res) => {
             const { publishableKey } = await res.json();
             setStripePromise(loadStripe(publishableKey));
-            console.log('Fetched the publishable key', publishableKey)
-        // }).catch((error) => {
-        //     console.error('Error loading Stripe config:', error);
-        // });
     // Fetch client secret for the payment intent from the server
         }).then(() => {
           fetch(`${backendURL}stripe/create-payment-intent`, {
@@ -29,10 +25,7 @@ function Payment(props) {
             metadata: props.paymentMetadata
           }),
           }).then(async (res) => {
-            const response = await fetch('/secret');
-            const {client_secret: clientSecret} = await response.json();
-            // const { client_secret: clientSecret } = await res.json();
-            console.log('Received client secret:', clientSecret);
+            const {clientSecret} = await res.json();
             setClientSecret(clientSecret);
           }).catch((error) => {
           console.error('Error creating payment intent:', error);
