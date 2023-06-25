@@ -57,6 +57,7 @@ const Opening = () => {
 			}
 		}).catch(err => {
 			console.log('Error logging in user:\n', err)
+			setIsLoading(false)
 		})
 	}
 
@@ -71,31 +72,37 @@ const Opening = () => {
 					
 					<Typography variant='h3' mt={2} style={{textAlign: 'center'}}> Welcome to <span style={{color:'#00aeef'}}>Osmosis</span> </Typography>
 					<Typography variant='h4' mt={2} mb={2} align='center'>Learning through <br/>human connections 🤝</Typography>
-					<Typography variant='subtitle1' mt={2} mb={2}>Already have an account:</Typography>
-		
-					<Grid item>
-						{
-							isWrong ? <TextField variant='outlined' label="Email or Username" placeholder='Email or Username' error fullWidth onChange={handleChangeEmail} style={{marginBottom:'12px'}}/> :
-							<TextField variant='outlined' label="Email or Username" placeholder='Email or Username' fullWidth onChange={handleChangeEmail} />
-						}
-						{
-							isWrong ? <TextField variant='outlined' type="password" label="Password" placeholder='Password' error fullWidth onChange={handleChangePassword} helperText="Incorrect entry."/> :
-							<TextField variant='outlined' type="password" label="Password" placeholder='Password' onChange={handleChangePassword} fullWidth size='large' style={{marginTop: 8, marginBottom: 3}} />
-						}
-							<LinkRouter to='/forgot' style={{textDecoration:'none'}}>
-								<Button size='small' fontSize='extra-small' style={{marginBottom:8, marginTop:6}}> Forgot Password?</Button>
-							</LinkRouter>
+					
+					{
+						isLoading ? <><br/><br/><br/><br/><br/><Typography variant='h4'>Loading...</Typography> </> :
+						<>
+							<Typography variant='subtitle1' mt={2} mb={2}>Already have an account:</Typography>
+				
+							<Grid item>
+								{
+									isWrong ? <TextField variant='outlined' label="Email or Username" placeholder='Email or Username' error fullWidth onChange={handleChangeEmail} style={{marginBottom:'12px'}}/> :
+									<TextField variant='outlined' label="Email or Username" placeholder='Email or Username' fullWidth onChange={handleChangeEmail} />
+								}
+								{
+									isWrong ? <TextField variant='outlined' type="password" label="Password" placeholder='Password' error fullWidth onChange={handleChangePassword} helperText="Incorrect entry."/> :
+									<TextField variant='outlined' type="password" label="Password" placeholder='Password' onChange={handleChangePassword} fullWidth size='large' style={{marginTop: 8, marginBottom: 3}} />
+								}
+									<LinkRouter to='/forgot' style={{textDecoration:'none'}}>
+										<Button size='small' fontSize='extra-small' style={{marginBottom:8, marginTop:6}}> Forgot Password?</Button>
+									</LinkRouter>
 
-							<Button variant='contained' size='large' fullWidth style={{fontSize: 14, fontFamily:'Poppins', color:'white', marginTop: '16px'}} onClick={handleLogin}>Login</Button>
-							
-							<Typography variant='h5' mt={2} mb={2} align='center'>OR</Typography>
-											
-							<LinkRouter to='/sign-up' align='center' style={{textDecoration: 'none'}}>
-								<Button variant="contained" size="large" align='center' style={{fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth>
-									Signup Today
-								</Button>
-							</LinkRouter>
-					</Grid>
+									<Button variant='contained' size='large' fullWidth style={{fontSize: 14, fontFamily:'Poppins', color:'white', marginTop: '16px'}} onClick={handleLogin}>Login</Button>
+									
+									<Typography variant='h5' mt={2} mb={2} align='center'>OR</Typography>
+													
+									<LinkRouter to='/sign-up' align='center' style={{textDecoration: 'none'}}>
+										<Button variant="contained" size="large" align='center' style={{fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth>
+											Signup Today
+										</Button>
+									</LinkRouter>
+							</Grid>
+						</>
+					}
 				</Grid>
 		</Container>
 	);
