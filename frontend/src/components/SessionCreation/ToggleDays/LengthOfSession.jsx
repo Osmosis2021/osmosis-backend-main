@@ -46,7 +46,7 @@ function LengthOfSession() {
 
   return (
     <div>
-          <Typography variant='h4' mb={2} mt={2} align='center'>
+          <Typography variant='h4' mb={2} mt={8} align='center'>
             Choose length of your session:
           </Typography>
 

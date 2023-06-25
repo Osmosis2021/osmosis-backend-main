@@ -111,7 +111,7 @@ export const ConfirmSession = () => {
             <Grid container spacing={2} justifyContent='center' alignItems='center'>
 
                 <Grid item xs={12}>
-                    <Typography mt={2} variant='h4'>Confirm your information</Typography>
+                    <Typography mt={8} variant='h4'>Confirm your information</Typography>
                 </Grid>
 
                 <Grid item xs={12}>

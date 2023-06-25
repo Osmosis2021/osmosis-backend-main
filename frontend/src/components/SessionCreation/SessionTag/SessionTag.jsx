@@ -45,7 +45,7 @@ export default function SessionTag(props) {
 	return (
 		<>
 		<Container maxWidth='sm'>
-			<Typography variant='h4' mb={2} mt={2} align='center'>
+			<Typography variant='h4' mb={2} mt={8} align='center'>
 				Title of your course:
 			</Typography>
 
