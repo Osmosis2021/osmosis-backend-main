@@ -29,7 +29,7 @@ export default function UploadPhotos() {
 	return (
 		<div>
 			<Box style={{marginBottom:'20px'}}>
-				<Typography variant='h4' mt={2} mb={4} align='center' fontSize={21}>
+				<Typography variant='h4' mt={8} mb={4} align='center' fontSize={21}>
 					Upload <span style={{color:'#00aeef'}}> Photos: </span>
 				</Typography>
 

@@ -58,11 +58,11 @@ export default function UpdatedProgressBar() {
       <MobileStepper
         variant="progress"
         steps={maxSteps}
-        position="static"
+        position="top"
         activeStep={activeStep}
         nextButton={
-          <Button
-            size="small"
+          <Button style={{fontSize:'1rem'}}
+            size="large"
             onClick={handleNext}
             disabled={(activeStep === maxSteps - 1) || isNextDisabled}
             // industry === '' && tags.length === 0
@@ -76,7 +76,7 @@ export default function UpdatedProgressBar() {
           </Button>
         }
         backButton={
-          <Button size="small" onClick={handleBack} disabled={activeStep === 0}>
+          <Button  style={{fontSize:'1rem'}} size="large" onClick={handleBack} disabled={activeStep === 0}>
             {theme.direction === 'rtl' ? (
               <KeyboardArrowRight />
             ) : (

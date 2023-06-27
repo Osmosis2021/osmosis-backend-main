@@ -14,7 +14,7 @@ function Capacity() {
 				
 				<Stack
 					mb={4}
-					mt={2}
+					mt={8}
 					direction='row'
 					spacing={2}
 					style={{ alignItems: 'center' }}>

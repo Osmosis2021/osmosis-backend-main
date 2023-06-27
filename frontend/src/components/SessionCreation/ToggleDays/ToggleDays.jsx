@@ -185,7 +185,7 @@ const ToggleDays = (props) => {
             <LengthOfSession/>
             
             <Typography variant='h4' mb={-2} mt={2} align='center'>
-                Enter your availability:
+                Enter your availability this week:
             </Typography>
 
             <Grid

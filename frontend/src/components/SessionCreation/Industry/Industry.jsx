@@ -34,7 +34,7 @@ export default function Industry(props) {
 		{/* <TopNavBar next='empty' back='/role' activeStep='1'/> */}
 
 		<Container maxWidth='sm' align='center'>
-			<Stack mb={2} mt={2} style={{ alignItems: 'center' }}>
+			<Stack mb={2} mt={8} style={{ alignItems: 'center' }}>
 				<Typography variant='h4'>
 					Select your overall{' '}
 					<span style={{ color: '#00aeef' }}>industry: </span>

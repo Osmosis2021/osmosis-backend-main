@@ -82,7 +82,7 @@ const Address = props => {
 
     return (
     <div>
-    <Typography variant='h4' mb={2} mt={2} align='center'>Where will you teach?</Typography>
+    <Typography variant='h4' mb={2} mt={8} align='center'>Where will you teach?</Typography>
     <Container style={{width:"80vw"}} sx={{ py: 2, }}>
         <Stack spacing={4}>
             <div id='geocoderContainer'></div>

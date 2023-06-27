@@ -15,9 +15,12 @@ function Cost(props) {
 	return (
 		<>
 		<Container align='center'>
-			<Typography variant='h4' mt={2} mb={12} align='center'>
+			<Typography variant='h4' mt={8} mb={12} align='center'>
 				<span style={{ color: '#00aeef' }}>Cost </span>of your Sessions:
+				
+				<Typography>* No decimals *</Typography>
 			</Typography>
+			
 
 			<Grid container style={{ alignItems: 'center', justifyContent:'center'}}>
 				<Grid item xs={2}>
