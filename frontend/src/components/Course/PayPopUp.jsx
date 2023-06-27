@@ -62,6 +62,19 @@ export default function PayPopUp(props) {
     setOpen(false);
   };
 
+  // async function convertTime (time) {
+  //   console.log('time', time)
+  //   const hours = time?.split(':')
+  //   const suffix = hours[0] >= 12 ? "PM" : "AM"; 
+  //   return(time + suffix)
+  // }
+
+  // async function convertDate (date) {
+  //   const _date = await new Date (date)
+  //   const dateFormat = _date.toDateString();
+  //   return (dateFormat);
+  // }
+
   return (
     <Container>
         {/* {!(props.isRegistered) &&
@@ -163,7 +176,7 @@ export default function PayPopUp(props) {
                     
                         <Grid item>
                             <Typography variant='h4'>
-                                {props.guests} x
+                                x {props.guests}
                             </Typography>
                         </Grid>
                     
