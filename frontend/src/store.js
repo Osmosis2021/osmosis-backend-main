@@ -91,7 +91,7 @@ const useStore = create(set => ({
     capacity: 1,
     setCapacity: capacity => set({ capacity }),
     increaseCapacity: () => set(state => ({ capacity: state.capacity + 1 })),
-    decreaseCapacity: () => set(state => ({ capacity: state.capacity - 1 })),
+    decreaseCapacity: () => set(state => ({ capacity: Math.max(1, state.capacity - 1) })),
 
 }));
 
