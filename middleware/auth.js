@@ -27,10 +27,8 @@ router.post('/login/:email/:password', async (req, res) => {
     }
 });
 
-//jacklerner7 is taken
 router.get('/isUserNameUnique/:userName', async (req, res) => {
     const {userName} = req.params
-    console.log('in router.get /isUserNameUnique, name:', userName);
     User.findOne({userName}, (err, data) => {
         if (data) {
             res.json({isAvailable: false})
