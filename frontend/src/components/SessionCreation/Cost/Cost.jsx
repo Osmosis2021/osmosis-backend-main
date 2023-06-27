@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, OutlinedInput, Typography, Grid } from '@mui/material';
+import { Button, Container, OutlinedInput, Typography, Grid } from '@mui/material';
 import useStore from "../../../store";
 
 import './Cost.css';
@@ -44,6 +44,13 @@ function Cost(props) {
 			<hr style={{ width: '75%' }} />
 			<br />
 			<Typography variant='h3'>session</Typography>
+			
+			<Button variant="contained" size="large" align='center' disabled={!Boolean(newCourseCost)}
+					style={{margin: '20% 0 20px', width:'80%', fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth
+					onClick={props.handleNext}>
+					Next
+			</Button>
+			
 		</Container>
 		</>
 	);
