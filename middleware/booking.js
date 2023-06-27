@@ -93,12 +93,16 @@ router.get('/teacherBookingInfo/:bookingID', async (req, res) => {
     const {token} = req.cookies;
     const {bookingID} = req.params
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
-        if(err) throw err;
-        // Verification check to see if userData.id = bookingID.teacherID ???
-        console.log('Booking ID', bookingID)
-        const teacher = await Booking.find({_id: bookingID}).populate('courseID studentID')
-        console.log('teacher', teacher)
-        res.json( teacher )
+        try {
+            if(err) throw err;
+            // Verification check to see if userData.id = bookingID.teacherID ???
+            console.log('Booking ID', bookingID)
+            const teacher = await Booking.find({_id: bookingID}).populate('courseID studentID')
+            console.log('teacher', teacher)
+            res.json( teacher )
+        } catch (error) {
+            console.log('Ran into this error in /teacherBookingInfo/:bookingID', error)
+        }
         
     })
 })
