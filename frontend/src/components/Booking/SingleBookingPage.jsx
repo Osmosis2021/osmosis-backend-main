@@ -27,8 +27,9 @@ function SingleBookingPage() {
 
     function convertTimestampToDate (timestamp) {
       const date = new Date (timestamp)
-      const dateFormat = date.getHours() + ":" + date.getMinutes() + ", "+ date.toDateString();
-      return dateFormat;
+      const suffix = date.getHours() >= 12 ? "PM" : "AM"; 
+      const dateFormat = date.getHours() + ":" + date.getMinutes() + suffix + ", " + "on " + date.toDateString();
+      return (dateFormat);
     }
     
     return (
@@ -91,7 +92,7 @@ function SingleBookingPage() {
             </Card>
                     <br/>
 
-                    <Typography variant='h5'>Purchased {convertTimestampToDate(booking.timestamp)} </Typography>
+                    <Typography variant='h5'>Purchased at {convertTimestampToDate(booking.timestamp)} </Typography>
                     
 
                     <Grid container pt={1} pr={4} justifyContent='right' direction='row' columnSpacing={2}>
