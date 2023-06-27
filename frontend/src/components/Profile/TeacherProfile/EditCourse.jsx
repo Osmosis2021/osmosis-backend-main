@@ -1,17 +1,10 @@
 import { Button, ButtonGroup, Card, Container, Grid, Input, IconButton, Skeleton, Stack, TextField, Typography, Box, FormHelperText } from '@mui/material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import GuestDrawer from '../../GuestDrawer/GuestDrawer';
-import PersonIcon from '@mui/icons-material/Person';
 import React, { useState, useEffect } from 'react';
-import DateDrawer from '../../DateDrawer/DateDrawer';
-import ReactMapGL, { Marker } from 'react-map-gl';
 import TopNavBar from '../../TopNavBar/TopNavBar';
-import Prof from '../../Profile/Prof';
-import theme from '../../../theme.js';
 import useStore from '../../../store';
 import EditPhotos from './EditPhotos';
-import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PeopleAltRounded } from '@mui/icons-material';
 
@@ -39,15 +32,13 @@ const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.i
 
 const EditCourse = (props) => {
 	const [teacherData, setTeacherData] = useState({});
-	const {userName, userID, isTeacher } = useStore();
-	const [editedTags, setEditedTags] = useState([]);
+	const {userName, isTeacher } = useStore();
 	const [isLoading, setIsLoading] = useState(true)
 	const [guests, setGuests] = useState(1)
 	const [courseInfo, setCourseInfo] = useState({})
 	const navigate = useNavigate();
 	// const MAPBOX_TOKEN = 'pk.eyJ1IjoicmFkZXItamFrZSIsImEiOiJjbDU4dXdnMXcyNDZ2M2pvY2k2OW1yajY5In0.VoWote3L5R1CdSF1RPKaZg';
 	const { courseID } = useParams();
-	// console.log(courseID)
 	useEffect(() => {
 		fetch(`${backendURL}course/getCourse/${courseID}`)
 		.then((res) => {
@@ -55,14 +46,11 @@ const EditCourse = (props) => {
 		}).then((data) => {
 			setTeacherData(data);
 			setCourseInfo(data)
-			setEditedTags(teacherData?.tags)
-			console.log(teacherData)
 			setIsLoading(false)
-
 		}).catch((err) => {
 			console.log('Error getting teacher info:\n', err);
 		});
-	});
+	}, [])
 
 	// async function updateCourse() {
 	// 	// e.preventDefault();
@@ -86,11 +74,7 @@ const EditCourse = (props) => {
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
             }).then(() => {
-                // setFirstName(userInfo.firstName)
-                // setLastName(userInfo.lastName)
-                // setUserName(userInfo.userName)
 				setIsLoading(false)
-				console.log(courseInfo)	
                 alert('Successfully updated your course')
                 navigate(`/${isTeacher ? 'teachers' : 'students'}/${userName}`)
             })
@@ -101,29 +85,20 @@ const EditCourse = (props) => {
     }
 
 	const removeTag = (tag) => {
-		console.log('backendData saved to state =>', editedTags);
-		let filteredTags = editedTags.filter((selectedTag) =>  selectedTag !== tag )
-		setEditedTags(filteredTags);
-		setCourseInfo(prev => ({...prev, tags: editedTags}))
-		console.log('after click', courseInfo.tags)
+		let filteredTags = courseInfo.tags.filter((selectedTag) =>  selectedTag !== tag )
+		setCourseInfo({...courseInfo, tags: filteredTags})
 	}
 
 	function handleTags() {
-		// event.preventDefault();
     	const tag = document.getElementById('outlined-basic').value;
-		console.log(tag)
-		const newTags = [...editedTags, tag]
-		setEditedTags(newTags)
+		const newTags = [...courseInfo.tags, tag]
 		setCourseInfo(prev => ({...prev, tags: newTags}))
-		console.log(editedTags);
 	}
 
 	const increaseGuests = () => {
 		const convertedGuests= parseInt(teacherData.capacity)
-		console.log(convertedGuests)
         setGuests((convertedGuests) => (convertedGuests + 1));
 		setCourseInfo(prev => ({...prev, capacity: guests}))
-		console.log(guests)
     };
 
     const decreaseGuests = () => {
@@ -139,10 +114,6 @@ const EditCourse = (props) => {
 			await fetch (`${backendURL}course/deleteCourse/${courseInfo._id}`, {
 				method: 'DELETE'
 			}).then(() => {
-				console.log(courseInfo);
-				// setFirstName(userInfo.firstName)
-				// setLastName(userInfo.lastName)
-				// setUserName(userInfo.userName)
 				alert('Successfully DELETED your course')
 				navigate(`/teachers/${userName}`)
 			})
@@ -197,7 +168,7 @@ const EditCourse = (props) => {
 					<Grid container direction='row' alignItems='center'>
 						{ 
 						isLoading ? <Skeleton style={{width:'100%', height:'100px'}}/> :
-						editedTags?.map((tag, index) => {
+						courseInfo.tags?.map((tag, index) => {
 							return (
 									<Grid container alignItems='center'>
 										<Grid item>
@@ -379,20 +350,3 @@ const EditCourse = (props) => {
 };
 
 export default EditCourse;
-
-
-
-{/* <Button
-onClick = {
-	(e) => {
-			fetch(`${backendURL}course/deleteCourse/:id`, { method: 'DELETE' })
-			.then((res) => {
-				return res.json();
-			}).catch((err) => {
-				console.log('Error deleting teacher info:\n', err);
-			});
-	}
-} 
->
-	DELETE
-</Button> */}
