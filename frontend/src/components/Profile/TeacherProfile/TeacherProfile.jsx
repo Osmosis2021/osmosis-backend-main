@@ -22,13 +22,16 @@ const TeacherProfile = (props) => {
     const Teacher = useParams();
 
     useEffect(() => {
+        console.log('called short useEffect');
         axios.get(`${backendURL}booking/teacherBookings`).then(response => {
-        setBookings(response.data);
+            console.log('response from booking/teacherBookings call', {response});
+            setBookings(response.data);
         })
 
     }, [])
 
     const getTeacher = (Teacher) => {
+        console.log('in getTeacher', {Teacher})
         for (let i = 0; i < Teacher.length; i++) {
             if (Teacher[i].userName === Teacher) {
                 setTeacherInfo(Teacher[i])

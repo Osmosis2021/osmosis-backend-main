@@ -1,17 +1,10 @@
 import { Button, ButtonGroup, Card, Container, Grid, Input, IconButton, Skeleton, Stack, TextField, Typography, Box, FormHelperText } from '@mui/material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import GuestDrawer from '../../GuestDrawer/GuestDrawer';
-import PersonIcon from '@mui/icons-material/Person';
 import React, { useState, useEffect } from 'react';
-import DateDrawer from '../../DateDrawer/DateDrawer';
-import ReactMapGL, { Marker } from 'react-map-gl';
 import TopNavBar from '../../TopNavBar/TopNavBar';
-import Prof from '../../Profile/Prof';
-import theme from '../../../theme.js';
 import useStore from '../../../store';
 import EditPhotos from './EditPhotos';
-import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PeopleAltRounded } from '@mui/icons-material';
 
@@ -47,7 +40,7 @@ const EditCourse = (props) => {
 	const navigate = useNavigate();
 	// const MAPBOX_TOKEN = 'pk.eyJ1IjoicmFkZXItamFrZSIsImEiOiJjbDU4dXdnMXcyNDZ2M2pvY2k2OW1yajY5In0.VoWote3L5R1CdSF1RPKaZg';
 	const { courseID } = useParams();
-	// console.log(courseID)
+	console.log({courseID, editedTags})
 	useEffect(() => {
 		fetch(`${backendURL}course/getCourse/${courseID}`)
 		.then((res) => {
@@ -58,11 +51,10 @@ const EditCourse = (props) => {
 			setEditedTags(teacherData?.tags)
 			console.log(teacherData)
 			setIsLoading(false)
-
 		}).catch((err) => {
 			console.log('Error getting teacher info:\n', err);
 		});
-	});
+	}, [])
 
 	// async function updateCourse() {
 	// 	// e.preventDefault();
