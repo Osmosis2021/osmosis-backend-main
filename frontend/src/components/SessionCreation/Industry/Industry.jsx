@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Container, Typography, ToggleButton, Stack } from '@mui/material';
+import { Grid, Container, Typography, ToggleButton, Stack, Button } from '@mui/material';
 import './Industry.css';
 import useStore from '../../../store';
 
@@ -42,11 +42,9 @@ export default function Industry(props) {
 			</Stack>
 
 			<Grid container rowSpacing={2}>
-
-			{
-				industries.map((_industry, id) => {
+				{industries.map((_industry, id) => {
 					return (
-						<Grid item xs={6} style={{textAlign:'center', paddingBottom: '22px'}}>
+						<Grid item xs={6} style={{textAlign:'center'}}>
 							<ToggleButton
 								key={id}
 								value={_industry.label}
@@ -57,20 +55,24 @@ export default function Industry(props) {
 							>
 								<img alt={_industry.label} src={require(`../../../assets/icons/${_industry.icon}.png`)} style={{ width: 65, height: 65 }}/>
 								<Typography
-								style={{pointerEvents: 'none'}}
-								gutterBottom
-								variant='h6'
-								mt={1}
-								color={newCourseIndustry === _industry.label ? 'white' : '#00aeef'}
-								fontWeight='medium'>
-								{_industry.label}
+									style={{pointerEvents: 'none'}}
+									gutterBottom
+									variant='h6'
+									mt={1}
+									color={newCourseIndustry === _industry.label ? 'white' : '#00aeef'}
+									fontWeight='medium'>
+									{_industry.label}
 								</Typography>
 							</ToggleButton>
 						</Grid>
 					)
-				})
-			}
+				})}
 			</Grid>
+			<Button variant="contained" size="large" align='center' disabled={!Boolean(newCourseIndustry)}
+				style={{margin: '10px 10px 20px', fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth
+				onClick={props.handleNext}>
+				Next
+			</Button>
 		</Container>
 		</>
 	);

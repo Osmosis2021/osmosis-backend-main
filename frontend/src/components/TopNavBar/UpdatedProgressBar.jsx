@@ -18,7 +18,16 @@ import { useState } from 'react';
 
 // const labels = ['First Step', 'Second Step', 'Third Step', 'Fourth Step', 'Fifth Step', 'Sixth Step', 'Seventh Step', 'Eighth Step']
 const steps = ['Industry', 'Tags', 'Availability', 'Location', 'Capacity', 'Cost', 'Photos', 'Confirmation']
-                          
+                 
+const extraNextButton = props => {
+  return(
+    <Button variant="contained" size="large" align='center' disabled={props.isNextDisabled}
+      style={{margin: '10px 10px 20px', fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth
+      onClick={props.handleNext}>Next
+    </Button>
+    )
+}
+
 export default function UpdatedProgressBar() {
   const theme = useTheme();
   const [activeStep, setActiveStep] = useState(0);
@@ -28,19 +37,19 @@ export default function UpdatedProgressBar() {
   const handleSteps = (step) => {
     switch (step) {
       case 0:
-        return <Industry setIsNextDisabled={setIsNextDisabled}/>
+        return <Industry setIsNextDisabled={setIsNextDisabled} handleNext={handleNext}/>
       case 1:
-        return <SessionTag setIsNextDisabled={setIsNextDisabled}/>
+        return <SessionTag setIsNextDisabled={setIsNextDisabled} handleNext={handleNext}/>
       case 2: 
-      return <Capacity setIsNextDisabled={setIsNextDisabled}/>
+      return <Capacity setIsNextDisabled={setIsNextDisabled} handleNext={handleNext}/>
       case 3:
-        return <ToggleDays setIsNextDisabled={setIsNextDisabled}/>
+        return <ToggleDays setIsNextDisabled={setIsNextDisabled} handleNext={handleNext}/>
         case 4:
-          return <Address setIsNextDisabled={setIsNextDisabled}/>
+          return <Address setIsNextDisabled={setIsNextDisabled} handleNext={handleNext}/>
       case 5:
-        return <Cost setIsNextDisabled={setIsNextDisabled}/>
+        return <Cost setIsNextDisabled={setIsNextDisabled} handleNext={handleNext}/>
       case 6:
-        return <UploadPhotos setIsNextDisabled={setIsNextDisabled}/>
+        return <UploadPhotos setIsNextDisabled={setIsNextDisabled} handleNext={handleNext}/>
       case 7:
         return <ConfirmSession />
     }
