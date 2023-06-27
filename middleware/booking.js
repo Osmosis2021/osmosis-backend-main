@@ -24,9 +24,12 @@ router.post('/createBooking', async (req, res) => {
     console.log(req.body)
 
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
-        if(err) throw err;
+        try {
+            if(err) throw err;
+        } catch (error) {
+            console.log('Error in /createBooking', error)
+        }
         // return userData;
-        console.log('here.......................... inside jwt verify')
         console.log('userData......................', userData)
         Booking.create({
             timestamp: timestamp,
@@ -62,7 +65,11 @@ router.get('/bookings', async (req, res) => {
     const {token} = req.cookies;
 
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
-        if(err) throw err;
+        try {
+            if(err) throw err;
+        } catch (error) {
+            console.log('Error in /bookings', error)
+        }
         console.log('ID to get booking', userData.id)
         const student = await Booking.find({studentID: userData.id}).populate('courseID teacherID')
         console.log('student', student)
@@ -78,7 +85,11 @@ router.get('/teacherBookings', async (req, res) => {
     const {token} = req.cookies;
 
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
-        if(err) throw err;
+        try {
+            if(err) throw err;
+        } catch (error) {
+            console.log('Error in /teacherBookings', error)
+        }
         console.log('ID to get booking', userData.id)
         const teacher = await Booking.find({teacherID: userData.id}).populate('courseID studentID')
         console.log('teacher', teacher)
@@ -114,7 +125,11 @@ router.get('/studentBookingInfo/:bookingID', async (req, res) => {
     const {token} = req.cookies;
     const {bookingID} = req.params
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
-        if(err) throw err;
+        try {
+            if(err) throw err;
+        } catch (error) {
+            console.log('Error in /studentBookingInfo/:bookingID', error)
+        }
         // Verification check to see if userData.id = bookingID.teacherID ???
         console.log('Booking ID', bookingID)
         const student = await Booking.find({_id: bookingID}).populate('courseID teacherID')
