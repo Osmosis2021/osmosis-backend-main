@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import useStore from "../../../store";
-import { Container, Stack, Typography, Grid, TextField, InputLabel, MenuItem, FormControl, Select } from '@mui/material'
+import { Button, Container, Stack, Typography, Grid, TextField, InputLabel, MenuItem, FormControl, Select } from '@mui/material'
 import ReactMapGL, { Marker } from 'react-map-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder'
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css'
@@ -83,7 +83,7 @@ const Address = props => {
     return (
     <div>
     <Typography variant='h4' mb={2} mt={8} align='center'>Where will you teach?</Typography>
-    <Container style={{width:"80vw"}} sx={{ py: 2, }}>
+    <Container style={{width:"90vw", display: 'flex', flexWrap:'wrap', justifyContent:'center' }} sx={{ py: 2, }}>
         <Stack spacing={4}>
             <div id='geocoderContainer'></div>
             <TextField className={`display-${showFields}`}
@@ -163,7 +163,16 @@ const Address = props => {
             </Marker>
         </ReactMapGL>
         }
+
+        <Button variant="contained" size="large" align='center' disabled={[newCourseAddressLine1, newCourseAddressCity, newCourseAddressZipcode,
+            newCourseAddressState, newCourseLatitude].some(val => !Boolean(val))}
+            style={{margin: '25% 0 20px', width:'80%', fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth
+            onClick={props.handleNext}>
+            Next
+        </Button>
+
     </Container>
+
     </div>
   )
 }
