@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Container, Input, Typography, Grid, TextField, Box, IconButton } from '@mui/material';
+import { Button, Container, Input, Typography, Grid, TextField, Box, IconButton } from '@mui/material';
 import useStore from "../../../store"
 import './SessionTag.css';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
@@ -139,8 +139,11 @@ export default function SessionTag(props) {
 			</form>
 			</Box>
 
-
-
+			<Button variant="contained" size="large" align='center' disabled={!Boolean(courseTitle) || !Boolean(courseDescription)} 
+				style={{margin: '20% 0 20px', fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth
+				onClick={props.handleNext}>
+				Next
+			</Button>
 
 		</Container>
 		</>
