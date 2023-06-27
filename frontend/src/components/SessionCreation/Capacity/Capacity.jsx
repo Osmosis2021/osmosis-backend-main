@@ -4,9 +4,10 @@ import React from 'react';
 import useStore from '../../../store';
 import './Capacity.css';
 
-function Capacity() {
+function Capacity(props) {
 
 	const {capacity, increaseCapacity, decreaseCapacity} = useStore()
+    props.setIsNextDisabled(!Boolean(capacity))
 
 	return (
 		<div>
@@ -51,6 +52,12 @@ function Capacity() {
 
                 </Grid>
 					
+				<Button variant="contained" size="large" align='center' disabled={!Boolean(capacity)}
+					style={{margin: '20% 0 20px', width:'80%', fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth
+					onClick={props.handleNext}>
+					Next
+				</Button>
+
 			</Grid>
 		</div>		
 	);
