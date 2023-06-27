@@ -1,10 +1,10 @@
 import React from 'react';
-import { Box, IconButton, Stack, Typography } from '@mui/material';
+import { Button, Box, IconButton, Stack, Typography } from '@mui/material';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import DeleteIcon from '@mui/icons-material/Delete';
 import useStore from '../../../../store';
 
-export default function UploadPhotos() {
+export default function UploadPhotos(props) {
 
 	const {images, setImages} = useStore();
 
@@ -28,7 +28,7 @@ export default function UploadPhotos() {
 
 	return (
 		<div>
-			<Box style={{marginBottom:'20px'}}>
+			<Box style={{marginBottom:'20px', justifyContent:'center'}}>
 				<Typography variant='h4' mt={8} mb={4} align='center' fontSize={21}>
 					Upload <span style={{color:'#00aeef'}}> Photos: </span>
 				</Typography>
@@ -71,7 +71,14 @@ export default function UploadPhotos() {
 							})
 						}
 				</Stack>
+
+				<Button variant="contained" size="large" align='center' 
+					style={{left:'50%', transform: 'translate(-50%, -50%)', margin: '20% 0 20px', width:'80%', fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth
+					onClick={props.handleNext}>
+					Next
+				</Button>
 			</Box>
+
 		</div>
 	);
 }
