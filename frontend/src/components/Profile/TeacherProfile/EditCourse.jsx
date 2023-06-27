@@ -40,14 +40,14 @@ const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.i
 const EditCourse = (props) => {
 	const [teacherData, setTeacherData] = useState({});
 	const {userName, userID, isTeacher } = useStore();
-	const [editedTags, setEditedTags] = useState();
+	const [editedTags, setEditedTags] = useState([]);
 	const [isLoading, setIsLoading] = useState(true)
 	const [guests, setGuests] = useState(1)
 	const [courseInfo, setCourseInfo] = useState({})
 	const navigate = useNavigate();
 	// const MAPBOX_TOKEN = 'pk.eyJ1IjoicmFkZXItamFrZSIsImEiOiJjbDU4dXdnMXcyNDZ2M2pvY2k2OW1yajY5In0.VoWote3L5R1CdSF1RPKaZg';
 	const { courseID } = useParams();
-	console.log(courseID)
+	// console.log(courseID)
 	useEffect(() => {
 		fetch(`${backendURL}course/getCourse/${courseID}`)
 		.then((res) => {
@@ -56,12 +56,13 @@ const EditCourse = (props) => {
 			setTeacherData(data);
 			setCourseInfo(data)
 			setEditedTags(teacherData?.tags)
+			console.log(teacherData)
 			setIsLoading(false)
 
 		}).catch((err) => {
 			console.log('Error getting teacher info:\n', err);
 		});
-	}, []);
+	});
 
 	// async function updateCourse() {
 	// 	// e.preventDefault();
@@ -88,7 +89,7 @@ const EditCourse = (props) => {
                 // setFirstName(userInfo.firstName)
                 // setLastName(userInfo.lastName)
                 // setUserName(userInfo.userName)
-
+				setIsLoading(false)
 				console.log(courseInfo)	
                 alert('Successfully updated your course')
                 navigate(`/${isTeacher ? 'teachers' : 'students'}/${userName}`)
@@ -111,8 +112,9 @@ const EditCourse = (props) => {
 		// event.preventDefault();
     	const tag = document.getElementById('outlined-basic').value;
 		console.log(tag)
-		editedTags.push(tag);
-		setCourseInfo(prev => ({...prev, tags: editedTags}))
+		const newTags = [...editedTags, tag]
+		setEditedTags(newTags)
+		setCourseInfo(prev => ({...prev, tags: newTags}))
 		console.log(editedTags);
 	}
 
