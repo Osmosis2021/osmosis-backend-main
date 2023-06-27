@@ -258,6 +258,13 @@ const ToggleDays = (props) => {
                         </Grid>
                     ))}
                 </Container>
+
+                <Button variant="contained" size="large" align='center' disabled={!Boolean(newCourseTimeslots.length)}
+                    style={{margin: '15px 0 20px', width: '80%',fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth
+                    onClick={props.handleNext}>
+                    Next
+                </Button>
+                
             </Grid>
         </>
     )
