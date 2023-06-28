@@ -21,11 +21,11 @@ export default function DateDrawer(props) {
 
         const [isDrawerOpen, setIsDrawerOpen] = useState(false)
         const [isScheduleLoading, setIsScheduleLoading] = useState(true)
-        const [schedule, setSchedule] = useState([])
+        const [schedule, setSchedule] = useState(props.schedule)
 
         const fetchSchedule = () => {
-            const temp = new Date()
-            const today = new Date(temp.toDateString())
+            const today = new Date()
+            today.setDate(today.getDate() - 1) // subtract 1 day to provide buffer for hour differences
             const presentAndFutureCourses = props?.schedule.filter((_course) => {
                 const courseDate = new Date(_course.startDate)
                 return courseDate >= today
