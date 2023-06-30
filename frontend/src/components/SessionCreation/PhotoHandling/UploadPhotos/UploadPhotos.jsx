@@ -31,6 +31,7 @@ export default function UploadPhotos(props) {
 			<Box style={{marginBottom:'20px', justifyContent:'center'}}>
 				<Typography variant='h4' mt={8} mb={4} align='center' fontSize={21}>
 					Upload <span style={{color:'#00aeef'}}> Photos: </span>
+					<Typography>Students want to see photos of the learning environment</Typography>
 				</Typography>
 
 				<Stack style={{ alignItems: 'center' }}>
