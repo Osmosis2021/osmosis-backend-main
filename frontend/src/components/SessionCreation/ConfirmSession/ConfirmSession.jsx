@@ -133,7 +133,7 @@ export const ConfirmSession = () => {
                 
                 <Grid item xs={12}>
                     <IconButton type='submit' onClick={handleCourseRegistration} variant='contained' size='large'
-                        disabled={(!Boolean(userName) || !Boolean(isTeacher))}>
+                        disabled={(!Boolean(userName) || !Boolean(isTeacher)) || Boolean(isLoading)}>
                         <CheckCircleIcon sx={{fontSize:'150px', color:'#00aeef'}}>
                         </CheckCircleIcon> 
                     </IconButton>
