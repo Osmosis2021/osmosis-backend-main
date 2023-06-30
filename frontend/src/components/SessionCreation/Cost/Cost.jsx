@@ -17,8 +17,8 @@ function Cost(props) {
 		<Container align='center'>
 			<Typography variant='h4' mt={8} mb={12} align='center'>
 				<span style={{ color: '#00aeef' }}>Cost </span>of your Sessions:
-				
-				<Typography>* No decimals *</Typography>
+				<Typography>* Osmosis fee is 10%: ${(newCourseCost*.1).toFixed(2)}*</Typography>
+				{/* <Typography>* No decimals *</Typography> */}
 			</Typography>
 			
 
