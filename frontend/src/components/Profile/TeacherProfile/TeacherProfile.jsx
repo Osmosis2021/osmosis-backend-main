@@ -157,7 +157,7 @@ const TeacherProfile = (props) => {
                                 <Grid item xs={12} md={6} lg={4}>
                                 <LinkRouter to={(userID === teacherInfo?.id) ? `/editcourse/${course._id}` : `/teachers/${course.userName}/${course._id}`} style={{textDecoration:'none'}}>
                                 { (userID === teacherInfo?.id) ? 
-                                <Button className='editCourseButton' style={{height:'50px', width:'75px', color:'white', fontSize: '20px', position: 'absolute', right:'25px', zIndex:10}} variant="contained" startIcon={<EditIcon />}> Edit </Button> 
+                                <Button className='editCourseButton' style={{height:'50px', width:'75px', color:'white', fontSize: '20px', position: 'relative', top:'50px', zIndex:10, borderRadius:'5% 0 0 0'}} variant="contained" startIcon={<EditIcon />}> Edit </Button> 
                                 : <></>}
                                     <SessionCard 
                                         industry={course.industry}
