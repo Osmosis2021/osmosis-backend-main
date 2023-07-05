@@ -19,13 +19,11 @@ router.get('/getCourses/:latitude/:longitude', async (req, res) => {
     const {latitude, longitude} = req.params
     const lat = Number(latitude)
     const lng = Number(longitude)
-    console.log('in /getCourses with these coordinates', {latitude, longitude});
     Course.find({$and: [{latitude: {$gt: (lat - 1)}}, {latitude: {$lte: (lat + 1)}},
         {longitude: {$gt: (lng - 1)}}, {longitude: {$lte: (lng + 1)}}]}, async (err, data) => {
             if (data) {
                 res.json(data)
             } else {
-                console.log("Could not get courses.")
                 res.json({message: "Could not get courses.", err})
             }
         }
@@ -36,14 +34,11 @@ router.get('/getCourses/:latitude/:longitude', async (req, res) => {
 
 router.get('/getCourses/:userName', async (req, res) => {
     const {userName} = req.params
-    console.log('in /getCourses with this teachers username', {userName});
     Course.find ({userName}, (err, data) => {
             if (data) {
                 // THIS IS A BUG (data, {...data}, ...data ? which is it???)
                 res.json(data)
-                console.log(data)
             } else {
-                console.log("Could not get course.")
                 res.json({message: "Could not get courses.", err})
             }
         }
@@ -65,7 +60,6 @@ router.get('/getCourse/:courseID', async (req, res) => {
             })
             res.json(data)
         } else {
-            console.log("Could not get course.")
             res.json({message: "Could not get course XXXXXXXXX.", err})
         }
     })
@@ -135,11 +129,9 @@ router.post('/registerCourse', async (req, res, next) => {
 
         // create new course
         const course = await Course.create(newCourseObj)
-        console.log('schedule:', schedule);
         // create a new timeslot associated with the new course for each timeslot in the schedule
         schedule.map(_timeslot => {
             const timeslotObj = {..._timeslot, courseID: ObjectID(course._id), enrollment: 0, status: 'created'}
-            console.log('about to create a coursetimeslot', timeslotObj);
             CourseTimeslot.create(timeslotObj)
         })
 
@@ -158,7 +150,6 @@ router.post('/registerCourse', async (req, res, next) => {
 // UPDATE COURSE 
 
 router.put('/updateCourse/:id', async (req, res) => {
-    console.log('in updateCourse with this id', req.params.id)
     //build the data object
     const data = { 
         owner: req.body.owner,
@@ -172,12 +163,18 @@ router.put('/updateCourse/:id', async (req, res) => {
         address: req.body.address,
         city: req.body.city,
         capacity: req.body.capacity,
-        status: req.body.status
+        status: req.body.status,
     }
         // req.body.images = imagesBuffer
     
     const courseUpdate = await Course.findOneAndUpdate({_id: req.params.id}, {$set: data}, {new: true})
-    console.log(data)
+    const ts2add = req.body?.timeslotsToAdd || []
+    if(ts2add.length) {
+        ts2add.map(async _timeslot => {
+            const timeslotObj = {..._timeslot, courseID: courseUpdate._id, enrollment: 0, status: 'created'}
+            CourseTimeslot.create(timeslotObj)
+        })
+    }
     res.json({
         courseUpdate
     })
@@ -188,12 +185,10 @@ router.put('/updateCourse/:id', async (req, res) => {
 
 router.put('/deletePhoto/:id', async (req, res) => {
     
-    console.log('In deletePhoto with this id:', req.params.id)
     Course.findByIdAndUpdate(req.params.id, { $pull: { images: {_id: req.body.image._id} } }, async (err, results) => {
         if (err) {                                                       
             return res.status(500).json({ error: 'error in deleting image' });
         }
-        console.log(req.body.image.public_id)
         res.json(results);
     });
 })
@@ -203,8 +198,6 @@ router.put('/deletePhoto/:id', async (req, res) => {
 
 router.put('/updatePhoto/:id', async (req, res) => {
         
-    console.log('in updatePhoto with this id', req.params.id)
-
         let images = [...req.body.images];
         let imagesBuffer = [];
 
@@ -223,7 +216,6 @@ router.put('/updatePhoto/:id', async (req, res) => {
 
   
         req.body.images = imagesBuffer
-        console.log(imagesBuffer)
     
     const photoUpdate = await Course.findByIdAndUpdate(req.params.id, { $push: { images: imagesBuffer } }, {new: true})
                             //   Course.findByIdAndUpdate(req.params.id, { $pull: { images: {_id: req.body.image._id} } }, async (err, results) => {
@@ -237,11 +229,8 @@ router.put('/updatePhoto/:id', async (req, res) => {
 
 // DELETE COURSE
 router.delete('/deleteCourse/:id', async (req, res) => {
-    const {id} = req.params
-    console.log('deleting course with this id', id)
-    
+    const {id} = req.params    
     const foundCourse = await Course.findById(id);
-    console.log(foundCourse);
     // retrieve image(s)
     const imgIds = foundCourse.images;
     
@@ -249,11 +238,9 @@ router.delete('/deleteCourse/:id', async (req, res) => {
         const public_ids = imgIds[i].public_id
         await cloudinary.uploader.destroy(public_ids)
     }
-    console.log('got through deleting on cloudinary')
     
     // DELETE TIMESLOTS ASSOCIATED WITH COURSE
     const result = await CourseTimeslot.updateMany({courseID: foundCourse._id}, {status: 'removed by teacher'})
-    console.log('CourseTimeslot.updateMany result:\n', result);
     // const foundTimeslots = await CourseTimeslot.find({courseID: req.params.id});
     // CourseTimeslot.deleteMany(foundTimeslots);
     

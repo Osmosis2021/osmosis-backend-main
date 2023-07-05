@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import TopNavBar from '../../TopNavBar/TopNavBar';
 import useStore from '../../../store';
 import EditPhotos from './EditPhotos';
+import ToggleDays from '../../SessionCreation/ToggleDays/ToggleDays';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PeopleAltRounded } from '@mui/icons-material';
 
@@ -31,8 +32,9 @@ const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.i
 // - Payment functionality
 
 const EditCourse = (props) => {
-	const {userName, isTeacher } = useStore();
+	const {userName, isTeacher, setClassDays, capacity, newCourseTimeslots, setNewCourseTimeslots} = useStore();
 	const [isLoading, setIsLoading] = useState(true)
+	const [isAvailabilityVisible, setIsAvailabilityVisible] = useState(false)
 	const [courseInfo, setCourseInfo] = useState({})
 	const navigate = useNavigate();
 	const { courseID } = useParams();
@@ -43,6 +45,7 @@ const EditCourse = (props) => {
 			return res.json();
 		}).then((data) => {
 			setCourseInfo(data)
+			setNewCourseTimeslots(data.schedule)
 			setIsLoading(false)
 		}).catch((err) => {
 			console.log('Error getting teacher info:\n', err);
@@ -51,10 +54,17 @@ const EditCourse = (props) => {
 
 	const updateCourse = async (e) => {
         e.preventDefault();
-        
+        const timeslotsToAdd = []
+		newCourseTimeslots.forEach(slot => {
+			if(!Boolean(slot?._id)) {
+				timeslotsToAdd.push(slot)
+			}
+		})
+		const updatedCourseInfo = {...courseInfo, timeslotsToAdd}
+		setCourseInfo(updatedCourseInfo)
         try {
             await fetch (`${backendURL}course/updateCourse/${courseInfo._id}`, {
-                body: JSON.stringify(courseInfo),
+                body: JSON.stringify(updatedCourseInfo),
                 method: 'PUT',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
@@ -199,24 +209,23 @@ const EditCourse = (props) => {
 						<Typography variant='h6' style={{ textAlign: 'center' }}>
 							Availability:
 							<br/>
-							{`${courseInfo?.timeslots?.length || 0} upcoming`}
+							{`${newCourseTimeslots.length || 0} upcoming`}
 							<br/>
 							course timeslots
 						</Typography>
 					</Grid>
 
 					<Grid xs={4} align='right'>
-						<Button xs={4} type='submit' variant="contained" size="small" align='center' style={{fontSize: 18, fontFamily:'Poppins', color:'white'}} >
+						<Button xs={4} variant="contained" size="small" align='center' style={{fontSize: 18, fontFamily:'Poppins', color:'white'}}
+							onClick={() => setIsAvailabilityVisible(!isAvailabilityVisible)}>
 							Edit<br/>Availability
 						</Button>
 					</Grid>
-
-					<Grid item xs={4}>
-						<Typography variant='h6' style={{ textAlign: 'center'}}>
-							{/* <DateDrawer/> */}
-						</Typography>
-					</Grid>
 				</Grid>
+
+				<br/>
+
+				{isAvailabilityVisible && <ToggleDays isExistingCourse={true}/>}
 
 				<br/>
 

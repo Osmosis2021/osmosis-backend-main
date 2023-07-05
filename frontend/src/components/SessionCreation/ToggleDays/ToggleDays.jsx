@@ -142,14 +142,21 @@ const ToggleDays = (props) => {
     const [selectedDay, setSelectedDay] = useState();
     const { setClassDays, capacity, newCourseTimeslots, setNewCourseTimeslots} = useStore();
 
-    props.setIsNextDisabled(!Boolean(newCourseTimeslots.length))
+    if(!props?.isExistingCourse) {
+        props.setIsNextDisabled(!Boolean(newCourseTimeslots.length))
+    }
 
     useEffect(() => {
+        const _today = new Date()
+        _today.setHours(0, 0, 0, 0)
         newCourseTimeslots.forEach(slot => {
-            const activeBtn = document.getElementById(`datePickerButton-${slot.dayOfWeek}`)
-            const child = document.createElement('div')
-            child.innerHTML = '<div class="addedTimeslotIndicator"></div>'
-            activeBtn.appendChild(child)
+            const slotDate = new Date(slot.startDate)
+            if(slotDate >= _today) {
+                const activeBtn = document.getElementById(`datePickerButton-${slot.dayOfWeek}`)
+                const child = document.createElement('div')
+                child.innerHTML = '<div class="addedTimeslotIndicator"></div>'
+                activeBtn.appendChild(child)
+            }
         })
     })
 
@@ -183,7 +190,7 @@ const ToggleDays = (props) => {
 
     return (
         <>
-            <LengthOfSession/>
+            {!props?.isExistingCourse && <LengthOfSession/>}
             
             <Typography variant='h4' mb={-2} mt={2} align='center'>
                 Enter your availability this week:
@@ -260,11 +267,12 @@ const ToggleDays = (props) => {
                     ))}
                 </Container>
 
-                <Button variant="contained" size="large" align='center' disabled={!Boolean(newCourseTimeslots.length)}
-                    style={{margin: '15px 0 20px', width: '80%',fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth
-                    onClick={props.handleNext}>
+                {!props?.isExistingCourse &&
+                <Button variant="contained" size="large" align='center'
+                    disabled={!Boolean(newCourseTimeslots.length)} onClick={props.handleNext} fullWidth
+                    style={{margin: '15px 0 20px', width: '80%',fontSize: 26, fontFamily:'Poppins', color:'white'}}>
                     Next
-                </Button>
+                </Button>}
                 
             </Grid>
         </>
