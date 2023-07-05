@@ -188,32 +188,27 @@ const EditCourse = (props) => {
 				<hr style={{ color: 'black', width: '90%', border: 'solid .5px' }} />
 				<br />
 
-				<Grid container style={{ alignItems: 'center' }}>
-						
-					<Grid item xs={4} style={{ alignItems: 'center' }}>
-						<Typography style={{ textAlign: 'center'}}>
-						<CalendarTodayIcon style={{fontSize:'50'}}/>
+				<Grid container style={{ alignItems: 'center', justifyContent: 'space-between' }}>
+					<Grid item xs={2} style={{ alignItems: 'center' }}>
+						<Typography style={{ textAlign: 'left'}}>
+							<CalendarTodayIcon style={{width:80, height:75}}/>
 						</Typography>
 					</Grid>
 
 					<Grid item xs={4}>
 						<Typography variant='h6' style={{ textAlign: 'center' }}>
-							<Stack container>
-								
-								<Stack item>
-									Monday
-								</Stack>
-								
-								<Stack item>
-									18
-								</Stack>
-								
-								<Stack item>
-									4:00 PM – 5:30 PM
-								</Stack>
-
-							</Stack>
+							Availability:
+							<br/>
+							{`${courseInfo?.timeslots?.length || 0} upcoming`}
+							<br/>
+							course timeslots
 						</Typography>
+					</Grid>
+
+					<Grid xs={4} align='right'>
+						<Button xs={4} type='submit' variant="contained" size="small" align='center' style={{fontSize: 18, fontFamily:'Poppins', color:'white'}} >
+							Edit<br/>Availability
+						</Button>
 					</Grid>
 
 					<Grid item xs={4}>
@@ -221,16 +216,13 @@ const EditCourse = (props) => {
 							{/* <DateDrawer/> */}
 						</Typography>
 					</Grid>
-
 				</Grid>
 
 				<br/>
 
-				<Grid container style={{ alignItems: 'center' }}>
-					
-					<Grid item xs={4} style={{ alignItems: 'center' }}>
+				<Grid container style={{ alignItems: 'center', justifyContent: 'space-between' }}>
+					<Grid item xs={2} style={{ alignItems: 'center' }}>
 						<PeopleAltRounded style={{width:80, height:75}}/>
-					
 					</Grid>
 
 					<Grid item xs={4}>
@@ -239,28 +231,27 @@ const EditCourse = (props) => {
 						</Typography>
 					</Grid>
 
-					<Grid item xs={4}>
+					<Grid item xs={4} style={{fontSize: 18, fontFamily:'Poppins', color:'white', textAlign: 'right'}}>
 						<ButtonGroup variant='contained'>
-								<Button onClick={decreaseCapacity}>
-									<Typography variant='h5' fontWeight='bold' color='white'>
-										—
-									</Typography>
-								</Button>
-								
-								<Button>
-									<Typography variant='h5' fontWeight='medium' color='white'>
-										{courseInfo.capacity || 1}
-									</Typography>
-								</Button>
+							<Button onClick={decreaseCapacity}>
+								<Typography variant='h5' fontWeight='bold' color='white'>
+									—
+								</Typography>
+							</Button>
 							
-								<Button onClick={increaseCapacity}>
-									<Typography variant='h5' fontWeight='small' color='white'>
-										+
-									</Typography>
-								</Button>
-							</ButtonGroup>
+							<Button>
+								<Typography variant='h5' fontWeight='medium' color='white'>
+									{courseInfo.capacity || 1}
+								</Typography>
+							</Button>
+						
+							<Button onClick={increaseCapacity}>
+								<Typography variant='h5' fontWeight='small' color='white'>
+									+
+								</Typography>
+							</Button>
+						</ButtonGroup>
 					</Grid>
-
 				</Grid>
 
 				<br/>
