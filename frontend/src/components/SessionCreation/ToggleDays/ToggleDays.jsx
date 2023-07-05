@@ -140,7 +140,7 @@ const ToggleDays = (props) => {
     const [days, setDays] = useState([...initialState.slice((date.getDay() + 1) % 7), ...initialState.slice(0, (date.getDay() + 1) % 7)])
     const [courseStartTime, setCourseStartTime] = useState('12:00');
     const [selectedDay, setSelectedDay] = useState();
-    const { classDays, setClassDays, newCourseID, capacity, newCourseTimeslots, setNewCourseTimeslots} = useStore();
+    const { setClassDays, capacity, newCourseTimeslots, setNewCourseTimeslots} = useStore();
 
     props.setIsNextDisabled(!Boolean(newCourseTimeslots.length))
 
@@ -169,7 +169,8 @@ const ToggleDays = (props) => {
             enrollment: 0,
             isRepeating
         }
-        const _updatedTimeslots = [...newCourseTimeslots, course_timeslot]
+        let _updatedTimeslots = [...newCourseTimeslots, course_timeslot]
+        _updatedTimeslots = _updatedTimeslots.sort((a, b) => a.startTime > b.startTime)
         setSelectedDay('')
         setNewCourseTimeslots(_updatedTimeslots)
     }
