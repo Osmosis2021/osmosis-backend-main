@@ -31,20 +31,17 @@ const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.i
 // - Payment functionality
 
 const EditCourse = (props) => {
-	const [teacherData, setTeacherData] = useState({});
 	const {userName, isTeacher } = useStore();
 	const [isLoading, setIsLoading] = useState(true)
-	const [guests, setGuests] = useState(1)
 	const [courseInfo, setCourseInfo] = useState({})
 	const navigate = useNavigate();
-	// const MAPBOX_TOKEN = 'pk.eyJ1IjoicmFkZXItamFrZSIsImEiOiJjbDU4dXdnMXcyNDZ2M2pvY2k2OW1yajY5In0.VoWote3L5R1CdSF1RPKaZg';
 	const { courseID } = useParams();
+
 	useEffect(() => {
 		fetch(`${backendURL}course/getCourse/${courseID}`)
 		.then((res) => {
 			return res.json();
 		}).then((data) => {
-			setTeacherData(data);
 			setCourseInfo(data)
 			setIsLoading(false)
 		}).catch((err) => {
@@ -52,20 +49,8 @@ const EditCourse = (props) => {
 		});
 	}, [])
 
-	// async function updateCourse() {
-	// 	// e.preventDefault();
-    //     const { courseTitle, tags, capacity, price } = courseInfo
-	// 	axios.put(`${backendURL}course/updateCourse/${userID}`, courseInfo)
-	// }
-
 	const updateCourse = async (e) => {
         e.preventDefault();
-        // const { 
-		// 	courseTitle, 
-		// 	tags, 
-		// 	guests, 
-		// 	pricePerStudent 
-		// } = courseInfo
         
         try {
             await fetch (`${backendURL}course/updateCourse/${courseInfo._id}`, {
@@ -92,19 +77,14 @@ const EditCourse = (props) => {
 	function handleTags() {
     	const tag = document.getElementById('outlined-basic').value;
 		const newTags = [...courseInfo.tags, tag]
-		setCourseInfo(prev => ({...prev, tags: newTags}))
+		setCourseInfo({...courseInfo, tags: newTags})
 	}
 
-	const increaseGuests = () => {
-		const convertedGuests= parseInt(teacherData.capacity)
-        setGuests((convertedGuests) => (convertedGuests + 1));
-		setCourseInfo(prev => ({...prev, capacity: guests}))
-    };
+	const increaseCapacity = () => setCourseInfo({...courseInfo, capacity: parseInt(courseInfo.capacity) + 1})
 
-    const decreaseGuests = () => {
-        if (guests > 1) {
-            setGuests((prevGuests) => (prevGuests - 1));
-			setCourseInfo(prev => ({...prev, capacity: guests}))
+    const decreaseCapacity = () => {
+        if (parseInt(courseInfo.capacity) > 1) {
+            setCourseInfo({...courseInfo, capacity: parseInt(courseInfo.capacity) - 1})
         };
     };
 
@@ -124,7 +104,6 @@ const EditCourse = (props) => {
 	}
 
 	return (
-	
 		<Container maxWidth='sm' style={{marginTop:16}}>
 			<TopNavBar back={`/teachers/${userName}`} />
 			<Typography variant='h4' style={{textAlign:'center'}}> 
@@ -136,63 +115,55 @@ const EditCourse = (props) => {
 			<br />
 
 			<form>
-					<Input type='text' 
-						onChange={event => setCourseInfo(prev => ({...prev, courseTitle: event.target.value}))} 
-						value={courseInfo.courseTitle} 
-						fullWidth 
-						multiline 
-						style={{fontSize:'32px'}}
-					/>
-					
-					<br />
-					<hr style={{ color: 'black', width: '100%', border: 'solid .5px' }} />
-					<br />
+				<Input type='text' 
+					onChange={event => setCourseInfo(prev => ({...prev, courseTitle: event.target.value}))} 
+					value={courseInfo.courseTitle} 
+					fullWidth 
+					multiline 
+					style={{fontSize:'32px'}}
+				/>
+				
+				<br />
+				<hr style={{ color: 'black', width: '100%', border: 'solid .5px' }} />
+				<br />
 
 				<Grid container direction='row' alignItems='center' columnSpacing={1}>
-
 					<Grid item>
-						{ 
-							isLoading ? <Skeleton /> :
-							<img src={require(`../../../assets/icons/${teacherData?.industry}.png`)} style={{height:25, width:25}} alt={teacherData.industry}/>
+						{isLoading ? <Skeleton /> :
+							<img src={require(`../../../assets/icons/${courseInfo?.industry}.png`)} style={{height:25, width:25}} alt={courseInfo.industry}/>
 						}
 					</Grid>
-
 					<Grid item style={{textAlign:'left'}}>
-						<Typography variant='h4'>{teacherData.industry}</Typography>
+						<Typography variant='h4'>{courseInfo.industry}</Typography>
 					</Grid>
-
 				</Grid>
 			
 				<Grid container style={{alignItems:'center', justifyContent:'center', padding: '0 5%', margin: '2%' }}>
-				
 					<Grid container direction='row' alignItems='center'>
-						{ 
-						isLoading ? <Skeleton style={{width:'100%', height:'100px'}}/> :
+						{isLoading ? <Skeleton style={{width:'100%', height:'100px'}}/> :
 						courseInfo.tags?.map((tag, index) => {
 							return (
-									<Grid container alignItems='center'>
-										<Grid item>
-											<Typography 
-												variant='h5' 
-												align='left'
-												key={index} 
-												id={index}
-											>
-												#{tag}
-											</Typography>
-										</Grid>
-
-										<Grid item>
-											<IconButton variant='contained' onClick={() => removeTag(tag)}>
-												<HighlightOffIcon style={{color:'red'}}/>
-											</IconButton>
-										</Grid>
+								<Grid container alignItems='center'>
+									<Grid item>
+										<Typography 
+											variant='h5' 
+											align='left'
+											key={index} 
+											id={index}
+										>
+											#{tag}
+										</Typography>
 									</Grid>
-								)
-							})
-						}
-					</Grid>
 
+									<Grid item>
+										<IconButton variant='contained' onClick={() => removeTag(tag)}>
+											<HighlightOffIcon style={{color:'red'}}/>
+										</IconButton>
+									</Grid>
+								</Grid>
+							)
+						})}
+					</Grid>
 				</Grid>
 
 				<Box style={{ textAlign: 'center', marginTop:'5%' }}>
@@ -205,7 +176,7 @@ const EditCourse = (props) => {
 							// onChange={handleChange}
 							name='generalTags'
 							// value={generalTags}
-							>
+						>
 						</TextField>
 						<Button onClick={handleTags} > Add Tag ^^ </Button>
 					</form>
@@ -264,13 +235,13 @@ const EditCourse = (props) => {
 
 					<Grid item xs={4}>
 						<Typography variant='h6' style={{ textAlign: 'center' }}>
-							{teacherData.capacity} guests
+							{courseInfo.capacity || 1} capacity
 						</Typography>
 					</Grid>
 
 					<Grid item xs={4}>
 						<ButtonGroup variant='contained'>
-								<Button onClick={decreaseGuests}>
+								<Button onClick={decreaseCapacity}>
 									<Typography variant='h5' fontWeight='bold' color='white'>
 										—
 									</Typography>
@@ -278,11 +249,11 @@ const EditCourse = (props) => {
 								
 								<Button>
 									<Typography variant='h5' fontWeight='medium' color='white'>
-										{guests || teacherData.capacity}
+										{courseInfo.capacity || 1}
 									</Typography>
 								</Button>
 							
-								<Button onClick={increaseGuests}>
+								<Button onClick={increaseCapacity}>
 									<Typography variant='h5' fontWeight='small' color='white'>
 										+
 									</Typography>
@@ -291,11 +262,6 @@ const EditCourse = (props) => {
 					</Grid>
 
 				</Grid>
-
-
-
-
-
 
 				<br/>
 
@@ -316,7 +282,6 @@ const EditCourse = (props) => {
 							fullWidth 
 							multiline 
 							style={{width:'75%', fontSize:'24px', fontFamily:'Poppins'}}
-
 						/>
 					</Grid>
 					<Grid item xs={2}>
@@ -329,7 +294,6 @@ const EditCourse = (props) => {
 
 				<br/>
 				<br/>
-
 				<br/>
 				<hr style={{ color: 'black', width: '90%', border: 'solid .5px' }} />
 				<br/>
@@ -342,10 +306,8 @@ const EditCourse = (props) => {
 					Delete Course
 				</Button>
 
-			</form>
-				
+			</form>	
 		</Container>
-
 	);
 };
 
