@@ -1,4 +1,4 @@
-import { Card, Stack, Typography, Grid, Avatar, AvatarGroup, Container } from '@mui/material'
+import { Card, Stack, Typography, Grid, Avatar, AvatarGroup, Container, Rating } from '@mui/material'
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import TopNavBar from '../TopNavBar/TopNavBar';
@@ -132,9 +132,38 @@ function SingleBookingPage() {
                             </Grid>
                         </Grid>
 
+
+                    <Grid>
+                        <Stack direction='row' >
+                            <Typography variant='h4' style={{color:'#00aeef'}}>
+                                - ${(booking?.total)*.099 +.3}
+                            </Typography>
+                        </Stack>
+                        <Stack>
+                            <Typography>Total: ${(booking?.total)-((booking?.total)*.099 +.3)}</Typography>
+                        </Stack>
                     </Grid>
 
+                    </Grid>
 
+                    <br/>
+                        { booking?.ratedAndReviewed ? 
+                            <Container alignItems='center'>
+                                <Grid container spacing={2} alignItems='center'>
+                                    <Grid item>
+                                        <Typography variant='h5'>{booking?.studentID?.firstName}'s rating and review:</Typography>
+                                        <br/>
+                                        <Stack direction='row'>
+                                            <Rating name="read-only" value={booking?.rating} readOnly />
+                                            &nbsp;<Typography>{booking?.rating}</Typography>
+                                        </Stack>
+                                        <br/>
+                                        <Typography>{booking?.review}</Typography>
+                                    </Grid>
+                                </Grid>
+                            </Container>
+                            : <></>
+                        }
 
                 </Container>
 
