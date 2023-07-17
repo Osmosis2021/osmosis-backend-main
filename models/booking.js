@@ -12,9 +12,13 @@ const BookingSchema = new mongoose.Schema({
     courseID: {type: mongoose.Schema.Types.ObjectId, ref: 'Course'},
     teacherID: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     teacherUserName: {type: String},
+    studentUserName: {type: String},
     time: {type: String},
     date: {type: String},
     status: {type: String},
+    ratedAndReviewed: {type: Boolean, default: false},
+    rating: {type: Number},
+    review: {type: String}
     // date: { startDate: {type: String}, startTime: {type: String},},
     // checkIn: {type: TimeRanges, required: true},
     // checkOut: {type: TimeRanges, required: true},
