@@ -1,4 +1,4 @@
-import { Card, Stack, Typography, Grid, Avatar, AvatarGroup, Container } from '@mui/material'
+import { Card, Stack, Typography, Grid, Avatar, AvatarGroup, Container, Rating } from '@mui/material'
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import TopNavBar from '../TopNavBar/TopNavBar';
@@ -132,6 +132,24 @@ function SingleBookingPageForStudent() {
                         </Grid>
 
                     </Grid>
+                    <br/>
+                        { booking?.ratedAndReviewed ? 
+                            <Container alignItems='center'>
+                                <Grid container spacing={2} alignItems='center'>
+                                    <Grid item>
+                                        <Typography variant='h5'>Your rating and review:</Typography>
+                                        <br/>
+                                        <Stack direction='row'>
+                                            <Rating name="read-only" value={booking?.rating} readOnly />
+                                            &nbsp;<Typography>{booking?.rating}</Typography>
+                                        </Stack>
+                                        <br/>
+                                        <Typography>{booking?.review}</Typography>
+                                    </Grid>
+                                </Grid>
+                            </Container>
+                            : <></>
+                        }
 
 
 
