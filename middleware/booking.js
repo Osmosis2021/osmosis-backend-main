@@ -17,6 +17,7 @@ router.post('/createBooking', async (req, res) => {
         courseID, 
         teacherID,
         teacherUserName,
+        studentUserName,
         time,
         date, 
     } = req.body 
@@ -40,6 +41,7 @@ router.post('/createBooking', async (req, res) => {
             total: total, 
             teacherID: teacherID,
             teacherUserName,
+            studentUserName,
             time: time,
             date: date, 
             // status: 'pending payment'
@@ -61,8 +63,9 @@ router.post('/createBooking', async (req, res) => {
 
 // ROUTE TO POPULATE BOOKINGS FOR STUDENT PROFILE 
 
-router.get('/bookings', async (req, res) => {
+router.get('/bookings/:userName', async (req, res) => {
     const {token} = req.cookies;
+    const {userName} = req.params
 
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
         try {
@@ -71,7 +74,7 @@ router.get('/bookings', async (req, res) => {
             console.log('Error in /bookings', error)
         }
         console.log('ID to get booking', userData.id)
-        const student = await Booking.find({studentID: userData.id}).populate('courseID teacherID')
+        const student = await Booking.find({studentUserName: userName}).populate('courseID teacherID')
         console.log('student', student)
         res.json( student )
         
@@ -81,8 +84,9 @@ router.get('/bookings', async (req, res) => {
 
 // ROUTE TO POPULATE BOOKINGS FOR TEACHER PROFILE
 
-router.get('/teacherBookings', async (req, res) => {
+router.get('/teacherBookings/:userName', async (req, res) => {
     const {token} = req.cookies;
+    const {userName} = req.params
 
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
         try {
@@ -91,7 +95,7 @@ router.get('/teacherBookings', async (req, res) => {
             console.log('Error in /teacherBookings', error)
         }
         console.log('ID to get booking', userData.id)
-        const teacher = await Booking.find({teacherID: userData.id}).populate('courseID studentID')
+        const teacher = await Booking.find({teacherUserName: userName}).populate('courseID studentID')
         console.log('teacher', teacher)
         res.json( teacher )
         
