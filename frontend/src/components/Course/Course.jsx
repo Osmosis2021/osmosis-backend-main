@@ -1,5 +1,5 @@
 import Carousel from '../SessionCreation/PhotoHandling/Carousel/Carousel';
-import { Box, ButtonGroup, Button, Card, Container, Grid, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, ButtonGroup, Button, Card, Container, Grid, Skeleton, Stack, Typography, Rating } from '@mui/material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import GuestDrawer from '../GuestDrawer/GuestDrawer';
@@ -44,6 +44,7 @@ const Course = (props) => {
 	const [teacherInfo, setTeacherInfo] = useState();
 	const [guestsEntered, setGuestsEntered] = useState(1);
 	const paramsCourse = useParams();
+	const {userName} = useStore();
 	const MAPBOX_TOKEN = 'pk.eyJ1IjoicmFkZXItamFrZSIsImEiOiJjbDU4dXdnMXcyNDZ2M2pvY2k2OW1yajY5In0.VoWote3L5R1CdSF1RPKaZg';
 
 	const increaseGuests = () => {
@@ -81,6 +82,16 @@ const Course = (props) => {
         })
     }, []);
 
+	function getAverage (array) {
+		const average = (array?.reduce((a, b) => a + b, 0) / array?.length).toFixed(2);
+		return average;
+	}
+
+	const [rating, setRating] = useState(0);
+	useEffect(() => {
+		const averageRating = getAverage(courseData?.rating);
+		setRating(averageRating);
+	  }, [courseData?.rating]);
 	
 	return (
 		<div>
@@ -172,6 +183,27 @@ const Course = (props) => {
 						<Typography variant='h5'>Course Description:</Typography>
 						<br/>
 						<Typography>{courseData?.courseDescription}</Typography>
+					</Grid>
+				</Grid>
+			</Container>
+
+			<br />
+			<hr style={{ color: theme.palette.mode === 'light' ? 'black' : 'white', width: '90%', border: 'solid .5px' }} />
+			<br />
+
+			<Container>
+				<Grid container spacing={2} alignItems='center'>
+					<Grid item style={{ alignItems: 'flexEnd' }}>
+						<Typography variant='h5'>Rating / Reviews:</Typography>
+						<br/>
+						<Stack direction='row'>
+							<Rating name="read-only" value={rating} readOnly />
+							<Typography>{rating}</Typography>
+							&nbsp;
+							<Typography>({courseData?.reviews?.length})</Typography>
+						</Stack>
+						<br/>
+						<Typography>{courseData?.reviews}</Typography>
 					</Grid>
 				</Grid>
 			</Container>
@@ -297,6 +329,8 @@ const Course = (props) => {
 					teacherFullName={`${teacherInfo?.firstName} ${teacherInfo?.lastName}`}
 					teacherID={courseData.teacherID}
 					teacherUserName={courseData.userName}
+					studentUserName={userName}
+					// stripeID={teacherInfo?.stripeID}
 				/>
 			</div>
 
