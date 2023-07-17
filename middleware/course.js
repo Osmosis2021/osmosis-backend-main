@@ -4,6 +4,7 @@ const CourseTimeslot = require('../models/courseTimeslot')
 const Image = require('../models/image')
 const cloudinary = require('cloudinary');
 const ObjectID = require("bson-objectid")
+const Booking = require('../models/booking');
 
 CLOUDINARY_CLOUD_NAME="dx3om7soc"
 CLOUDINARY_API_KEY="923359711288174"
@@ -146,6 +147,44 @@ router.post('/registerCourse', async (req, res, next) => {
     }
 })
 
+
+// POST RATING/REVIEWS 
+
+router.put('/sendReview/:bookingID', async (req, res) => {
+    const { rating, writtenReview } = req.body;
+    const bookingID = req.params.bookingID;
+
+    try {
+        const updatedBooking = await Booking.findByIdAndUpdate (
+            bookingID,
+            {
+                rating,
+                review: writtenReview,
+                ratedAndReviewed: true,
+            },
+            { new: true }
+        );
+
+        const updatedCourse = await Course.findByIdAndUpdate (
+            updatedBooking.courseID,
+            {
+                $push: {
+                    rating,
+                    reviews: writtenReview,
+                },
+            },
+            { new: true }
+        )
+
+        res.json({
+            updatedBooking,
+            updatedCourse
+        })
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while updating the review.' }); 
+    }
+})
 
 // UPDATE COURSE 
 
