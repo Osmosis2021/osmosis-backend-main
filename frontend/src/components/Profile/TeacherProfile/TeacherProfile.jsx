@@ -3,9 +3,10 @@ import { Link, Link as LinkRouter } from 'react-router-dom';
 import TopProfileBar from '../../TopNavBar/TopProfileBar';
 import SessionCard from '../../SessionCard/SessionCard';
 import React, { useState, useEffect } from 'react';
-import { useParams } from "react-router-dom";
 import EditIcon from '@mui/icons-material/Edit';
+import { useParams } from "react-router-dom";
 import useStore from '../../../store';
+import UserInfo from '../UserInfo';
 import './TeacherProfile.css';
 import Prof from '../Prof';
 import axios from 'axios';
@@ -23,7 +24,7 @@ const TeacherProfile = (props) => {
 
     useEffect(() => {
         console.log('called short useEffect');
-        axios.get(`${backendURL}booking/teacherBookings`).then(response => {
+        axios.get(`${backendURL}booking/teacherBookings/${Teacher.userName}`).then(response => {
             console.log('response from booking/teacherBookings call', {response});
             setBookings(response.data);
         })
@@ -104,6 +105,10 @@ const TeacherProfile = (props) => {
                             </Grid>
                         : <></>
                     }
+
+                    <Grid item xs={8}>
+                        <UserInfo taught={bookings.length}/>
+                    </Grid>
 
                 </Grid>
             </div>
