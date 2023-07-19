@@ -49,16 +49,21 @@ const StudentProfile = () => {
     const sendRating = (event, booking) => {
         event.preventDefault();
         const { rating, writtenReview } = booking;
-        fetch(`${backendURL}course/sendReview/${booking._id}`, {
-            method: 'PUT',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rating, writtenReview }),
-        }).then(() => {
-            // console.log('rating', rating);
-            // console.log('writtenReview', writtenReview);
-            setIsRatingComplete(true);
-        });
+        if (rating && writtenReview) {
+
+            fetch(`${backendURL}course/sendReview/${booking._id}`, {
+                method: 'PUT',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rating, writtenReview }),
+            }).then(() => {
+                // console.log('rating', rating);
+                // console.log('writtenReview', writtenReview);
+                setIsRatingComplete(true);
+            });
+        } else {
+            alert('please both rate and review your class')
+        }
     };
 
     const getUser = () => {
