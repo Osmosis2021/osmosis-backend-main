@@ -88,18 +88,18 @@ router.get('/teacherBookings/:userName', async (req, res) => {
     const {token} = req.cookies;
     const {userName} = req.params
 
-    jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+    // jwt.verify(token, jwtSecret, {}, async (err, userData) => {
         try {
             if(err) throw err;
         } catch (error) {
             console.log('Error in /teacherBookings', error)
         }
-        console.log('ID to get booking', userData.id)
+        // console.log('ID to get booking', userData.id)
         const teacher = await Booking.find({teacherUserName: userName}).populate('courseID studentID')
         console.log('teacher', teacher)
         res.json( teacher )
         
-    })
+    // })
 })
 
 // ROUTE FOR TEACHER SINGLE BOOKING
