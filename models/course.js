@@ -21,8 +21,11 @@ const CourseSchema = new mongoose.Schema({
     capacity: Number,
     pricePerStudent: Number,
     tags: [String],
-    rating: [Number],
-    reviews: [String],
+    feedback: {
+        rating: [Number],
+        reviews: [String],
+        studentID: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    },
     // city: String,
     // zipCode: Number,
     // address: String,

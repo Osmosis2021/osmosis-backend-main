@@ -55,7 +55,7 @@ const StudentProfile = () => {
                 method: 'PUT',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ rating, writtenReview }),
+                body: JSON.stringify({ rating, writtenReview, userID }),
             }).then(() => {
                 // console.log('rating', rating);
                 // console.log('writtenReview', writtenReview);

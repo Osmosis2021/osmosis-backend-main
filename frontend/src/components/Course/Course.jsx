@@ -1,5 +1,5 @@
 import Carousel from '../SessionCreation/PhotoHandling/Carousel/Carousel';
-import { Box, ButtonGroup, Button, Card, Container, Grid, Skeleton, Stack, Typography, Rating } from '@mui/material';
+import { Avatar, Box, ButtonGroup, Button, Card, Container, Grid, Skeleton, Stack, Typography, Rating } from '@mui/material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import GuestDrawer from '../GuestDrawer/GuestDrawer';
@@ -89,9 +89,14 @@ const Course = (props) => {
 
 	const [rating, setRating] = useState(0);
 	useEffect(() => {
-		const averageRating = getAverage(courseData?.rating);
-		setRating(averageRating);
-	  }, [courseData?.rating]);
+		if (courseData?.feedback?.length > 0) {
+
+			const arrayOfReviews = courseData?.feedback?.map(ratAndRev=>(ratAndRev?.rating))
+			console.log(arrayOfReviews)
+			const averageRating = getAverage(arrayOfReviews);
+			setRating(averageRating);
+		} else return;
+	}, [courseData?.feedback]);
 	
 	return (
 		<div>
@@ -196,14 +201,57 @@ const Course = (props) => {
 					<Grid item style={{ alignItems: 'flexEnd' }}>
 						<Typography variant='h5'>Rating / Reviews:</Typography>
 						<br/>
-						<Stack direction='row'>
-							<Rating name="read-only" value={rating} readOnly />
+						<Stack direction='row' justifyContent='center' alignItems='flex-end'>
+							<Rating size='large' precision={0.5} name="read-only" value={rating} readOnly />
+							&nbsp;
 							<Typography>{rating}</Typography>
 							&nbsp;
-							<Typography>({courseData?.reviews?.length})</Typography>
+							<Typography>({courseData?.feedback?.length})</Typography>
 						</Stack>
 						<br/>
-						<Typography>{courseData?.reviews}</Typography>
+						<Grid container justifyContent='center'>
+							<Grid container direction='row' spacing={2}>
+								{courseData?.feedback?.length > 0 &&
+								courseData?.feedback?.map((ratAndRev) => {
+									console.log(ratAndRev.rating);
+									return (
+									<Grid item key={ratAndRev._id} xs={12} md={6} lg={4}>
+										<Card
+										sx={{
+											width: '100%',
+											padding: '3%', // Adjust the padding as needed
+											marginBottom: '1%', // Add space between the Card elements
+										}}
+										>
+										<Grid container alignItems='center' spacing={1}>
+											<Grid item>
+											<Avatar
+												src={ratAndRev?.studentID?.profileImage?.url}
+												alt={ratAndRev?.studentID?.userName}
+												sx={{ width: 48, height: 48, marginRight: '16px' }} // Adjust the size of the Avatar and add right margin
+											/>
+											<Typography variant='body1' align='center'>
+												{ratAndRev?.studentID?.userName}
+											</Typography>
+											</Grid>
+											<Grid item xs>
+											<Stack direction='row' alignItems='center' spacing={1}>
+												<Rating
+												precision={0.5}
+												value={ratAndRev.rating}
+												readOnly
+												/>
+												<Typography>{ratAndRev.rating}</Typography>
+											</Stack>
+											<Typography>{ratAndRev.reviews}</Typography>
+											</Grid>
+										</Grid>
+										</Card>
+									</Grid>
+									)
+								})}
+							</Grid>
+						</Grid>
 					</Grid>
 				</Grid>
 			</Container>

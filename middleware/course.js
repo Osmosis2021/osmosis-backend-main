@@ -63,7 +63,7 @@ router.get('/getCourse/:courseID', async (req, res) => {
         } else {
             res.json({message: "Could not get course XXXXXXXXX.", err})
         }
-    })
+    }).populate('feedback.studentID')
 })
 
 // Get Classes from DB
@@ -151,7 +151,7 @@ router.post('/registerCourse', async (req, res, next) => {
 // POST RATING/REVIEWS 
 
 router.put('/sendReview/:bookingID', async (req, res) => {
-    const { rating, writtenReview } = req.body;
+    const { rating, writtenReview, userID } = req.body;
     const bookingID = req.params.bookingID;
 
     try {
@@ -169,8 +169,11 @@ router.put('/sendReview/:bookingID', async (req, res) => {
             updatedBooking.courseID,
             {
                 $push: {
-                    rating,
-                    reviews: writtenReview,
+                    feedback: {
+                        rating,
+                        reviews: writtenReview,
+                        studentID: userID
+                    }
                 },
             },
             { new: true }

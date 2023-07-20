@@ -109,7 +109,7 @@ const TeacherProfile = (props) => {
 
     const sendRating = (event, booking) => {
         event.preventDefault();
-        const { rating, writtenReview } = booking;
+        const { rating, writtenReview, userID } = booking;
         if (rating && writtenReview) {
 
             fetch(`${backendURL}course/sendReview/${booking._id}`, {
