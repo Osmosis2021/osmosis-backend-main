@@ -26,7 +26,6 @@ const EditPhotos = () => {
 		}).then((data) => {
 			setTeacherData(...data);
 			setIsLoading(false)
-			console.log(data);
 		}).catch((err) => {
 			console.log('Error getting teacher info:\n', err);
 		});

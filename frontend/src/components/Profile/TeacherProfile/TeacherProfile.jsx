@@ -26,17 +26,11 @@ const TeacherProfile = (props) => {
     const Teacher = useParams();
 
     useEffect(() => {
-        console.log('called short useEffect');
-        console.log('teacherInfo.userName...', teacherInfo?.userName)
-        console.log('userName...', userName)
-        // if (teacherInfo?.userName === userName) {
-
-            axios.get(`${backendURL}booking/teacherBookings/${Teacher.userName}`).then(response => {
-                console.log('response from booking/teacherBookings call', {response});
-                setBookings(response.data);
-            })
-        // } else {return}
-
+        axios.get(`${backendURL}booking/teacherBookings/${Teacher.userName}`).then(response => {
+            console.log('response from booking/teacherBookings call', {response});
+            setBookings(response.data);
+        })
+        
         if (isStudent) {
             axios.get(`${backendURL}booking/bookings/${Teacher?.userName}`).then(response => {
                 setBookingsTakenAsStudent(response.data)
@@ -53,7 +47,6 @@ const TeacherProfile = (props) => {
     }, [Teacher.userName, isStudent]);
 
     const getTeacher = (Teacher) => {
-        console.log('in getTeacher', {Teacher})
         for (let i = 0; i < Teacher.length; i++) {
             if (Teacher[i].userName === Teacher) {
                 setTeacherInfo(Teacher[i])
@@ -63,7 +56,6 @@ const TeacherProfile = (props) => {
     
 	useEffect(() => {
         const controller = new AbortController()
-        console.log({backendURL});
 		fetch(`${backendURL}course/getCourses/${Teacher?.userName}`, {signal: controller.signal})
 		.then((res) => {
 			return res.json();

@@ -85,6 +85,9 @@ const useStore = create(set => ({
     newCourseTimeslots: [],
     setNewCourseTimeslots: newCourseTimeslots => set({ newCourseTimeslots }),
 
+    timeslotsToRemove: [],
+    setTimeslotsToRemove: timeslotsToRemove => set({ timeslotsToRemove }),
+
     newCourseDuration: 60,
     setNewCourseDuration: newCourseDuration => set({ newCourseDuration }),
 

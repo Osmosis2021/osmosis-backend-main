@@ -211,11 +211,14 @@ router.put('/updateCourse/:id', async (req, res) => {
     
     const courseUpdate = await Course.findOneAndUpdate({_id: req.params.id}, {$set: data}, {new: true})
     const ts2add = req.body?.timeslotsToAdd || []
+    const ts2remove = req.body?.timeslotsToRemove || []
     if(ts2add.length) {
         ts2add.map(async _timeslot => {
             const timeslotObj = {..._timeslot, courseID: courseUpdate._id, enrollment: 0, status: 'created'}
-            CourseTimeslot.create(timeslotObj)
+            await CourseTimeslot.create(timeslotObj)
         })
+    } if(ts2remove.length) {
+        await CourseTimeslot.deleteMany({_id: { $in: ts2remove}})
     }
     res.json({
         courseUpdate

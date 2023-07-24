@@ -1,11 +1,10 @@
-import { Button, ButtonGroup, Card, Container, Grid, Input, IconButton, Skeleton, Stack, TextField, Typography, Box, FormHelperText } from '@mui/material';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { Button, ButtonGroup, Container, Grid, Input, IconButton, Skeleton, TextField, Typography, Box } from '@mui/material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import React, { useState, useEffect } from 'react';
 import TopNavBar from '../../TopNavBar/TopNavBar';
 import useStore from '../../../store';
 import EditPhotos from './EditPhotos';
-import ToggleDays from '../../SessionCreation/ToggleDays/ToggleDays';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PeopleAltRounded } from '@mui/icons-material';
 
@@ -17,6 +16,8 @@ import mapboxgl from 'mapbox-gl'
 // @ts-ignore
 // eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
 mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker').default;
+
+const ToggleDays = lazy(() => import('../../SessionCreation/ToggleDays/ToggleDays'))
 
 const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
 
@@ -32,7 +33,7 @@ const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.i
 // - Payment functionality
 
 const EditCourse = (props) => {
-	const {userName, isTeacher, setClassDays, capacity, newCourseTimeslots, setNewCourseTimeslots} = useStore();
+	const {userName, isTeacher, setClassDays, capacity, newCourseTimeslots, setNewCourseTimeslots, timeslotsToRemove, setTimeslotsToRemove} = useStore();
 	const [isLoading, setIsLoading] = useState(true)
 	const [isAvailabilityVisible, setIsAvailabilityVisible] = useState(false)
 	const [courseInfo, setCourseInfo] = useState({})
@@ -54,13 +55,20 @@ const EditCourse = (props) => {
 
 	const updateCourse = async (e) => {
         e.preventDefault();
+
         const timeslotsToAdd = []
 		newCourseTimeslots.forEach(slot => {
-			if(!Boolean(slot?._id)) {
+			if(Boolean(slot?._id)) {
+				if(timeslotsToRemove.indexOf(slot._id) >= 0) {  // delete this timeslot from db
+					setTimeslotsToRemove([...timeslotsToRemove, slot._id])
+				}
+			}
+			else if(timeslotsToRemove.indexOf(slot.tempID) < 0) {
 				timeslotsToAdd.push(slot)
 			}
 		})
-		const updatedCourseInfo = {...courseInfo, timeslotsToAdd}
+		const _toRemove = timeslotsToRemove.filter(el => typeof el === 'string')
+		const updatedCourseInfo = {...courseInfo, timeslotsToAdd, timeslotsToRemove: _toRemove}
 		setCourseInfo(updatedCourseInfo)
         try {
             await fetch (`${backendURL}course/updateCourse/${courseInfo._id}`, {
@@ -68,8 +76,9 @@ const EditCourse = (props) => {
                 method: 'PUT',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-            }).then(() => {
+			}).then(() => {
 				setIsLoading(false)
+				setTimeslotsToRemove([])
                 alert('Successfully updated your course')
                 navigate(`/${isTeacher ? 'teachers' : 'students'}/${userName}`)
             })
@@ -225,7 +234,9 @@ const EditCourse = (props) => {
 
 				<br/>
 
-				{isAvailabilityVisible && <ToggleDays isExistingCourse={true}/>}
+				{isAvailabilityVisible && <Suspense fallback='Loading...'>
+					<ToggleDays isExistingCourse={true}/>
+				</Suspense>}
 
 				<br/>
 

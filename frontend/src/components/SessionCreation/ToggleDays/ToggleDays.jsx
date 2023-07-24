@@ -126,7 +126,7 @@ const initialState = [
         dayNum: nextDayOfTheWeek(5).getDate(),
     },
     {
-        key: 'saturday',
+        key: 'Saturday',
         label: 'Sat',
         'Start Time': '',
         'End Time': '',
@@ -140,31 +140,65 @@ const ToggleDays = (props) => {
     const [days, setDays] = useState([...initialState.slice((date.getDay() + 1) % 7), ...initialState.slice(0, (date.getDay() + 1) % 7)])
     const [courseStartTime, setCourseStartTime] = useState('12:00');
     const [selectedDay, setSelectedDay] = useState();
-    const { setClassDays, capacity, newCourseTimeslots, setNewCourseTimeslots} = useStore();
+    const {setClassDays, capacity, newCourseTimeslots, setNewCourseTimeslots, timeslotsToRemove, setTimeslotsToRemove} = useStore();
 
     if(!props?.isExistingCourse) {
         props.setIsNextDisabled(!Boolean(newCourseTimeslots.length))
     }
 
-    useEffect(() => {
-        const _today = new Date()
-        _today.setHours(0, 0, 0, 0)
-        newCourseTimeslots.forEach(slot => {
-            const slotDate = new Date(slot.startDate)
-            if(slotDate >= _today) {
-                const activeBtn = document.getElementById(`datePickerButton-${slot.dayOfWeek}`)
+    const toRemove = (startDate, i, _id, tempID) => {
+        const timeslotEl = document.getElementById(`timeslot-${i}`)
+        timeslotEl.classList.add('toRemove')
+        if((_id !== undefined) && (timeslotsToRemove.indexOf(_id) < 0)) {
+            setTimeslotsToRemove([...timeslotsToRemove, _id])
+        }
+        if((_id === undefined) && (timeslotsToRemove.indexOf(tempID) < 0)) {
+            setTimeslotsToRemove([...timeslotsToRemove, tempID])
+        }
+    }
+
+    const _today = new Date()
+    _today.setHours(0, 0, 0, 0)
+
+    const insertNewTimeslotElements = (slot, i) => {
+        const slotDate = new Date(slot.startDate)
+        if(slotDate >= _today) {
+            const dayContainer = document.getElementById(`${slot.dayOfWeek}-container`)
+            if(dayContainer !== null) {
                 const child = document.createElement('div')
-                child.innerHTML = '<div class="addedTimeslotIndicator"></div>'
-                activeBtn.appendChild(child)
+                child.innerHTML = `
+                <div id='timeslot-${i}' class='existingTimeslot'>
+                <div>${slot.startTime}</div>
+                <button class='toRemoveButton' id='remove-${slot.startDate}'>Remove</button>
+                </div>`
+                dayContainer.appendChild(child)
+                setTimeout(() => {
+                    document.getElementById(`timeslot-${i}`)
+                    .addEventListener('click', (e) => {
+                        e.preventDefault()
+                        toRemove(slot.startDate, i, slot?._id, slot?.tempID)
+                    })
+                }, 250
+                )
+                
             }
-        })
-    })
+        }
+    }
+
+    useEffect(() => {
+        setTimeslotsToRemove([])
+        for (let i=0; i < newCourseTimeslots.length; i++) {
+            const slot = newCourseTimeslots[i]
+            insertNewTimeslotElements(slot, i)
+        }
+    }, [])
 
     const handleSave = (index, isRepeating, dayKey) => {
         const activeBtn = document.getElementById(`datePickerButton-${dayKey}`)
         const child = document.createElement('div')
         child.innerHTML = '<div class="addedTimeslotIndicator"></div>'
         activeBtn.appendChild(child)
+        const timestamp = new Date()
     
         const course_timeslot = {
             startTime: courseStartTime,
@@ -174,8 +208,10 @@ const ToggleDays = (props) => {
             capacity,
             enrolledStudents: [],        
             enrollment: 0,
-            isRepeating
+            isRepeating,
+            tempID: timestamp.getTime()
         }
+        insertNewTimeslotElements(course_timeslot, newCourseTimeslots.length)
         let _updatedTimeslots = [...newCourseTimeslots, course_timeslot]
         _updatedTimeslots = _updatedTimeslots.sort((a, b) => a.startTime > b.startTime)
         setSelectedDay('')
@@ -204,7 +240,7 @@ const ToggleDays = (props) => {
                 alignItems='center'
                 >
           
-                <Container>
+                <Container >
                     {days.map((day, index) => (
 
                         <Grid
@@ -232,36 +268,38 @@ const ToggleDays = (props) => {
                                 </StyledToggleButtonGroup>
                             </Grid>
 
-                            <Grid item xs={9}>
-                                <Stack
-                                    spacing={2}
-                                    style={{alignItems:'center'}}
-                                    item
-                                    direction='row'
-                                    className={`display-${
-                                    selectedDay === index ||
-                                    Boolean(days[index]['Start Time']) ||
-                                    Boolean(days[index]['End Time'])}`}>
-                                    <TimeSelector
-                                        courseStartTime={courseStartTime}
-                                        setCourseStartTime={setCourseStartTime}
-                                        dayIndex={index}
-                                        label='Start Time'
-                                    />
-                                    
-                                    {(index === selectedDay) &&
-                                        <>
-                                            <Button variant='contained' style={{color:'white'}} size='small' endIcon={<LoopIcon />}
-                                                onClick={e => {handleSave(index, true, day.key)}}>
-                                                Repeat
-                                            </Button>
-                                            <Button variant='contained' style={{color:'white'}} size='small'
-                                                onClick={e => {handleSave(index, false, day.key)}}>
-                                                Save
-                                            </Button>
-                                        </>
-                                    }
-                                </Stack>
+                            <Grid container id={`${day.key}-container`} className='dayTimeslotContainer' xs={9}>
+                                <Grid item xs={9}>
+                                    <Stack
+                                        spacing={2}
+                                        style={{alignItems:'center'}}
+                                        item
+                                        direction='row'
+                                        className={`display-${
+                                        selectedDay === index ||
+                                        Boolean(days[index]['Start Time']) ||
+                                        Boolean(days[index]['End Time'])}`}>
+                                        <TimeSelector
+                                            courseStartTime={courseStartTime}
+                                            setCourseStartTime={setCourseStartTime}
+                                            dayIndex={index}
+                                            label='Start Time'
+                                        />
+                                        
+                                        {(index === selectedDay) &&
+                                            <>
+                                                <Button variant='contained' style={{color:'white'}} size='small' endIcon={<LoopIcon />}
+                                                    onClick={e => {handleSave(index, true, day.key)}}>
+                                                    Repeat
+                                                </Button>
+                                                <Button variant='contained' style={{color:'white'}} size='small'
+                                                    onClick={e => {handleSave(index, false, day.key)}}>
+                                                    Save
+                                                </Button>
+                                            </>
+                                        }
+                                    </Stack>
+                                </Grid>
                             </Grid>
                         </Grid>
                     ))}
