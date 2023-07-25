@@ -87,19 +87,26 @@ router.get('/bookings/:userName', async (req, res) => {
 router.get('/teacherBookings/:userName', async (req, res) => {
     const {token} = req.cookies;
     const {userName} = req.params
+    
+    try {
+            // If you want to verify the JWT token, you can do it here
+            // jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+            //     if (err) {
+            //         console.log('Error in /teacherBookings', err);
+            //         throw err; // Throw the error to handle it in the catch block
+            //     }
+            //     console.log('ID to get booking', userData.id);
+            //     // ... Your other code using userData ...
+            // });
 
-    // jwt.verify(token, jwtSecret, {}, async (err, userData) => {
-        try {
-            if(err) throw err;
-        } catch (error) {
-            console.log('Error in /teacherBookings', error)
-        }
-        // console.log('ID to get booking', userData.id)
-        const teacher = await Booking.find({teacherUserName: userName}).populate('courseID studentID')
-        console.log('teacher', teacher)
-        res.json( teacher )
-        
-    // })
+            const teacher = await Booking.find({teacherUserName: userName}).populate('courseID studentID')
+            console.log('teacher', teacher)
+            res.json( teacher )
+
+        } catch (err) {
+            console.log('Error in /teacherBookings', err)
+            res.status(500).json({ error: 'An error occurred while fetching teacher bookings.' });
+        }        
 })
 
 // ROUTE FOR TEACHER SINGLE BOOKING
