@@ -14,6 +14,15 @@ function SingleBookingPage() {
     const {userName} = useStore();
     const [booking, setBooking] = useState([]);
 
+    const formatCurrency = (value) => {
+        const formattedValue = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+        }).format(value);
+        return formattedValue;
+    };
+
 
     useEffect(() => {
       axios.get(`${backendURL}booking/teacherBookingInfo/${id}`).then(response => {
@@ -103,7 +112,7 @@ function SingleBookingPage() {
                             </Typography>
 
                             <Typography variant='h4'>
-                            ${booking?.courseID?.pricePerStudent}
+                            {formatCurrency(booking?.courseID?.pricePerStudent)}
                             </Typography>
                         </Stack>
 
@@ -125,7 +134,7 @@ function SingleBookingPage() {
 
                                 <Grid item>
                                     <Typography variant='h3' style={{color:'#00aeef'}}>
-                                        ${booking?.total}
+                                        {formatCurrency(booking?.total)}
                                     </Typography>
                                 </Grid>
 
@@ -136,11 +145,11 @@ function SingleBookingPage() {
                     <Grid>
                         <Stack direction='row' >
                             <Typography variant='h4' style={{color:'#00aeef'}}>
-                                - ${(booking?.total)*.099 +.3}
+                                - {formatCurrency((booking?.total)*.099 +.3)}
                             </Typography>
                         </Stack>
                         <Stack>
-                            <Typography>Total: ${(booking?.total)-((booking?.total)*.099 +.3)}</Typography>
+                            <Typography>Total: {formatCurrency((booking?.total)-((booking?.total)*.099 +.3))}</Typography>
                         </Stack>
                     </Grid>
 

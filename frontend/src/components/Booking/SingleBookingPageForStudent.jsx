@@ -14,6 +14,14 @@ function SingleBookingPageForStudent() {
     const {userName} = useStore();
     const [booking, setBooking] = useState([]);
 
+    const formatCurrency = (value) => {
+        const formattedValue = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+        }).format(value);
+        return formattedValue;
+    };
 
     useEffect(() => {
       axios.get(`${backendURL}booking/studentBookingInfo/${id}`).then(response => {
@@ -102,7 +110,7 @@ function SingleBookingPageForStudent() {
                             </Typography>
 
                             <Typography variant='h4'>
-                            ${booking?.courseID?.pricePerStudent}
+                            {formatCurrency(booking?.courseID?.pricePerStudent)}
                             </Typography>
                         </Stack>
 
@@ -124,7 +132,7 @@ function SingleBookingPageForStudent() {
 
                                 <Grid item>
                                     <Typography variant='h3' style={{color:'#00aeef'}}>
-                                        ${booking?.total}
+                                        {formatCurrency(booking?.total)}
                                     </Typography>
                                 </Grid>
 
