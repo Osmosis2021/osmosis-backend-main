@@ -151,7 +151,7 @@ router.post('/registerCourse', async (req, res, next) => {
 // POST RATING/REVIEWS 
 
 router.put('/sendReview/:bookingID', async (req, res) => {
-    const { rating, writtenReview, userID } = req.body;
+    const { rating, writtenReview, userID } = req.body.feedback;
     const bookingID = req.params.bookingID;
 
     try {
@@ -168,7 +168,7 @@ router.put('/sendReview/:bookingID', async (req, res) => {
         const updatedCourse = await Course.findByIdAndUpdate (
             updatedBooking.courseID,
             {
-                $push: {
+                $addToSet: {
                     feedback: {
                         rating,
                         reviews: writtenReview,
