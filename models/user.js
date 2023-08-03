@@ -24,6 +24,7 @@ const UserSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
+		resetCode: '',
 		isStudent: {
 			type: Boolean,
 			default: false
