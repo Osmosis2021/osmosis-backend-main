@@ -1,6 +1,8 @@
 import create from "zustand";
 
 const useStore = create(set => ({
+    backendURL: process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/',
+
     firstName: '',
     setFirstName: firstName => set({ firstName }),
 

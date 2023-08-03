@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import { useNavigate } from "react-router-dom";
 import useStore from "../../store";
 import logo from '../../assets/Osmosis_Logo.png';
+import './Opening.css';
 import { Box, TextField, Container, Grid, Button, Avatar, Typography } from '@mui/material';
 import { Link as LinkRouter } from 'react-router-dom';
 import Bubbles from '../Bubbles/Bubbles';
@@ -63,47 +64,47 @@ const Opening = () => {
 
 	return (
 		<Container style={{width:'90vw'}}>
-		<Bubbles/>
-				<Grid container style={{ marginTop: '2rem', flexDirection: 'column', alignItems: 'center' }}>
-					
-					<Grid item>
-						<img src={logo} alt='Osmosis Logo' style={{width: 125, height: 135}} align='center' />
-					</Grid>
-					
-					<Typography variant='h3' mt={2} style={{textAlign: 'center'}}> Welcome to <span style={{color:'#00aeef'}}>Osmosis</span> </Typography>
-					<Typography variant='h4' mt={2} mb={2} align='center'>Learning through <br/>human connections 🤝</Typography>
-					
-					{
-						isLoading ? <><br/><br/><br/><br/><br/><Typography variant='h4'>Loading...</Typography> </> :
-						<>
-							<Typography variant='subtitle1' mt={2} mb={2}>Already have an account:</Typography>
+			<Bubbles/>
+			<Grid container style={{ marginTop: '2rem', flexDirection: 'column', alignItems: 'center' }}>
 				
-							<Grid item>
-								{
-									isWrong ? <TextField variant='outlined' label="Email or Username" placeholder='Email or Username' error fullWidth onChange={handleChangeEmail} style={{marginBottom:'12px'}}/> :
-									<TextField variant='outlined' label="Email or Username" placeholder='Email or Username' fullWidth onChange={handleChangeEmail} />
-								}
-								{
-									isWrong ? <TextField variant='outlined' type="password" label="Password" placeholder='Password' error fullWidth onChange={handleChangePassword} helperText="Incorrect entry."/> :
-									<TextField variant='outlined' type="password" label="Password" placeholder='Password' onChange={handleChangePassword} fullWidth size='large' style={{marginTop: 8, marginBottom: 3}} />
-								}
-									<LinkRouter to='/forgot' style={{textDecoration:'none'}}>
-										<Button size='small' fontSize='extra-small' style={{marginBottom:8, marginTop:6}}> Forgot Password?</Button>
-									</LinkRouter>
-
-									<Button variant='contained' size='large' fullWidth style={{fontSize: 14, fontFamily:'Poppins', color:'white', marginTop: '16px'}} onClick={handleLogin}>Login</Button>
-									
-									<Typography variant='h5' mt={2} mb={2} align='center'>OR</Typography>
-													
-									<LinkRouter to='/sign-up' align='center' style={{textDecoration: 'none'}}>
-										<Button variant="contained" size="large" align='center' style={{fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth>
-											Signup Today
-										</Button>
-									</LinkRouter>
-							</Grid>
-						</>
-					}
+				<Grid item>
+					<img src={logo} alt='Osmosis Logo' style={{width: 125, height: 135}} align='center' />
 				</Grid>
+
+				<Typography variant='h3' mt={2} style={{textAlign: 'center'}}> Welcome to <span style={{color:'#00aeef'}}>Osmosis</span> </Typography>
+				<Typography variant='h4' mt={2} mb={2} align='center'>Learning through <br/>human connections 🤝</Typography>
+				
+				{
+					isLoading ? <><br/><br/><br/><br/><br/><Typography variant='h4'>Loading...</Typography> </> :
+					<>
+						<Typography variant='subtitle1' mt={2} mb={2}>Already have an account:</Typography>
+			
+						<Grid item>
+							{
+								isWrong ? <TextField variant='outlined' label="Email or Username" placeholder='Email or Username' error fullWidth onChange={handleChangeEmail} style={{marginBottom:'12px'}}/> :
+								<TextField variant='outlined' label="Email or Username" placeholder='Email or Username' fullWidth onChange={handleChangeEmail} />
+							}
+							{
+								isWrong ? <TextField variant='outlined' type="password" label="Password" placeholder='Password' error fullWidth onChange={handleChangePassword} helperText="Incorrect entry."/> :
+								<TextField variant='outlined' type="password" label="Password" placeholder='Password' onChange={handleChangePassword} fullWidth size='large' style={{marginTop: 8, marginBottom: 3}} />
+							}
+								<LinkRouter to='/forgot' style={{textDecoration:'none'}}>
+									<Button size='small' fontSize='extra-small' style={{marginBottom:8, marginTop:6}}> Forgot Password?</Button>
+								</LinkRouter>
+
+								<Button variant='contained' size='large' fullWidth style={{fontSize: 14, fontFamily:'Poppins', color:'white', marginTop: '16px'}} onClick={handleLogin}>Login</Button>
+
+								<Typography variant='h5' mt={2} mb={2} align='center'>OR</Typography>
+												
+								<LinkRouter to='/sign-up' align='center' style={{textDecoration: 'none'}}>
+									<Button variant="contained" size="large" align='center' style={{fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth>
+										Signup Today
+									</Button>
+								</LinkRouter>
+						</Grid>
+					</>
+				}
+			</Grid>
 		</Container>
 	);
 };

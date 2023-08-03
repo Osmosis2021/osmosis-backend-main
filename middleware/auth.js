@@ -7,6 +7,57 @@ const cloudinary = require('cloudinary');
 const bcryptSalt = bcrypt.genSaltSync(7);
 const jwtSecret = 'randomString';
 
+makePasswordResetCode = () => {
+    let code = '';
+    const chars = '0123456789';
+    for (let i = 1; code.length < 6; i++) {
+        code += chars.charAt(Math.random() * chars.length)
+    }
+    return code;
+}
+
+router.get('/sendResetCode/:email', async (req, res) => {
+    // give user a temporary code via email to reset their password
+    const {email} = req.params
+    const resetCode = makePasswordResetCode()
+    const foundUser = await User.findOneAndUpdate({email}, {$set: {resetCode}})
+    if (foundUser) {
+        console.log('\n\n\n**** This is where we need to send an automated email **** \n\n\n') // sendEmail(email, templates.resetCode(resetCode))
+        res.json({result: 'success'})  
+    } else {
+        res.json({result: 'Email not found'})
+    }
+})
+
+// reply verify that email corresponds to user's passwordResetCode
+router.get('/verifyResetCode/:email/:resetCode', async (req, res) => {
+    const {email, resetCode} = req.params
+    const foundUser = await User.findOne({email})
+    if (foundUser) {
+        if (foundUser.resetCode === resetCode) {
+            res.json({result: 'success'})
+        } else {
+            res.json({result: 'Incorrect reset code'})
+        }
+    } else {
+        res.json({result: 'Email not found'})
+    }
+})
+
+router.patch('/updatePassword', async (req, res) => {
+    // change a user's password if they have the right reset code
+    const {email, password, resetCode} = req.body
+    const hashedPassword = await bcrypt.hash(password, bcryptSalt);
+    const updatedUser = await User.findOneAndUpdate(
+        {email: email, resetCode: resetCode},
+        {$set: {password: hashedPassword, resetCode: ''}})
+    if (updatedUser) {
+        res.json({result: 'success'})
+    } else {
+        res.json({result: 'Password not updated'})
+    }
+})
+
 router.post('/login/:email/:password', async (req, res) => {
 
     const {email, password} = req.params
