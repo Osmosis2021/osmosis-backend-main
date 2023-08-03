@@ -12,7 +12,7 @@ import './SimpleBottomNavigation.css'
 const SimpleBottomNavigation = () => {
 
   const [value, setValue] = React.useState(0);
-  const {userName, isTeacher, notification, setNotification} = useStore()
+  const {userName, isTeacher, isRegistered, notification, setNotification} = useStore()
   const navigate = useNavigate();
 
   const handleChange = (event, newValue) => {
@@ -20,7 +20,7 @@ const SimpleBottomNavigation = () => {
   };
 
   const notificationFunction = () => {
-    navigate('/chat');
+    navigate(`/${isRegistered ? 'chat' : '/'}`)
     // Clear the first notification from the array
     if (notification.length > 0) {
       const [ , ...restNotifications] = notification;
