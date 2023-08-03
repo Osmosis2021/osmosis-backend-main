@@ -5,6 +5,8 @@ const bodyParser = require('body-parser');
 const authRoute = require('./middleware/auth')
 const courseRoute = require('./middleware/course')
 const bookingRoute = require('./middleware/booking')
+const chatRoute = require('./middleware/chat')
+const messageRoute = require('./middleware/message')
 const stripe = require('./middleware/stripe')
 const Stripe = require('stripe');
 const Booking = require('./models/booking');
@@ -130,6 +132,8 @@ const reviewController  = require('./controllers/reviewController.js')
 app.use('/user', authRoute)
 app.use('/course', courseRoute)
 app.use('/booking', bookingRoute)
+app.use('/chat', chatRoute)
+app.use('/message', messageRoute)
 app.use('/stripe', stripe)
 
 if (process.env.NODE_ENV === 'production') {
@@ -148,6 +152,47 @@ let port = process.env.PORT;
 if (port == null || port == "") {
   port = 8126;
 }
-app.listen(port, () =>
+const server = app.listen(port, () =>
     console.log('API is listening on port: ' + port)
 );
+
+const io = require('socket.io')(server, {
+    pingTimeout: 60000,
+    cors: {
+        origin: allowList
+    },
+});
+
+io.on("connection", (socket) => {
+    console.log('Connected to socket.io')
+    socket.on('setup', (userID) => {
+        socket.join(userID);
+        socket.emit('connected');
+    });
+
+    socket.on('joinChat', (room) => {
+        socket.join(room);
+        console.log('user joined room', room);
+    });
+
+    // socket.on('typing', (room) => socket.in(room).emit("typing"));
+    // socket.on('stopTyping', (room) => socket.in(room).emit("stopTyping"));
+
+    socket.on('newMessage', (newMessageReceived) => {
+        var chat = newMessageReceived.chat;
+
+        if (!chat.users) return console.log('chat.users not defined');
+        chat.users.forEach(user => {
+            if (user._id === newMessageReceived.sender._id) return;
+
+            socket.in(user._id).emit("messageReceived", newMessageReceived)
+            console.log('messageReceived', newMessageReceived)
+        });
+    });
+
+    socket.off('setup', () => {
+        console.log('USER DISCONNECTED');
+        socket.leave(userID);
+    });
+
+});
