@@ -100,7 +100,8 @@ const Forgot = () => {
                         <Typography align='center' variant='h5' mt={6} mb={0}> Enter the password reset code <br/> you received by email. </Typography> 
                     </Grid>
                     <Grid item className={`display-${stage === 'resetCode'}`}>
-                        <TextField variant='outlined' label='Reset Code' placeholder='Code' fullWidth size='large' />
+                        <TextField variant='outlined' label='Reset Code' placeholder='Code' fullWidth size='large'
+                            value={resetCode} onChange={e => {setResetCode(e.target.value)}}/>
                         <Button variant='contained' size='large' fullWidth sx={{marginTop: 2}} 
                             onClick={verifyResetCode} style={{fontSize:18, color:'white', fontFamily:'Poppins'}}>
                             Verify Password Reset Code
