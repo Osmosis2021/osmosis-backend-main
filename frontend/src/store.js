@@ -96,6 +96,15 @@ const useStore = create(set => ({
     increaseCapacity: () => set(state => ({ capacity: state.capacity + 1 })),
     decreaseCapacity: () => set(state => ({ capacity: Math.max(1, state.capacity - 1) })),
 
+    selectedChat: [], 
+    setSelectedChat: selectedChat => set({ selectedChat }),
+
+    chats: [],
+    setChats: chats => set({ chats }),
+
+    notification: [], 
+    setNotification: notification => set({ notification }),
+
 }));
 
 export default useStore;
