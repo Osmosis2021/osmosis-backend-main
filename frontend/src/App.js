@@ -46,6 +46,8 @@ import SingleBookingPageForStudent from './components/Booking/SingleBookingPageF
 import Privacy from './components/Settings/Privacy';
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+// import OrdersAndPayments from './components/Profile/OrdersAndPayments';
+import Chat from './components/Chat/Chat';
 
 axios.defaults.withCredentials = true;
 
@@ -79,6 +81,8 @@ function App() {
 
 					<Route path='/settings' element={<Settings />} />
 
+					{/* <Route path='/ordersandpayments' element={<OrdersAndPayments />} /> */}
+					<Route path='/chat' element={<Chat />} />
 					<Route path='/edit' element={<EditProfile />} />
 					<Route path='/confirm' element={
 						<Elements stripe={stripePromise}>
