@@ -7,6 +7,7 @@ const courseRoute = require('./middleware/course')
 const bookingRoute = require('./middleware/booking')
 const chatRoute = require('./middleware/chat')
 const messageRoute = require('./middleware/message')
+const emailRoute = require('./middleware/email')
 const stripe = require('./middleware/stripe')
 const Stripe = require('stripe');
 const Booking = require('./models/booking');
@@ -64,7 +65,7 @@ app.use(express.urlencoded({ extended: true }));
 //=============================================================================
 
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET
-const _stripe = Stripe(process.env.STRIPE_LIVE_KEY);
+const _stripe = Stripe(process.env.STRIPE_TEST_KEY);
 
 app.post('/stripe/webhook', express.raw({type: 'application/json'}), async (req, res) => {
     const sig = req.headers['stripe-signature'];
@@ -135,6 +136,7 @@ app.use('/booking', bookingRoute)
 app.use('/chat', chatRoute)
 app.use('/message', messageRoute)
 app.use('/stripe', stripe)
+app.use('/email', emailRoute)
 
 if (process.env.NODE_ENV === 'production') {
     // Exprees will serve up production assets
