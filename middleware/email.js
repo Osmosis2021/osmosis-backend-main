@@ -25,10 +25,10 @@ const sendEmail = async (subject, message, sendTo, sentFrom, replyTo) => {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS,
         },
-        // not necessary something with https 
-        // tls: {
-        //     rejectUnauthorized: false,
-        // }
+        // not necessary something with https, actually might be necessary 
+        tls: {
+            rejectUnauthorized: false,
+        }
     })
 
     const options = {
