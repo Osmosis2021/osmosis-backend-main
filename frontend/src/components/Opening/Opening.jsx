@@ -17,7 +17,7 @@ const Opening = () => {
 	const [password, setPassword] = useState('')
 	const [isWrong, setIsWrong] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
-    const {setUserID, setUserName, setIsTeacher, setIsStudent, setFirstName, setLastName, setIsRegistered} = useStore()
+    const {setUserID, setUserName, userName, setIsTeacher, setIsStudent, setFirstName, setLastName, setIsRegistered} = useStore()
     const navigate = useNavigate()
 
 	const handleChangeEmail = (event) => {
@@ -41,6 +41,7 @@ const Opening = () => {
 			if (userDoc._id) {
 				setUserID(userDoc._id)
 				setUserName(userDoc.userName)
+				localStorage.setItem('userName', JSON.stringify(userName))
 				setIsTeacher(userDoc.isTeacher)
 				setIsStudent(userDoc.isStudent)
 				setFirstName(userDoc.firstName)
