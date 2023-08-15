@@ -12,6 +12,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import HelpIcon from '@mui/icons-material/Help';
 import InfoIcon from '@mui/icons-material/Info';
 import LogoutIcon from '@mui/icons-material/Logout';
+import PaymentIcon from '@mui/icons-material/Payment';
 import { Link } from 'react-router-dom';
 
 
@@ -61,33 +62,39 @@ export default function TopProfileBar(props) {
           link: '/privacy'
         },
         {
+          name: 'Orders and Payments',
+          icon: <PaymentIcon fontSize='large'/>,
+          key: 2,
+          link: '/ordersandpayments'
+        },
+        {
           name: 'Security',
           icon: <LockIcon fontSize='large'/>,
-          key: 2,
+          key: 3,
           link: '/security'
         },
         {
           name: 'Notifications',
           icon: <NotificationsIcon fontSize='large'/>,
-          key: 3,
+          key: 4,
           link: '/notifications'
         },
         {
           name: 'About',
           icon: <InfoIcon fontSize='large'/>,
-          key: 4,
+          key: 5,
           link: '/about'
         },
         {
           name: 'Help',
           icon: <HelpIcon fontSize='large'/>,
-          key: 5,
+          key: 6,
           link: '/help'
         },
         {
           name: 'Logout',
           icon: <LogoutIcon fontSize='large'/>,
-          key: 6,
+          key: 7,
           link: '/'
         },
       ]
