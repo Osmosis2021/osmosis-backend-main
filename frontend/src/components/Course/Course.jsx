@@ -378,7 +378,7 @@ const Course = (props) => {
 					teacherID={courseData.teacherID}
 					teacherUserName={courseData.userName}
 					studentUserName={userName}
-					// stripeID={teacherInfo?.stripeID}
+					stripeID={teacherInfo?.stripeID}
 				/>
 			</div>
 
