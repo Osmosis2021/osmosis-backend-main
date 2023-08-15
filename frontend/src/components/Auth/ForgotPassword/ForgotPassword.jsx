@@ -1,11 +1,13 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import { TextField, Container, Grid, Button, Avatar, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+// import { Link as LinkRouter } from 'react-router-dom';
+import axios from 'axios';
 import TopNavBar from '../../TopNavBar/TopNavBar';
 import logo from '../../../assets/Osmosis_Logo.png'
 import './ForgotPassword.css'
 import useStore from '../../../store'
-
+const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
 
 const Forgot = () => {
     const navigate = useNavigate()
@@ -14,10 +16,18 @@ const Forgot = () => {
     const [resetCode, setResetCode] = useState('')
     const [newPassword, setNewPassword] = useState('')
     const [repeatPassword, setRepeatPassword] = useState('')
-	const {backendURL} = useStore();
+	// const {backendURL} = useStore();
+
+    // const sendEmail = async(e) => {
+    //     e.preventDefault()
+    //     console.log(email)
+    //     const data = {email}
+    //     const response = await axios.post(`${backendURL}email/sendEmail`, data)
+    //     console.log(response.data)
+    // }
 
     const requestResetCode = () => {
-        fetch(`${backendURL}auth/sendResetCode/${email}`)
+        fetch(`${backendURL}email/sendResetCode/${email}`)
         .then(res => res.json())
         .then(resp => {
             if(resp.result === 'Email not found') {
@@ -31,7 +41,7 @@ const Forgot = () => {
     }
 
     const verifyResetCode = () => {
-        fetch(`${backendURL}auth/verifyResetCode/${email}/${resetCode}`)
+        fetch(`${backendURL}email/verifyResetCode/${email}/${resetCode}`)
         .then(res => res.json())
         .then(resp => {
             if(resp.result === 'Incorrect reset code') {
@@ -53,7 +63,7 @@ const Forgot = () => {
             return
         }
         const userInfo = {email, password: newPassword, resetCode}
-        fetch(`${backendURL}auth/updatePassword/${email}/${resetCode}`, {body: JSON.stringify(userInfo),
+        fetch(`${backendURL}email/updatePassword/${email}/${resetCode}`, {body: JSON.stringify(userInfo),
             method: 'PATCH', headers: {'Content-Type': 'application/json'}})
         .then(res => res.json())
         .then(resp => {
@@ -72,7 +82,6 @@ const Forgot = () => {
             console.log('Error resetting password:\n', err)
         })
     }
-
 
     return (
         <>
