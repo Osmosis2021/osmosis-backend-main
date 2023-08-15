@@ -9,30 +9,31 @@ function Payment(props) {
     const [stripePromise, setStripePromise] = useState(null);
     const [clientSecret, setClientSecret] = useState('');
 
-    // Fetch publishableKey from the server
+        // Fetch publishableKey from the server
     useEffect(() => {
         fetch(`${backendURL}stripe/config`).then(async (res) => {
             const { publishableKey } = await res.json();
             setStripePromise(loadStripe(publishableKey));
-    // Fetch client secret for the payment intent from the server
+        // Fetch client secret for the payment intent from the server
         }).then(() => {
-          fetch(`${backendURL}stripe/create-payment-intent`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-            amount: props.item.pricePerStudent,
-            capacity: props.item.guests,
-            metadata: props.paymentMetadata
-          }),
-          }).then(async (res) => {
-            const {clientSecret} = await res.json();
-            setClientSecret(clientSecret);
-          }).catch((error) => {
-          console.error('Error creating payment intent:', error);
+            fetch(`${backendURL}stripe/create-payment-intent`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    amount: props.item.pricePerStudent,
+                    capacity: props.item.guests,
+                    metadata: props.paymentMetadata,
+                    stripeID: props.stripeID
+                }),
+            }).then(async (res) => {
+                const {clientSecret} = await res.json();
+                setClientSecret(clientSecret);
+            })
         }).catch((error) => {
-          console.log('hit this error', error)
+            console.error('Error creating payment intent:', error);
+        }).catch((error) => {
+            console.log('hit this error', error)
         })
-      })
     }, []);
 
     const options = {
