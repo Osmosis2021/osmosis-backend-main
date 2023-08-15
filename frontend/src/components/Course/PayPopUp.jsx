@@ -31,8 +31,8 @@ export default function PayPopUp(props) {
     time: props.selectedDateAndTime.startTime,
     date: String(props.selectedDateAndTime.startDate).split('T')[0]
   }
-
-
+  const stripeID = props.stripeID
+  console.log(stripeID)
   async function bookThisCourse() {
 
     const bookingObj = {
@@ -42,6 +42,7 @@ export default function PayPopUp(props) {
       courseTimeslotID: props.selectedTimeslotID,
       courseID: props.courseID,
       teacherID: props.teacherID,
+      studentUserName: props.studentUserName,
       teacherUserName: props.teacherUserName,
       time: props.selectedDateAndTime.startTime,
       date: props.selectedDateAndTime.startDate
@@ -196,7 +197,7 @@ export default function PayPopUp(props) {
                 <hr style={{width:'90%', color:'black', border: 'solid .5px'}} />
 
                 <Grid container p={2} justifyContent='center'>
-                    <Payment item={props} paymentMetadata={paymentMetadata} bookThisCourse={bookThisCourse} />
+                    <Payment item={props} paymentMetadata={paymentMetadata} stripeID={stripeID} bookThisCourse={bookThisCourse} />
                 </Grid>
 
             </Dialog>
