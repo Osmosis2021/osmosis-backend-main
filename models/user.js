@@ -25,6 +25,9 @@ const UserSchema = new mongoose.Schema(
 			required: true,
 		},
 		resetCode: '',
+		stripeID : {
+			type: String,
+		},
 		isStudent: {
 			type: Boolean,
 			default: false
