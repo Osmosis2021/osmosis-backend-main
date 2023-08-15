@@ -1,62 +1,18 @@
 const router = require('express').Router()
 const User = require('../models/user')
+const Stripe = require('stripe');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cloudinary = require('cloudinary');
-
 const bcryptSalt = bcrypt.genSaltSync(7);
 const jwtSecret = 'randomString';
+const stripe = Stripe('sk_test_51NEDr1EXMtM9g5843QsnEpiIAtZU9jFQ8kXabGCCDuapFuYR79weeKf14YFSY7PlLBtDcSFRm2Oz5D21zJQKogKe00I53AamYY')
 
-makePasswordResetCode = () => {
-    let code = '';
-    const chars = '0123456789';
-    for (let i = 1; code.length < 6; i++) {
-        code += chars.charAt(Math.random() * chars.length)
-    }
-    return code;
-}
-
-router.get('/sendResetCode/:email', async (req, res) => {
-    // give user a temporary code via email to reset their password
-    const {email} = req.params
-    const resetCode = makePasswordResetCode()
-    const foundUser = await User.findOneAndUpdate({email}, {$set: {resetCode}})
-    if (foundUser) {
-        console.log('\n\n\n**** This is where we need to send an automated email **** \n\n\n') // sendEmail(email, templates.resetCode(resetCode))
-        res.json({result: 'success'})  
-    } else {
-        res.json({result: 'Email not found'})
-    }
-})
-
-// reply verify that email corresponds to user's passwordResetCode
-router.get('/verifyResetCode/:email/:resetCode', async (req, res) => {
-    const {email, resetCode} = req.params
-    const foundUser = await User.findOne({email})
-    if (foundUser) {
-        if (foundUser.resetCode === resetCode) {
-            res.json({result: 'success'})
-        } else {
-            res.json({result: 'Incorrect reset code'})
-        }
-    } else {
-        res.json({result: 'Email not found'})
-    }
-})
-
-router.patch('/updatePassword', async (req, res) => {
-    // change a user's password if they have the right reset code
-    const {email, password, resetCode} = req.body
-    const hashedPassword = await bcrypt.hash(password, bcryptSalt);
-    const updatedUser = await User.findOneAndUpdate(
-        {email: email, resetCode: resetCode},
-        {$set: {password: hashedPassword, resetCode: ''}})
-    if (updatedUser) {
-        res.json({result: 'success'})
-    } else {
-        res.json({result: 'Password not updated'})
-    }
-})
+router.get('/config', (req, res) => {
+    res.send({
+    publishableKey: process.env.STRIPE_PUBLISHABLE_TEST_KEY,
+    });
+});
 
 router.post('/login/:email/:password', async (req, res) => {
 
@@ -91,6 +47,31 @@ router.get('/isUserNameUnique/:userName', async (req, res) => {
 
 router.post('/registerUser', async (req, res) => {
     const exisitingUserName = await User.findOne({userName: req.body.userName})
+
+    const account = await stripe.accounts.create({
+        type: 'express',
+        country: 'US',
+        email: req.body.email,
+        business_type: 'individual',
+        business_profile: {
+            url: `https://getosmosis.io/teachers/${req.body.userName}`,
+          },
+        individual: {
+            first_name: req.body.firstName,
+            last_name: req.body.lastName,
+            email: req.body.email
+        },
+
+        capabilities: {
+            transfers: {
+                requested: true,
+              },
+            }
+        
+        });
+      
+      const accountID = account.id
+
     if (exisitingUserName) {
         return res.json({message: 'Unsuccessful. This username is already taken.'})
     }
@@ -104,6 +85,7 @@ router.post('/registerUser', async (req, res) => {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         userName: req.body.userName,
+        stripeID: accountID,
         stars: req.body.stars,
         description: req.body.description,
         industries: req.body.industries,
@@ -158,7 +140,7 @@ router.get('/getUserInfo/:userName', async (req, res) => {
     const {userName} = req.params
     // console.log('in router.get /getUserInfo, name:', userName);
     User.findOne({userName}, (err, data) => {
-        // console.log(data)
+        console.log('inside /getUserInfo/:userName route with this userName', userName)
         if (data) {
             res.json(data)
         } else {
