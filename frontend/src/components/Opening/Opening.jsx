@@ -3,10 +3,9 @@ import { useNavigate } from "react-router-dom";
 import useStore from "../../store";
 import logo from '../../assets/Osmosis_Logo.png';
 import './Opening.css';
-import { Box, TextField, Container, Grid, Button, Avatar, Typography } from '@mui/material';
+import { TextField, Container, Grid, Button, Typography } from '@mui/material';
 import { Link as LinkRouter } from 'react-router-dom';
 import Bubbles from '../Bubbles/Bubbles';
-import CircularProgress from '@mui/material/CircularProgress';
 
 // import './Opening.css';
 
@@ -26,10 +25,6 @@ const Opening = () => {
 
 	const handleChangePassword = (event) => {
 		setPassword(event.target.value)
-	}
-
-	const handleChangeUsername = event => {
-		return
 	}
 
 	const handleLogin = e => {

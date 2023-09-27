@@ -1,8 +1,7 @@
 import Carousel from '../SessionCreation/PhotoHandling/Carousel/Carousel';
-import { Avatar, Box, ButtonGroup, Button, Card, Container, Grid, Skeleton, Stack, Typography, Rating } from '@mui/material';
+import { Avatar, ButtonGroup, Button, Card, Container, Grid, Skeleton, Stack, Typography, Rating } from '@mui/material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import GuestDrawer from '../GuestDrawer/GuestDrawer';
 import PersonIcon from '@mui/icons-material/Person';
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -13,8 +12,6 @@ import Prof from '../Profile/Prof';
 import theme from '../../theme.js';
 import useStore from '../../store';
 import PayPopUp from './PayPopUp';
-import { PeopleAltRounded } from '@mui/icons-material';
-import axios from 'axios';
 
 import mapboxgl from 'mapbox-gl'
 // The following is required to stop "npm build" from transpiling mapbox code.
@@ -38,7 +35,7 @@ const Course = (props) => {
 	const [selectedDateAndTime, setSelectedDateAndTime] = useState({})
 	const [selectedTimeslotID, setSelectedTimeslotID] = useState('')
 	// const [selectedCapacity, setSelectedCapacity] = useState(1)
-	const [selectedEnrolledStudents, setSelectedEnrolledStudents] = useState([])
+	// const [selectedEnrolledStudents, setSelectedEnrolledStudents] = useState([])
 	const [selectedEnrollment, setSelectedEnrollment] = useState(0)
 	const [isLoading, setIsLoading] = useState(true);
 	const [teacherInfo, setTeacherInfo] = useState();
@@ -80,7 +77,7 @@ const Course = (props) => {
         }).catch((err) => {
             console.log('Error getting teacher info:\n', err)
         })
-    }, []);
+    }, [paramsCourse]);
 
 	function getAverage (array) {
 		const average = (array?.reduce((a, b) => a + b, 0) / array?.length).toFixed(2);
@@ -275,7 +272,7 @@ const Course = (props) => {
 							setSelectedDateAndTime={setSelectedDateAndTime}
 							setSelectedTimeslotID={setSelectedTimeslotID}
 							// setSelectedCapacity={setSelectedCapacity}
-							setSelectedEnrolledStudents={setSelectedEnrolledStudents}
+							// setSelectedEnrolledStudents={setSelectedEnrolledStudents}
 							setSelectedEnrollment={setSelectedEnrollment}
 						/>}
 					</Typography>
