@@ -77,8 +77,10 @@ const Opening = () => {
 			
 						<Grid item>
 							{
-								isWrong ? <TextField variant='outlined' label="Email or Username" placeholder='Email or Username' error fullWidth onChange={handleChangeEmail} style={{marginBottom:'12px'}}/> :
-								<TextField variant='outlined' label="Email or Username" placeholder='Email or Username' fullWidth onChange={handleChangeEmail} />
+								isWrong ? <TextField variant='outlined' label="Email or Username" placeholder='Email or Username'
+											error fullWidth onChange={handleChangeEmail} style={{marginBottom:'12px'}}/> :
+								<TextField autoComplete='off' variant='outlined' label="Email or Username" placeholder='Email or Username'
+									fullWidth onChange={handleChangeEmail} inputRef={input => input && input.focus()}/>
 							}
 							{
 								isWrong ? <TextField variant='outlined' type="password" label="Password" placeholder='Password' error fullWidth onChange={handleChangePassword} helperText="Incorrect entry."/> :
