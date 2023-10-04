@@ -9,11 +9,11 @@ dotenv.config()
 const STRIPE_WEBHOOK_SECRET = 'whsec_78e5b3362715eaa336fb1812d63371407efab34c48565079771b0ad141ad74a0'
 const CLIENT_URL = 'http://localhost:3000';
 
-const stripe = Stripe(process.env.STRIPE_TEST_KEY)
+const stripe = Stripe(process.env.STRIPE_LIVE_KEY)
 
     router.get('/config', (req, res) => {
         res.send({
-        publishableKey: process.env.STRIPE_PUBLISHABLE_TEST_KEY,
+        publishableKey: process.env.STRIPE_PUBLISHABLE_LIVE_KEY,
         });
     });
 
@@ -24,8 +24,8 @@ const stripe = Stripe(process.env.STRIPE_TEST_KEY)
         console.log('stripeID', stripeID)
         const accountLink = await stripe.accountLinks.create({
             account: stripeID,
-            refresh_url: 'http://localhost:3000/reauth',
-            return_url: 'http://localhost:3000/return',
+            refresh_url: 'https://getosmosis.io/reauth',
+            return_url: 'https://getosmosis.io/flow',
             type: 'account_onboarding',
         });
         // res.redirect(accountLink)
