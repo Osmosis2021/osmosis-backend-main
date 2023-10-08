@@ -1,24 +1,20 @@
 import { Button, Container, Grid, Stack, TextField, Typography } from '@mui/material';
 import React, { useState, useEffect } from 'react';
-// import Prof from './Prof';
-// import TopNavBar from '../TopNavBar/TopNavBar';
-// import { Link as LinkRouter } from 'react-router-dom';
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
+import { useNavigate, useLocation } from "react-router-dom";
 import UploadProfilePicture from './UploadProfilePicture';
 import useStore from '../../store';
-import axios from 'axios';
-import { useNavigate } from "react-router-dom";
 import TopProfileBar from '../TopNavBar/TopProfileBar';
-// import axios from 'axios';
-
 const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
 
-
 function EditProfile() {
-
     const { userID, userName, setUserName, isTeacher, setFirstName, setLastName } = useStore()
     const [userInfo, setUserInfo] = useState({});
+    const axiosPrivate = useAxiosPrivate();
     const navigate = useNavigate();
+    const location = useLocation();
 
+    // TODO: check this function
     const getUser = (userName) => {
         for (let i = 0; i < userName.length; i++) {
             if (userName[i].userName === userName) {
@@ -28,16 +24,39 @@ function EditProfile() {
     }
 
     useEffect(() => {
-		getUser(userName);
-		fetch(`${backendURL}user/getUserInfo/${userName}`)
-		.then((res) => {
-			return res.json();
-		}).then((data) => {
-			setUserInfo(data);
-		}).catch((err) => {
-			console.log('Error getting users info:\n', err);
-		});
-	}, [userName]);
+        let isMounted = true;
+        const controller = new AbortController();
+
+		// getUser(userName);
+		// axiosPrivate(`${backendURL}user/getUserInfo/${userName}`)
+		// .then((res) => {
+		// 	return res.json();
+		// }).then((data) => {
+		// 	setUserInfo(data);
+		// }).catch((err) => {
+		// 	console.log('Error getting users info:\n', err);
+		// });
+
+        const getUserInfo = async () => {
+            try {
+                const response = await axiosPrivate.get(`user/getUserInfo/${userName}`, {
+                    signal: controller.signal
+                });
+                console.log(response.data);
+                isMounted && setUserInfo(response.data);
+            } catch (err) {
+                console.error(err);
+                navigate('/', { state: { from: location }, replace: true });
+            }
+        }
+
+        getUserInfo()
+        return () => {
+            isMounted = false;
+            controller.abort();
+        }
+    }, [userName])
+
 
     const changeFirstName = e => {
         setUserInfo(prev => ({...prev, firstName: e.target.value}))
@@ -81,7 +100,7 @@ function EditProfile() {
                 headers: { 'Content-Type': 'application/json' },
             }).then(() => {
                 console.log('successfully updated profile');
-                setFirstName(userInfo.firstName)
+                setFirstName(userInfo.firstName)  // TODO: is this using the right firstName etc?
                 setLastName(userInfo.lastName)
                 setUserName(userInfo.userName)
                 alert('Successfully updated your profile')
