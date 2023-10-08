@@ -5,8 +5,11 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cloudinary = require('cloudinary');
 const bcryptSalt = bcrypt.genSaltSync(7);
-const jwtSecret = 'randomString';
-const stripe = Stripe('sk_test_51NEDr1EXMtM9g5843QsnEpiIAtZU9jFQ8kXabGCCDuapFuYR79weeKf14YFSY7PlLBtDcSFRm2Oz5D21zJQKogKe00I53AamYY')
+const dotenv = require('dotenv')
+dotenv.config()
+const stripe = Stripe(process.env.STRIPE_TEST_KEY)
+const jwtSecret = process.env.ACCESS_TOKEN_SECRET
+const refreshSecret = process.env.REFRESH_TOKEN_SECRET
 
 router.get('/config', (req, res) => {
     res.send({
@@ -14,25 +17,48 @@ router.get('/config', (req, res) => {
     });
 });
 
-router.post('/login/:email/:password', async (req, res) => {
-
-    const {email, password} = req.params
+router.post('/login', async (req, res) => {
+    const {email, password, persist} = req.body
+    if (!email || !password) return res.status(400).json({'message': 'Username and password are required.'})
     const userDoc = await User.findOne({$or: [{email} , {userName: email}]});
-    
-    if (userDoc) {
-        const passOk = bcrypt.compareSync(password, userDoc.password)
-        if(passOk) {
-            jwt.sign({email: userDoc.email, userName: userDoc.userName, id: userDoc._id, firstName: userDoc.firstName, lastName: userDoc.lastName, profileImage: userDoc.profileImage.url}, jwtSecret, {}, (err, token) => {
-                if (err) throw err;
-                res.cookie('token', token).json(userDoc);
-            })
-        } else {
-            res.status(422).json('pass not ok')
-        }
-    } else {
-        res.json('not found')
+    if (!userDoc) return res.sendStatus(401)  // Unauthorized, could not find user
+    const passOk = bcrypt.compareSync(password, userDoc.password)
+    if(!passOk) return res.sendStatus(401)  // Unauthorized, email/password don't match
+
+    const roles = Object.values(userDoc?.roles || [2119]).filter(Boolean);
+    if ((userDoc?.isStudent) && (!roles.includes(1920))) roles.push(1920)
+    if ((userDoc?.isTeacher) && (!roles.includes(205))) roles.push(205)
+    // create JWTs
+    const accessToken = jwt.sign(
+        {userName: userDoc.userName, roles},
+        jwtSecret,
+        { expiresIn: '1d' }
+    )
+    let refreshToken = ''
+    if (persist) {
+        refreshToken = jwt.sign(
+            {userName: userDoc.userName, roles},
+            refreshSecret,
+            { expiresIn: '30d' }
+        )
     }
+    const resp_obj = {...userDoc._doc, roles, accessToken}
+    userDoc.refreshToken = refreshToken
+    const result = await userDoc.save()
+    
+    // Creates Secure Cookie with refresh token if in production
+    res.cookie('jwt', refreshToken, {httpOnly: true, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000,
+                                     secure: process.env.NODE_ENV === 'production'})
+    // Send authorization roles and access token to user but don't send the refreshToken
+    res.json(resp_obj)
 });
+
+router.get('/logout', async(req, res) => {
+    const {userName} = req.body
+    res.cookie('jwt', '', {httpOnly: true, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000,
+                                   secure: process.env.NODE_ENV === 'production'})
+    res.json({message: `Successfully logged out ${userName} on this device`})
+})
 
 router.get('/isUserNameUnique/:userName', async (req, res) => {
     const {userName} = req.params
@@ -110,13 +136,11 @@ router.post('/registerUser', async (req, res) => {
 })
 
 router.post('/getTeacherData', async (req, res) => {
-    // console.log('in backend with this req', req.body);
     // const {teacherUserName} = req.params
     // const teacherObj = await User.findOne({userName: "rader-jake"})
     User.findOne({userName: req.body.userName}, (err, data) => {
         if (data) {
             res.json(data)
-            // console.log(data)
         } else {
             res.json({message: "Could not get teacher's info.", err})
         }
@@ -125,9 +149,9 @@ router.post('/getTeacherData', async (req, res) => {
 
 // GET USER WITH COOKIES
 router.get('/profile', (req, res) => {
-    const {token} = req.cookies;
-    if (token) {
-        jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+    const accessToken = req.cookies?.accessToken || req.cookies?.token
+    if (accessToken) {
+        jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
             if(err) throw err;
             const userDoc = await User.findById(userData.id);
             res.json(userData)
@@ -135,12 +159,33 @@ router.get('/profile', (req, res) => {
     }
 })
 
+// Refresh the jwt
+router.get('/refresh', async(req, res) => {
+    const refreshToken = req.cookies?.jwt;
+    if (!refreshToken) return res.sendStatus(401)
+    const foundUser = await User.findOne({ refreshToken }).exec();
+    if (!foundUser) return res.sendStatus(403)
+    jwt.verify(refreshToken, refreshSecret, (err, decoded) => {
+        if (err || foundUser.userName !== decoded.userName) return res.sendStatus(403);
+        const roles = Object.values(foundUser?.roles || [2119]).filter(Boolean);
+        if ((foundUser?.isStudent) && (!roles.includes(1920))) roles.push(1920)
+        if ((foundUser?.isTeacher) && (!roles.includes(205))) roles.push(205)
+    
+        const accessToken = jwt.sign(
+            {userName: decoded.username, roles: roles},
+            jwtSecret,
+            {expiresIn: '1d'}
+        );
+        const resp_obj = { ...foundUser._doc, refreshToken: '', roles, accessToken }
+        res.json(resp_obj)
+    });
+})
+
 // GET USER PROFILE (FOR BOTH TEACHER AND STUDENT)
+// TODO: Make sure this function parses the userName properly
 router.get('/getUserInfo/:userName', async (req, res) => {
     const {userName} = req.params
-    // console.log('in router.get /getUserInfo, name:', userName);
     User.findOne({userName}, (err, data) => {
-        console.log('inside /getUserInfo/:userName route with this userName', userName)
         if (data) {
             res.json(data)
         } else {
@@ -151,8 +196,7 @@ router.get('/getUserInfo/:userName', async (req, res) => {
 
 // UPDATE USER PROFILE
 router.put('/updateProfile/:id', async (req, res) => {
-    // console.log('in updateProfile with this id', req.params.id)
-    const {token} = req.cookies
+    const accessToken = req.cookies?.accessToken || req.cookies?.token
     const data = {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
@@ -162,11 +206,10 @@ router.put('/updateProfile/:id', async (req, res) => {
         // password: req.body.password
     }
     
-    jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+    jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
         if (err) throw err;
         const currentUser = await User.findById(req.params.id)
         if(userData.id === currentUser.id) {
-            console.log('herree..................in the jwt authentication')
             const userUpdate = await User.findOneAndUpdate({_id: req.params.id}, {$set: data}, {new: true})
                 res.status(200).json({
                     success: true,
@@ -178,16 +221,14 @@ router.put('/updateProfile/:id', async (req, res) => {
 
 // UPDATE PROFILE IMAGE
 router.put('/updateProfileImage/:id', async (req, res) => {
-    // console.log('in updateProfileImage with this id', req.params.id)
-    const {token} = req.cookies
+    const accessToken = req.cookies?.accessToken || req.cookies?.token
     const data = { profileImage: req.body.image }
 
-    jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+    jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
         if (err) throw err;
         const currentUser = await User.findById(req.params.id)
         try {
             if(userData.id === currentUser.id) {
-                // console.log('herree..................in the jwt authentication')
                 if (req.body.image !== '') {
                     const ImgId = currentUser.profileImage.public_id;
                     if (ImgId) {
@@ -223,22 +264,15 @@ router.put('/updateProfileImage/:id', async (req, res) => {
 
 // DELETE USER
 router.delete('/deleteProfile/:id', async (req, res) => {
-    console.log('deleting profile with this id', req.params.id)
-
     const foundUser = await User.findById(req.params.id);
     // retrieve image(s)
 
     if(foundUser.profileImage.url !== ''){
-
         const profileImage = foundUser.profileImage.public_id;
-        
         await cloudinary.uploader.destroy(profileImage)
-        
-        console.log('got through deleting on cloudinary')
     }
 
     // What if they have a course offering or a booked course  
-
     const removeUser = await User.findByIdAndDelete(req.params.id)
 
     res.json({
@@ -280,17 +314,3 @@ module.exports = router;
 //     }).then(() => res.json({ msg: msgs.confirm })
 //     ).catch(err => console.log('User.create error:\n', err))
 //     });
-
-
-// ORIGINAL LOGIN ROUTE
-// router.get('/login/:email/:password', async (req, res) => {
-//     console.log('in router.get /login');
-//     const {email, password} = req.params
-//     User.findOne({email, password}, (err, data) => {
-//         if (data) {
-//             res.json({userID: data._id, userName: data.userName, isTeacher:data.isTeacher})
-//         } else {
-//             res.json({message: "Could not get user's id."})
-//         }
-//     })
-// })
