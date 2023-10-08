@@ -1,48 +1,67 @@
-import React, {useState} from 'react';
-import { useNavigate } from "react-router-dom";
+import React, {useState, useEffect} from 'react';
+import { Link as LinkRouter, useNavigate, useLocation } from 'react-router-dom';
 import useStore from "../../store";
 import logo from '../../assets/Osmosis_Logo.png';
 import './Opening.css';
 import { TextField, Container, Grid, Button, Typography } from '@mui/material';
-import { Link as LinkRouter } from 'react-router-dom';
 import Bubbles from '../Bubbles/Bubbles';
-
+import useAuth from '../../hooks/useAuth'
+import axios from '../../actions/axios'
 // import './Opening.css';
 
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
-
 const Opening = () => {
+	const {setAuth, setPersist} = useAuth()
+	const navigate = useNavigate()
+	const location = useLocation()
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [isWrong, setIsWrong] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
-    const {setUserID, setUserName, userName, setIsTeacher, setIsStudent, setFirstName, setLastName, setIsRegistered} = useStore()
-    const navigate = useNavigate()
+	const [thisPersist, setThisPersist] = useState(true)
+    const {setUserID, setUserName, setIsTeacher, setIsStudent, setFirstName, setLastName, setIsRegistered} = useStore()
 
 	const handleChangeEmail = (event) => {
+		event.preventDefault()
 		setEmail(event.target.value)
 	}
 
+	const toggleThisPersist = e => {
+		console.log('in toggleThisPersist')
+		setThisPersist(!thisPersist)
+	}
+
 	const handleChangePassword = (event) => {
+		event.preventDefault()
 		setPassword(event.target.value)
 	}
 
-	const handleLogin = e => {
+	const handleLogin = async(e) => {
 		e.preventDefault()
 		setIsLoading(true)
-		fetch(`${backendURL}user/login/${email}/${password}`, {method:'POST', credentials: 'include'}
-		).then(res => res.json()
-		).then(userDoc => {
+		try {
+			const response = await axios.post(`user/login`,
+				JSON.stringify({email, password, persist: thisPersist}),
+				{headers: {'Content-Type': 'application/json'}, withCredentials: true}
+			)
+			const userDoc = response.data
 			if (userDoc._id) {
+				localStorage.setItem("persist", thisPersist)
+				setPersist(thisPersist)
+				const accessToken = userDoc?.accessToken
+				const roles = userDoc?.roles
+				setAuth({userName: userDoc.userName, accessToken, roles})
 				setUserID(userDoc._id)
 				setUserName(userDoc.userName)
-				localStorage.setItem('userName', JSON.stringify(userName))
 				setIsTeacher(userDoc.isTeacher)
 				setIsStudent(userDoc.isStudent)
 				setFirstName(userDoc.firstName)
 				setLastName(userDoc.lastName)
 				setIsRegistered(true);
-                if (userDoc.isTeacher) {
+                
+				const from = location.state?.from?.pathname
+				if (from) {
+					navigate(from, {replace: true})
+				} else if (userDoc.isTeacher) {
                     navigate(`/teachers/${userDoc.userName}`)
                 } else {
 					navigate(`/MapOpen`)
@@ -50,12 +69,12 @@ const Opening = () => {
 			} else {
 				setIsLoading(false)
 				setIsWrong(true)
-				console.log('Login failed')
+				console.log('Login failed right here')
 			}
-		}).catch(err => {
+		} catch(err) {
 			console.log('Error logging in user:\n', err)
 			setIsLoading(false)
-		})
+		}
 	}
 
 	return (
@@ -80,7 +99,7 @@ const Opening = () => {
 								isWrong ? <TextField variant='outlined' label="Email or Username" placeholder='Email or Username'
 											error fullWidth onChange={handleChangeEmail} style={{marginBottom:'12px'}}/> :
 								<TextField autoComplete='off' variant='outlined' label="Email or Username" placeholder='Email or Username'
-									fullWidth onChange={handleChangeEmail} inputRef={input => input && input.focus()}/>
+									fullWidth onChange={handleChangeEmail}/>
 							}
 							{
 								isWrong ? <TextField variant='outlined' type="password" label="Password" placeholder='Password' error fullWidth onChange={handleChangePassword} helperText="Incorrect entry."/> :
@@ -90,6 +109,10 @@ const Opening = () => {
 									<Button size='small' fontSize='extra-small' style={{marginBottom:8, marginTop:6}}> Forgot Password?</Button>
 								</LinkRouter>
 
+								<div className="persistCheck" onChange={toggleThisPersist}>
+									<input style={{zIndex: 3, position: 'relative'}} type="checkbox" id="persists" checked={thisPersist} />
+									<label style={{zIndex: 3, position: 'relative'}} htmlFor="persists">Remember me</label>
+								</div>
 								<Button variant='contained' size='large' fullWidth style={{fontSize: 14, fontFamily:'Poppins', color:'white', marginTop: '16px'}} onClick={handleLogin}>Login</Button>
 
 								<Typography variant='h5' mt={2} mb={2} align='center'>OR</Typography>
