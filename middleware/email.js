@@ -2,8 +2,6 @@ const router = require('express').Router()
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
-const jwt = require('jsonwebtoken');
-const jwtSecret = 'randomString';
 const bcryptSalt = bcrypt.genSaltSync(7);
 
 makePasswordResetCode = () => {
@@ -51,7 +49,6 @@ const sendEmail = async (subject, message, sendTo, sentFrom, replyTo) => {
 router.get('/sendResetCode/:email', async (req, res) => {
     // give user a temporary code via email to reset their password
     const {email} = req.params
-    console.log('email to reset', email);
     const resetCode = makePasswordResetCode()
     const foundUser = await User.findOneAndUpdate({email}, {$set: {resetCode}})
     if (foundUser) {
@@ -109,8 +106,6 @@ router.patch('/updatePassword/:email/:resetCode', async (req, res) => {
         res.json({result: 'Password not updated'})
     }
 })
-
-
 
 
 module.exports = router;
