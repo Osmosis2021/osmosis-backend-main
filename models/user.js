@@ -36,6 +36,7 @@ const UserSchema = new mongoose.Schema(
 			type: Boolean,
 			default: false
 		},
+		refreshToken: String,
 		profileImage: {
 			public_id: {
 				type: String,
