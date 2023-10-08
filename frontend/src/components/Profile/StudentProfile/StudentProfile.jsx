@@ -7,37 +7,39 @@ import useStore from '../../../store';
 import UserInfo from '../UserInfo';
 import './StudentProfile.css';
 import Prof from '../Prof';
-import axios from 'axios';
-
+import useAxiosPrivate from "../../../hooks/useAxiosPrivate";
+import useLogout from '../../../hooks/useLogout'
 const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/';
 
 const StudentProfile = () => {
-
+    const logout = useLogout()
+    const axiosPrivate = useAxiosPrivate();
     const [classHappened, setClassHappened] = useState([]);
     const [userInfo, setUserInfo] = useState({});
     const [bookings, setBookings] = useState([]);
     const [unratedAndUnreviewedBooking, setUnratedAndUnreviewedBooking] = useState([])
     const { userID, userName } = useStore();
-    const User = useParams();
+    const pageUserName = useParams()?.userName
 
     useEffect(() => {
-        axios.get(`${backendURL}booking/bookings/${User.userName}`)
-            .then(response => {
-                setBookings(response.data);
-                const _today = new Date();
-                _today.setHours(0, 0, 0, 0);
-                const bookingHappenedAndNotReviewed = response.data.filter(booking => {
-                    const slotDate = new Date(booking.date);
-                    return slotDate <= _today && !booking.ratedAndReviewed;
-                });
-                const classHappened = response.data.filter(booking => {
-                    const slotDate = new Date(booking.date);
-                    return slotDate <= _today;
-                });
+        axiosPrivate.get(`booking/bookings/${pageUserName}`)
+        .then(response => {
+            console.log({pageUserName, 'booking/bookings/userName response': response.data})
+            setBookings(response.data);
+            const _today = new Date();
+            _today.setHours(0, 0, 0, 0);
+            const bookingHappenedAndNotReviewed = response.data.filter(booking => {
+                const slotDate = new Date(booking.date);
+                return slotDate <= _today && !booking.ratedAndReviewed;
+            });
+            const classHappened = response.data.filter(booking => {
+                const slotDate = new Date(booking.date);
+                return slotDate <= _today;
+            });
             setUnratedAndUnreviewedBooking(bookingHappenedAndNotReviewed);
             setClassHappened(classHappened)
         });
-    }, [User.userName]);
+    }, [pageUserName]);
 
     const handleWrittenReview = (event, booking) => {
         const writtenReview = event.target.value;
@@ -72,7 +74,7 @@ const StudentProfile = () => {
     };
 
     const getUser = () => {
-        axios.get(`${backendURL}user/getUserInfo/${User.userName}`)
+        axiosPrivate.get(`${backendURL}user/getUserInfo/${pageUserName}`)
         .then(res => {
             const data = res.data;
             setUserInfo(data);
@@ -83,7 +85,7 @@ const StudentProfile = () => {
 
     useEffect(() => {
         getUser();
-    }, [User.userName]);
+    }, [pageUserName]);
 
     return (
         <>
@@ -180,7 +182,6 @@ const StudentProfile = () => {
                                         </Grid>
 
                                         <Grid continer direction='row' align='center'>
-                                            
                                             <Grid item>
                                                 <Rating
                                                     size='large'
@@ -229,13 +230,10 @@ const StudentProfile = () => {
                                                     Confirm Rating
                                                 </Button>
                                             </Grid>
-
                                         </Grid>
-
                                     </Card>
                                 </>
                             </React.Fragment>
-                            
                         )
                     })
                 }
@@ -327,8 +325,12 @@ const StudentProfile = () => {
                         </React.Fragment>
                     ))
                 }
-                
             </Container>
+            {userID &&
+                <Grid item xs={3} style={{display:'flex', justifyContent:'center', marginTop: '15px'}}>
+                    <Button onClick={() => logout('/')} variant='contained' style={{color:'white'}}>Logout</Button>
+                </Grid>
+            }
         </>
     );
 };
