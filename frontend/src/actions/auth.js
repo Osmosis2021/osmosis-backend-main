@@ -59,7 +59,7 @@ export const checkAuthenticated = () => async (dispatch) => {
 			},
 		};
 
-		const body = JSON.stringify({ token: localStorage.getItem('access') });
+		const body = JSON.stringify({ accessToken: localStorage.getItem('access') });
 
 		try {
 			const res = await axios.post(
@@ -152,14 +152,14 @@ export const signup =
 		}
 	};
 
-export const verify = (uid, token) => async (dispatch) => {
+export const verify = (uid, accessToken) => async (dispatch) => {
 	const config = {
 		headers: {
 			'Content-Type': 'application/json',
 		},
 	};
 
-	const body = JSON.stringify({ uid, token });
+	const body = JSON.stringify({ uid, accessToken });
 
 	try {
 		await axios.post(
@@ -205,14 +205,14 @@ export const reset_password = (email) => async (dispatch) => {
 };
 
 export const reset_password_confirm =
-	(uid, token, new_password, re_new_password) => async (dispatch) => {
+	(uid, accessToken, new_password, re_new_password) => async (dispatch) => {
 		const config = {
 			headers: {
 				'Content-Type': 'application/json',
 			},
 		};
 
-		const body = JSON.stringify({ uid, token, new_password, re_new_password });
+		const body = JSON.stringify({ uid, accessToken, new_password, re_new_password });
 
 		try {
 			await axios.post(
