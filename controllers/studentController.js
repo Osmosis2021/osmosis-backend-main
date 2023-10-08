@@ -37,7 +37,7 @@ router.get('/signup', (req, res, next) => {
 router.get('/login', (req, res, next) => {
 	User.findOne({username: req.body.username})
 	.then((user) => createUserToken(req, user))
-	.then((token) => res.json({ token }))
+	.then((accessToken) => res.json({ accessToken }))
 	.catch(next);
 })
 
