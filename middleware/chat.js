@@ -2,16 +2,17 @@ const router = require('express').Router()
 const User = require('../models/user');
 const Chat = require('../models/chat');
 const jwt = require('jsonwebtoken');
-const jwtSecret = 'randomString';
+const dotenv = require('dotenv')
+dotenv.config()
+const jwtSecret = process.env.ACCESS_TOKEN_SECRET
 
 router.get('/allUsers', async (req, res) => {
-    const {token} = req.cookies;
+    const accessToken = req.cookies?.accessToken || req.cookies?.token
     const keyword = req.query.search
-    console.log('keyword...', keyword)
-    // Verify the JWT token to get user data
-    jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+    // Verify the JWT accessToken to get user data
+    jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
         if (err) {
-            // Handle token verification error (e.g., invalid token)
+            // Handle accessToken verification error (e.g., invalid token)
             return res.status(401).json({ error: 'Unauthorized' });
         }
             // Define the search filter based on the presence of the keyword
@@ -33,33 +34,31 @@ router.get('/allUsers', async (req, res) => {
 router.get('/accessChats/:searchedUserID', async (req, res) => {
     const {searchedUserID} = req.params
     const {userID} = req.query
-    console.log('in accessChats route with this searchedUsers userID', searchedUserID)
-    console.log('in accessChats route with this loggedIn users userID', userID)
 
     if (!userID) {
         console.log('User id param not sent with request')
         return res.sendStatus(400)
     }
 
-        var isChat = await Chat.find({
-            $and: [
-                {users:{$elemMatch:{ $eq: searchedUserID }}},
-                {users:{$elemMatch:{$eq:userID}}},
-            ],
-        }).populate("users", "-password").populate("latestMessage")
+    var isChat = await Chat.find({
+        $and: [
+            {users:{$elemMatch:{ $eq: searchedUserID }}},
+            {users:{$elemMatch:{$eq:userID}}},
+        ],
+    }).populate("users", "-password").populate("latestMessage")
 
-        isChat = await User.populate(isChat, {
-            path: 'latestMessage.sender',
-            select: 'userName, profileImage, email'
-        });
+    isChat = await User.populate(isChat, {
+        path: 'latestMessage.sender',
+        select: 'userName, profileImage, email'
+    });
 
-        if (isChat.length > 0) {
-            res.send(isChat[0]);
-        } else {
-            var chatData = {
-                chatName: 'sender',
-                users: [searchedUserID, userID],
-            };
+    if (isChat.length > 0) {
+        res.send(isChat[0]);
+    } else {
+        var chatData = {
+            chatName: 'sender',
+            users: [searchedUserID, userID],
+        }
 
         try {
             const createdChat = await Chat.create(chatData);
@@ -74,14 +73,12 @@ router.get('/accessChats/:searchedUserID', async (req, res) => {
 
 router.get('/fetchChats/:userID', async (req, res) => {
     const {userID} = req.params
-    console.log('in fetchChats Route with this userID', userID)
-
     // Verify the JWT token to get user data
-  jwt.verify(req.cookies.token, jwtSecret, {}, async (err, userData) => {
-    if (err) {
-      // Handle token verification error (e.g., invalid token)
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+    jwt.verify(req.cookies.accessToken, jwtSecret, {}, async (err, userData) => {
+        if (err) {
+        // Handle token verification error (e.g., invalid token)
+        return res.status(401).json({ error: 'Unauthorized' });
+        }
 
         try {
             Chat.find({users:{$elemMatch: { $eq: userID }}})
