@@ -1,6 +1,8 @@
 const mongoose = require('mongoose')
 const express = require('express');
 const cors = require('cors');
+const corsOptions = require('./config/corsOptions');
+const credentials = require('./middleware/credentials')
 const bodyParser = require('body-parser');
 const authRoute = require('./middleware/auth')
 const courseRoute = require('./middleware/course')
@@ -12,11 +14,12 @@ const stripe = require('./middleware/stripe')
 const Stripe = require('stripe');
 const Booking = require('./models/booking');
 const cookieParser = require('cookie-parser');
-const cloudinary = require('cloudinary').v2
+const allowedOrigins = require('./config/allowedOrigins');
+// const cloudinary = require('cloudinary').v2
 const dotenv = require('dotenv')
 dotenv.config()
 const app = express();
-const allowList = ['https://getosmosis.io', 'https://osmosis.herokuapp.com', '/']
+
 if(process.env.NODE_ENV === 'production') {
     app.use((req, res, next) => {
         if (req.header('x-forwarded-proto') !== 'https')
@@ -24,12 +27,13 @@ if(process.env.NODE_ENV === 'production') {
         else
             next()
     })
-} else {
-    allowList.push('http://localhost:3000')
 }
 
-app.use(cors({ origin: allowList, credentials: true }))
-
+// Handle options credentials check - before CORS!
+// and fetch cookies credentials requirement
+app.use(credentials)
+// Cross Origin Resource Sharing
+app.use(cors(corsOptions))
 
 mongoose.connect(process.env.MONGOOSE_CONNECTION_STRING,
     {useNewUrlParser: true, useUnifiedTopology: true})
@@ -127,7 +131,7 @@ const studentController = require('./controllers/studentController.js')
 const teacherController = require('./controllers/teacherController.js')
 
 // Review Routes
-const reviewController  = require('./controllers/reviewController.js')
+const reviewController  = require('./controllers/reviewController.js');
 
 
 app.use('/user', authRoute)
@@ -161,7 +165,7 @@ const server = app.listen(port, () =>
 const io = require('socket.io')(server, {
     pingTimeout: 60000,
     cors: {
-        origin: allowList
+        origin: allowedOrigins
     },
 });
 
