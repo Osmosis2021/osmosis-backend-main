@@ -33,10 +33,7 @@ import SingleBookingPageForStudent from './components/Booking/SingleBookingPageF
 import Privacy from './components/Settings/Privacy';
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
-<<<<<<< HEAD
-=======
 import OrdersAndPayments from './components/Profile/OrdersAndPayments';
->>>>>>> f36650e4c514de74d31046b52192a7cee939246e
 import Chat from './components/Chat/Chat';
 import Layout from './Layout'
 import Unauthorized from './components/Unauthorized'
