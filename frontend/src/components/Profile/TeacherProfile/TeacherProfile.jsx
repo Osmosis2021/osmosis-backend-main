@@ -71,7 +71,6 @@ const TeacherProfile = (props) => {
         }
         getPageInfo()
 
-        
         // axios.get(`booking/teacherBookings/${pageUserName}`).then(response => {
         //     setBookings(response.data);
         //     const _today = new Date();
@@ -322,7 +321,7 @@ const TeacherProfile = (props) => {
                                     return (
                                         <Grid item xs={12} md={6} lg={4}>
                                             <Link to={(userID === teacherInfo?.id) ? `/editcourse/${course._id}` : `/teachers/${course.userName}/${course._id}`} style={{textDecoration:'none'}}>
-                                            { (userID === teacherInfo?.id) &&
+                                            {userID === teacherInfo?.id &&
                                                 <Button className='editCourseButton' style={{height:'50px', width:'75px', color:'white', fontSize: '20px', position: 'relative', top:'50px', zIndex:10, borderRadius:'5% 0 0 0'}} variant="contained" startIcon={<EditIcon />}> Edit </Button> 
                                             }
                                                 <SessionCard 
