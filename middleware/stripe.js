@@ -2,7 +2,7 @@ const router = require('express').Router()
 const Stripe = require('stripe');
 const dotenv = require('dotenv')
 dotenv.config()
-const stripe = Stripe(process.env.STRIPE_TEST_KEY)
+const stripe = Stripe(process.env.STRIPE_LIVE_KEY)
 
 router.get('/config', (req, res) => {
     res.send({publishableKey: process.env.STRIPE_PUBLISHABLE_TEST_KEY,});
@@ -13,8 +13,8 @@ router.get('/accountLink/:stripeID', async (req, res) => {
     const {stripeID} = req.params;
     const accountLink = await stripe.accountLinks.create({
         account: stripeID,
-        refresh_url: 'http://localhost:3000/reauth',
-        return_url: 'http://localhost:3000/return',
+        refresh_url: 'https://getosmosis.io/reauth',
+        return_url: 'https://getosmosis.io/flow',
         type: 'account_onboarding',
     });
     // res.redirect(accountLink)

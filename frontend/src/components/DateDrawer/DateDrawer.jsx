@@ -86,7 +86,7 @@ export default function DateDrawer(props) {
               </div>
                 <Box p={2} textAlign='center' role='presentation'>
                     <Container>
-                        <Grid container spacing={2} justifyContent='space-around'>
+                        <Grid container spacing={2} justifyContent='space-around' style={{marginBottom:'56px'}}>
                         {isScheduleLoading ? <></> : schedule.map((availability) => {
                             return (
                                 <Grid item xs={4}

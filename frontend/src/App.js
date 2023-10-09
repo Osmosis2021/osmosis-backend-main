@@ -33,6 +33,10 @@ import SingleBookingPageForStudent from './components/Booking/SingleBookingPageF
 import Privacy from './components/Settings/Privacy';
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+<<<<<<< HEAD
+=======
+import OrdersAndPayments from './components/Profile/OrdersAndPayments';
+>>>>>>> f36650e4c514de74d31046b52192a7cee939246e
 import Chat from './components/Chat/Chat';
 import Layout from './Layout'
 import Unauthorized from './components/Unauthorized'
@@ -82,9 +86,8 @@ function App() {
 						{/* STUDENT */}
 						<Route path='/students/:userName' element={<StudentProfile />} />
 						<Route path='/settings' element={<Settings />} />
-						<Route path='/students' element={<h1 style={{padding: '10px'}}>This is where your user page will be when you sign up.</h1>} />
-
-						{/* <Route path='/ordersandpayments' element={<OrdersAndPayments />} /> */}
+						<Route path='/students' element={<h1 style={{padding: '10px'}}>This is where your personal page will be when you sign up.</h1>} />
+						<Route path='/ordersandpayments' element={<OrdersAndPayments />} />
 						<Route path='/chat' element={<Chat />} />
 						<Route path='/edit' element={<EditProfile />} />
 						<Route path='/confirm' element={
