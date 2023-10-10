@@ -196,28 +196,17 @@ router.get('/getUserInfo/:userName', async (req, res) => {
 
 // UPDATE USER PROFILE
 router.put('/updateProfile/:id', async (req, res) => {
-    const accessToken = req.cookies?.accessToken || req.cookies?.token
-    const data = {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        description: req.body.description,
-        userName: req.body.userName,
-        email: req.body.email,
-        // password: req.body.password
-    }
+    const accessToken = req.body?.auth?.accessToken
+    const data = req.body?.newInfo
+    console.log({reqbody: req.body, data, accessToken}, 'in /updateProfile/:id')
     
     jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
+        console.log('in /updateProfile/:id jwt.verify', {userData})
         if (err) throw err;
-        const currentUser = await User.findById(req.params.id)
-        if(userData.id === currentUser.id) {
-            const userUpdate = await User.findOneAndUpdate({_id: req.params.id}, {$set: data}, {new: true})
-                res.status(200).json({
-                    success: true,
-                    userUpdate,
-                })
-        }
+        const userUpdate = await User.findOneAndUpdate({_id: req.params.id}, {$set: data}, {new: true})
+        res.status(200).json({success: true})
     })
-});
+})
 
 // UPDATE PROFILE IMAGE
 router.put('/updateProfileImage/:id', async (req, res) => {
