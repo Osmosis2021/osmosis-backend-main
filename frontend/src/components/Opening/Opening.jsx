@@ -13,16 +13,17 @@ const Opening = () => {
 	const {setAuth, setPersist} = useAuth()
 	const navigate = useNavigate()
 	const location = useLocation()
-	const [email, setEmail] = useState('')
+	const [email_, setEmail_] = useState('')  // underscore to distinguish from those in the store
 	const [password, setPassword] = useState('')
 	const [isWrong, setIsWrong] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	const [thisPersist, setThisPersist] = useState(true)
-    const {setUserID, setUserName, setIsTeacher, setIsStudent, setFirstName, setLastName, setIsRegistered} = useStore()
+    const {setUserID, setUserName, setIsTeacher, setIsStudent, setFirstName, setLastName,
+		   setIsRegistered, setRoles, setEmail, setDescription} = useStore()
 
 	const handleChangeEmail = (event) => {
 		event.preventDefault()
-		setEmail(event.target.value)
+		setEmail_(event.target.value)
 	}
 
 	const toggleThisPersist = e => {
@@ -40,7 +41,7 @@ const Opening = () => {
 		setIsLoading(true)
 		try {
 			const response = await axios.post(`user/login`,
-				JSON.stringify({email, password, persist: thisPersist}),
+				JSON.stringify({email: email_, password, persist: thisPersist}),
 				{headers: {'Content-Type': 'application/json'}, withCredentials: true}
 			)
 			const userDoc = response.data
@@ -50,12 +51,15 @@ const Opening = () => {
 				const accessToken = userDoc?.accessToken
 				const roles = userDoc?.roles
 				setAuth({userName: userDoc.userName, accessToken, roles})
+				setRoles(roles)
 				setUserID(userDoc._id)
 				setUserName(userDoc.userName)
 				setIsTeacher(userDoc.isTeacher)
 				setIsStudent(userDoc.isStudent)
 				setFirstName(userDoc.firstName)
 				setLastName(userDoc.lastName)
+				setEmail(userDoc.email)
+				setDescription(userDoc.description)
 				setIsRegistered(true);
                 
 				const from = location.state?.from?.pathname

@@ -15,11 +15,20 @@ const useStore = create(set => ({
     userID: '',
     setUserID: userID => set({ userID }),
 
+    description: '',
+    setDescription: description => set({ description }),
+
+    email: '',
+    setEmail: email => set({ email }),
+
     isTeacher: false,
     setIsTeacher: isTeacher => set({ isTeacher }),
 
     isStudent: false,
     setIsStudent: isStudent => set({ isStudent }),
+
+    roles: [],
+    setRoles: roles => set({roles}),
 
     isRegistered: false,
     setIsRegistered: isRegistered => set({ isRegistered }),
