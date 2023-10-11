@@ -13,7 +13,6 @@ makePasswordResetCode = () => {
     return code;
 }
 
-
 const sendEmail = async (subject, message, sendTo, sentFrom, replyTo) => {
 
     const transporter = nodemailer.createTransport({
@@ -52,31 +51,27 @@ router.get('/sendResetCode/:email', async (req, res) => {
     const resetCode = makePasswordResetCode()
     const foundUser = await User.findOneAndUpdate({email}, {$set: {resetCode}})
     if (foundUser) {
-        // sendEmail(email, templates.resetCode(resetCode))
-            const sendTo = email;
-            const sentFrom = process.env.EMAIL_USER;
-            const replyTo = email;
-            const subject = "Password Reset"
-            const message = 
-            `
-                <h3>Forgot your password?</h3>
-                <p>It's okay we all forget things sometimes</p>
-                <br/>
-                <p>Here's your reset code:</p>
-                <p>${resetCode}</p>
-                <p>Cheers,</p>
-                <p>The Osmosis Team</p>
-            `
-            await sendEmail (subject, message, sendTo, sentFrom, replyTo)
-            res.status(200).json({
-                success: true, message: "Email Sent"
-            })
- 
+        const sendTo = email;
+        const sentFrom = process.env.EMAIL_USER;
+        const replyTo = email;
+        const subject = "Password Reset"
+        const message = `
+            <h3>Forgot your password?</h3>
+            <p>It's okay we all forget things sometimes</p>
+            <br/>
+            <p>Here's your reset code:</p>
+            <p>${resetCode}</p>
+            <p>Cheers,</p>
+            <p>The Osmosis Team</p>
+        `
+        await sendEmail(subject, message, sendTo, sentFrom, replyTo)
+        res.status(200).json({
+            success: true, message: "Email Sent"
+        })
     } else {
         res.json({result: 'Email not found'})
     }
 })
-
 
 // reply verify that email corresponds to user's passwordResetCode
 router.get('/verifyResetCode/:email/:resetCode', async (req, res) => {

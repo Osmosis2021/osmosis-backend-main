@@ -198,12 +198,10 @@ router.get('/getUserInfo/:userName', async (req, res) => {
 router.put('/updateProfile/:id', async (req, res) => {
     const accessToken = req.body?.auth?.accessToken
     const data = req.body?.newInfo
-    console.log({reqbody: req.body, data, accessToken}, 'in /updateProfile/:id')
     
     jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
-        console.log('in /updateProfile/:id jwt.verify', {userData})
         if (err) throw err;
-        const userUpdate = await User.findOneAndUpdate({_id: req.params.id}, {$set: data}, {new: true})
+        await User.findOneAndUpdate({_id: req.params.id}, {$set: data}, {new: true})
         res.status(200).json({success: true})
     })
 })
@@ -243,9 +241,9 @@ router.put('/updateProfileImage/:id', async (req, res) => {
                     userUpdate,
                 })
             } 
-        }   catch(err) {
-                console.log(err)
-            }
+        } catch(err) {
+            console.log(err)
+        }
     })
 });
 
