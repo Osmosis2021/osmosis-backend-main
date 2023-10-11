@@ -119,106 +119,64 @@ function EditProfile() {
   return (
         <div>
             <TopProfileBar userName={userName}/>
-            <br/>
-            <br/>
-            <Container style={{textAlign:'center'}}>
+            <Container style={{textAlign:'center', padding: '16px'}}>
                 <UploadProfilePicture />
-                <Stack>
-                    <Container align='center' style={{width:"80vw"}} sx={{ py: 2, }}>
-                        <form>
-                            <Grid container direction='row' spacing={2}>
-                                <Grid item xs={12}>
-                                    <Typography variant='h6'>{`${userInfo.firstName} ${userInfo.lastName}`} </Typography>
-                                </Grid>
+                <Container align='center' style={{width:"80vw"}} sx={{ py: 2, }}>
+                    <form style={{display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '450px'}}>
+                        <Grid container direction='row' spacing={2}>
+                            <Grid item xs={12}>
+                                <Typography variant='h6'>{`${userInfo.firstName} ${userInfo.lastName}`} </Typography>
+                            </Grid>
+                        </Grid>
 
-                                <Grid item xs={6}>
-                                    <Grid item>
-                                        <Typography style={{textAlign:'left'}} variant="body1">{userInfo.firstName}</Typography>
-                                    </Grid>
-
-                                    <Grid item>
-                                        <TextField
-                                            onChange={changeFirstName}
-                                            placeholder='Change First Name'
-                                            fullWidth
-                                            required
-                                            id="outlined-required"
-                                        />
-                                    </Grid>
-                                </Grid>
-
-                                <Grid item xs={6}>
-                                    <Grid item>
-                                        <Typography style={{textAlign:'left'}} variant="body1">{userInfo.lastName}</Typography>
-                                    </Grid>
-                                
-                                    <Grid item>
-                                        <TextField 
-                                            onChange={changeLastName}
-                                            placeholder='Change Last Name'
-                                            fullWidth
-                                            required
-                                            id="outlined-required"
-                                        />
-                                    </Grid>
-                                </Grid>
+                        <Grid item style={{display: 'flex', gap: '10px', flexDirection: 'row', width: '100%'}} xs={12}>
+                            <Grid>
+                                <Typography style={{textAlign:'left'}} variant="body1">First Name</Typography>
+                                <TextField
+                                    onChange={changeFirstName}
+                                    placeholder={firstName}
+                                    fullWidth
+                                    required
+                                    id="outlined-required"
+                                />
                             </Grid>
 
-                            <Grid container justifyContent='center' py={2}>
-                                <Grid item xs={12}>
-                                    <Typography style={{textAlign:'left'}} variant="body1">Bio</Typography>
-                                    <TextField multiline fullWidth placeholder='Edit your bio' onChange={changeDescription}></TextField>
-                                </Grid>
-                            
-                                <Grid item>
-                                    <Typography variant='h6'>{userInfo.userName} </Typography>
-                                </Grid>
-
-                                <Grid item xs={12}>
-                                    <Typography style={{textAlign:'left'}} variant="body1">Username</Typography>
-                                    <TextField id='userNameInput' fullWidth placeholder='Change Your Username' onChange={changeUserName}></TextField>
-                                </Grid>
+                            <Grid>
+                                <Typography style={{textAlign:'left'}} variant="body1">Last Name</Typography>
+                                <TextField 
+                                    onChange={changeLastName}
+                                    placeholder={lastName}
+                                    fullWidth
+                                    required
+                                    id="outlined-required"
+                                />
                             </Grid>
+                        </Grid>
+                        
+                        <Grid item xs={12}>
+                            <Typography style={{textAlign:'left'}} variant="body1">Bio</Typography>
+                            <TextField multiline fullWidth placeholder={description || 'Edit your bio'} onChange={changeDescription}></TextField>
+                        </Grid>
 
-                            <Grid container justifyContent='center'>
-                                <Grid item>
-                                    <Typography variant='h6'>{userInfo.email} </Typography>
-                                </Grid>
-                                
-                                <Grid item xs={12}>
-                                    <Typography style={{textAlign:'left'}} variant="body1">Email</Typography>
-                                    <TextField   fullWidth placeholder='Change Your Email' onChange={changeEmail}></TextField>
-                                </Grid>
-                            </Grid>
+                        <Grid item xs={12}>
+                            <Typography style={{textAlign:'left'}} variant="body1">Username</Typography>
+                            <TextField id='userNameInput' fullWidth placeholder={userName} onChange={changeUserName}></TextField>
+                        </Grid>
 
-                            {/* <Grid container py={2} justifyContent='center'>
-                                
-                                <Grid item>
-                                    <Typography variant='h6'>**********</Typography>
-                                </Grid>
+                        <Grid item xs={12}>
+                            <Typography style={{textAlign:'left'}} variant="body1">Email</Typography>
+                            <TextField   fullWidth placeholder={email || 'Change your email'} onChange={changeEmail}></TextField>
+                        </Grid>
 
-                                <Grid item xs={12}>
-                                    <Typography style={{textAlign:'left'}} variant="body1">Password</Typography>
-                                    <TextField  fullWidth placeholder='Change Your Password'></TextField>
-                                </Grid>
+                        <Button onClick={updateProfile} type='submit' variant="contained" size="large" align='center' style={{fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth>
+                            Update Profile
+                        </Button>
 
-                            </Grid> */}
-
-                            <br/>
-                            <br/>
-
-                            {/* <LinkRouter to='/profile' align='center' style={{textDecoration: 'none'}}> */}
-                                <Button onClick={updateProfile} type='submit' variant="contained" size="large" align='center' style={{fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth>
-                                    Update Profile
-                                </Button>
-                            {/* </LinkRouter> */}
-
-                            <Button onClick={deleteProfile} type='submit' color='error' variant="contained" size="large" align='center' style={{fontSize: 26, fontFamily:'Poppins', color:'white', marginBottom:'36px', marginTop:'16px'}} fullWidth>
-                                Delete Profile
-                            </Button>
-                        </form>
-                    </Container>
-                </Stack>
+                        <Button onClick={deleteProfile} type='submit' color='error' variant="contained" size="large" align='center' style={{fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth>
+                            Delete Profile
+                        </Button>
+                    </form>
+                </Container>
             </Container>
         </div>
     )
