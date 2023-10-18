@@ -12,7 +12,7 @@ const jwtSecret = process.env.ACCESS_TOKEN_SECRET
 // SENDING MESSAGE
 router.post('/sendMessage', asyncHandler(async (req, res) => {
     const { chatId, content } = req.body
-    const accessToken = req.cookies?.accessToken || req.cookies?.token
+    const accessToken = req?.headers?.authorization?.slice(7) 
     if (!content || !chatId) {
         console.log('invalid data passed into request')
         return res.sendStatus(400);
@@ -51,12 +51,15 @@ router.post('/sendMessage', asyncHandler(async (req, res) => {
 // FETCHING MESSAGES
 router.get('/allMessages/:chatId', asyncHandler(async (req, res) => {
     const {chatId} = req.params;
-    const accessToken = req.cookies?.accessToken || req.cookies?.token
+    // const accessToken = req.headers.authorization
+    const accessToken = req?.headers?.authorization?.slice(7) 
+
     // Verify the JWT accessToken to get user data
     jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
         if (err) {
             // Handle accessToken verification error (e.g., invalid accessToken)
             return res.status(401).json({ error: 'Unauthorized' });
+            console.log('error:', err)
         }
         try {
             const messages = await Message.find({ chat: chatId }).populate(

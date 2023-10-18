@@ -7,7 +7,8 @@ dotenv.config()
 const jwtSecret = process.env.ACCESS_TOKEN_SECRET
 
 router.get('/allUsers', async (req, res) => {
-    const accessToken = req.cookies?.accessToken || req.cookies?.token
+    // const accessToken = req.cookies?.accessToken || req.cookies?.token
+    const accessToken = req?.headers?.authorization?.slice(7)  // slice(7) because it begins 'Bearer '
     const keyword = req.query.search
     // Verify the JWT accessToken to get user data
     jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
@@ -73,8 +74,10 @@ router.get('/accessChats/:searchedUserID', async (req, res) => {
 
 router.get('/fetchChats/:userID', async (req, res) => {
     const {userID} = req.params
+    const accessToken = req?.headers?.authorization?.slice(7)
+    console.log(accessToken)
     // Verify the JWT token to get user data
-    jwt.verify(req.cookies.accessToken, jwtSecret, {}, async (err, userData) => {
+    jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
         if (err) {
         // Handle token verification error (e.g., invalid token)
         return res.status(401).json({ error: 'Unauthorized' });
