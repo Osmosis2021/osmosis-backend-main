@@ -4,16 +4,17 @@ import useStore from '../../store';
 import { styled } from '@mui/material/styles';
 import { Badge, Box, Container, Card, Grid, Typography, Avatar } from '@mui/material';
 import SideDrawer from './SearchUsers';
+import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 
 const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/';
 
 const MyChats = () => {
-
+    const axiosPrivate = useAxiosPrivate()
     const {selectedChat, setSelectedChat, chats, setChats, userID, notification} = useStore();
 
     const fetchChats = async (userID) => {
         try {
-            const {data} = await axios.get(`${backendURL}chat/fetchChats/${userID}`)
+            const {data} = await axiosPrivate.get(`${backendURL}chat/fetchChats/${userID}`)
             setChats(data)
             console.log('inside MyChats with setChats as ...', data)
         } catch (err) {
@@ -22,7 +23,7 @@ const MyChats = () => {
     }
 
     const getSender = (userID, users) => {
-        return (users[0]._id === userID ? users[1].userName : users[0].userName);
+        return (users[0]._id === userID ? users[1]?.userName : users[0]?.userName);
     }
 
     useEffect(() => {

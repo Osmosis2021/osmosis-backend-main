@@ -9,61 +9,61 @@ const ScrollableChat = ({messages}) => {
 
     const isSameSender = (messages, m, i, userID) => {
         return (
-            i < messages.length - 1 && (
-                messages[i+1].sender._id !== m.sender._id ||
-                messages[i+1].sender._id === undefined &&
-                messages[i+1].sender._id !== userID
+            i < messages?.length - 1 && (
+                messages[i+1]?.sender?._id !== m?.sender?._id ||
+                messages[i+1]?.sender?._id === undefined &&
+                messages[i+1]?.sender?._id !== userID
             )
         )
     }
 
     const isSameSenderMargin = (messages, m, i, userID) => {
-        if ( i < messages.length - 1 && 
-                messages[i + 1].sender._id === m.sender._id && 
-                messages[i].sender._id !== userID 
+        if ( i < messages?.length - 1 && 
+                messages[i + 1]?.sender?._id === m?.sender?._id && 
+                messages[i]?.sender?._id !== userID 
             ) return 33;
                 else if ( 
                     (
-                        i < messages.length - 1 && 
-                        messages[i + 1].sender._id !== m.sender._id && 
-                        messages[i].sender._id !== userID
+                        i < messages?.length - 1 && 
+                        messages[i + 1]?.sender?._id !== m?.sender?._id && 
+                        messages[i]?.sender?._id !== userID
                     ) || 
                     (
-                        i === messages.length - 1 && 
-                        messages[i].sender._id !== userID
+                        i === messages?.length - 1 && 
+                        messages[i]?.sender?._id !== userID
                     )
                 ) return 0;
         else return "auto";
     }
 
     const isSameUser = (messages, m, i) => {
-        return i > 0 && messages[i - 1].sender._id === m.sender._id;
+        return i > 0 && messages[i - 1]?.sender?._id === m?.sender?._id;
     };
       
     const isLastMessage = (messages, i, userID) => {
         return (
-            i === messages.length - 1 &&
-            messages[messages.length - 1].sender._id !== userID &&
-            messages[messages.length - 1].sender._id
+            i === messages?.length - 1 &&
+            messages[messages?.length - 1]?.sender?._id !== userID &&
+            messages[messages?.length - 1]?.sender?._id
         )
     }
 
     return (
         <ScrollableFeed>
             { 
-                messages && messages.map((m, i) => (
+                messages && messages?.map((m, i) => (
                     <div style={{ display: 'flex' }} key={m._id}>
 
                         {
                             (isSameSender(messages, m, i, userID) || isLastMessage(messages, i, userID))
-                             && m.sender._id !== userID && (
+                             && m?.sender?._id !== userID && (
                                 <Avatar src={m?.sender?.profileImage?.url} />
                             )
                         }
 
                         <span 
                             style={{
-                                backgroundColor: `${m.sender._id === userID ? '#00aeef' : '#7286D3'}`,
+                                backgroundColor: `${m?.sender?._id === userID ? '#00aeef' : '#7286D3'}`,
                                 color: 'white',
                                 borderRadius: '20px',
                                 padding: '5px 15px',
@@ -75,7 +75,7 @@ const ScrollableChat = ({messages}) => {
                         </span>
 
                         {
-                            isSameSender(messages, m, i, userID) && m.sender._id === userID && (
+                            isSameSender(messages, m, i, userID) && m?.sender?._id === userID && (
                                 <Avatar src={m?.sender?.profileImage?.url} />
                             )
                         }

@@ -7,6 +7,7 @@ import axios from 'axios';
 import useStore from '../../store';
 import UserListItem from './UserListItem';
 import UsersLoading from './UsersLoading';
+import { axiosPrivate } from '../../actions/axios';
 
 const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/';
 
@@ -32,7 +33,7 @@ const SearchUsers = () => {
             if (search) {
                 try {
                     setIsLoading(true);
-                    const response = await axios.get(`${backendURL}chat/allUsers?search=${search}`);
+                    const response = await axiosPrivate.get(`${backendURL}chat/allUsers?search=${search}`, {withCredentials: true});
                     const data = response.data;
                     setIsLoading(false);
                     setSearchResult(data);

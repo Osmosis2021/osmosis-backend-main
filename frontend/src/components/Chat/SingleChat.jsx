@@ -4,6 +4,7 @@ import axios from 'axios';
 import useStore from '../../store';
 import ScrollableChat from './ScrollableChat';
 import io from 'socket.io-client';
+import { axiosPrivate } from '../../actions/axios';
 
 const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/';
 
@@ -27,7 +28,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         if (!selectedChat || selectedChat._id === undefined) return;
         try {
             setIsLoading(true)
-            const {data} = await axios.get(`${backendURL}message/allMessages/${selectedChat._id}`);
+            const {data} = await axiosPrivate.get(`${backendURL}message/allMessages/${selectedChat?._id}`);
             setMessages(data)
             setIsLoading(false)
             socket.emit('joinChat', selectedChat._id);
@@ -41,7 +42,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             // socket.emit('stopTyping', selectedChat._id);
             try {
                 setNewMessage('');
-                const {data} = await axios.post('message/sendMessage', {
+                const {data} = await axiosPrivate.post('message/sendMessage', {
                     content: newMessage,
                     chatId: selectedChat,
                 });
