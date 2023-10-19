@@ -51,38 +51,40 @@ const ScrollableChat = ({messages}) => {
     return (
         <ScrollableFeed>
             { 
-                messages && messages?.map((m, i) => (
-                    <div style={{ display: 'flex' }} key={m._id}>
+                messages && messages?.map((m, i) => {
+                    return (
+                        <div style={{ display: 'flex' }} key={m?._id}>
 
-                        {
-                            (isSameSender(messages, m, i, userID) || isLastMessage(messages, i, userID))
-                             && m?.sender?._id !== userID && (
-                                <Avatar src={m?.sender?.profileImage?.url} />
-                            )
-                        }
+                            {
+                                (isSameSender(messages, m, i, userID) || isLastMessage(messages, i, userID))
+                                && m?.sender?._id !== userID && (
+                                    <Avatar src={m?.sender?.profileImage?.url} />
+                                )
+                            }
 
-                        <span 
-                            style={{
-                                backgroundColor: `${m?.sender?._id === userID ? '#00aeef' : '#7286D3'}`,
-                                color: 'white',
-                                borderRadius: '20px',
-                                padding: '5px 15px',
-                                maxWidth: '75%',
-                                marginLeft: isSameSenderMargin(messages, m, i, userID),
-                                marginTop: isSameUser(messages, m, i, userID) ? 3 : 10,
-                            }} >
-                            {m.content}
-                        </span>
+                            <span 
+                                style={{
+                                    backgroundColor: `${m?.sender?._id === userID ? '#00aeef' : '#7286D3'}`,
+                                    color: 'white',
+                                    borderRadius: '20px',
+                                    padding: '5px 15px',
+                                    maxWidth: '75%',
+                                    marginLeft: isSameSenderMargin(messages, m, i, userID),
+                                    marginTop: isSameUser(messages, m, i, userID) ? 3 : 10,
+                                }} >
+                                {m.content}
+                            </span>
 
-                        {
-                            isSameSender(messages, m, i, userID) && m?.sender?._id === userID && (
-                                <Avatar src={m?.sender?.profileImage?.url} />
-                            )
-                        }
+                            {
+                                isSameSender(messages, m, i, userID) && m?.sender?._id === userID && (
+                                    <Avatar src={m?.sender?.profileImage?.url} />
+                                )
+                            }
 
-                    </div>
+                        </div>
+                    )
 
-                ))
+                })
             }
         </ScrollableFeed>
     )

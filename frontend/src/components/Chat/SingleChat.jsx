@@ -45,6 +45,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 const {data} = await axiosPrivate.post('message/sendMessage', {
                     content: newMessage,
                     chatId: selectedChat,
+                    _id: userID
                 });
                 socket.emit('newMessage', data);
                 setMessages([...messages, data]);
