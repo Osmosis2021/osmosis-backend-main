@@ -11,12 +11,10 @@ import Stack from '@mui/material/Stack';
 
 
 import Slide from '@mui/material/Slide';
-import { Alert, Grid } from '@mui/material';
+import { Grid } from '@mui/material';
 import axios from 'axios';
 import useStore from '../../store';
 import Payment from './Payment';
-
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
 
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -25,7 +23,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 
 export default function PayPopUp(props) {
   const [open, setOpen] = React.useState(false);
-  const {userID, userName, isTeacher} = useStore();
+  const {userID, backendURL} = useStore();
   const paymentMetadata = {
     teacherUserName: props.teacherUserName,
     time: props.selectedDateAndTime.startTime,

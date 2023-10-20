@@ -13,7 +13,6 @@ import axios from '../../../actions/axios'
 import useAxiosPrivate from "../../../hooks/useAxiosPrivate"
 import useLogout from '../../../hooks/useLogout'
 
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
 
 const TeacherProfile = (props) => {
     const axiosPrivate = useAxiosPrivate()
@@ -26,7 +25,7 @@ const TeacherProfile = (props) => {
     // TODO: setBookingsTakenAsStudent is never actually set
     const [bookingsTakenAsStudent, setBookingsTakenAsStudent] = useState([])  // TODO: why is this setter never used?
     const [classHappened, setClassHappened] = useState([]);
-    const {userID, userName, isStudent} = useStore()
+    const {backendURL, userID, userName, isStudent} = useStore()
     const pageUserName = useParams()?.userName
 
     useEffect(() => {

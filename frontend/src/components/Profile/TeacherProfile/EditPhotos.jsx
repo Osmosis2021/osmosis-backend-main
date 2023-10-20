@@ -5,19 +5,12 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import React, {useEffect, useState} from 'react'
 import useStore from '../../../store';
 import axios from 'axios';
-// import { useNavigate } from 'react-router-dom';
-
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
 
 
 const EditPhotos = () => {
-
-	const {images, setImages, userName} = useStore();
-	// const [newImages, setNewImages] = useState({});
+	const {backendURL, images, setImages, userName} = useStore();
 	const [teacherData, setTeacherData] = useState({});
 	const [isLoading, setIsLoading] = useState(true);
-	// const navigate = useNavigate();
-
 
 	useEffect(() => {
 		fetch(`${backendURL}course/getCourses/${userName}`)

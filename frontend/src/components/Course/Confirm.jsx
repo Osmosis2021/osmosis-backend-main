@@ -2,10 +2,9 @@ import { Container, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import Bubbles from '../../components/Bubbles/Bubbles';
 import { useStripe } from "@stripe/react-stripe-js";
-import axios from 'axios';
+
 
 function Confirm() {
-    const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
     const [message, setMessage] = useState("pending");
     const stripe = useStripe();
 

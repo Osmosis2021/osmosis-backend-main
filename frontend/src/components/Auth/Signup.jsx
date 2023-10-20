@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
-import { Container, Typography, Stack, TextField, Grid, Button, AlertTitle, Card, Backdrop } from '@mui/material';
+import { Container, Typography, Stack, TextField, Grid, Button } from '@mui/material';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -8,16 +8,11 @@ import FormLabel from '@mui/material/FormLabel';
 import { Link as LinkRouter} from 'react-router-dom';
 import './Signup.css';
 import TopNavBar from '../TopNavBar/TopNavBar';
-import useStore from "../../store";
-import Alert from '@mui/material/Alert';
-import Checkbox from '@mui/material/Checkbox';
-
-
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
+import useStore from "../../store"
 
 
 const Signup = props => {		
-    const {setFirstName, setLastName, setUserName, setIsTeacher, setIsStudent} = useStore()
+    const {backendURL, setFirstName, setLastName, setUserName, setIsTeacher, setIsStudent} = useStore()
     const [tempFirstName, setTempFirstName] = useState('')
     const [tempLastName, setTempLastName] = useState('')
     const [tempUserName, setTempUserName] = useState('')

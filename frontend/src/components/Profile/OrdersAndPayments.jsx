@@ -1,4 +1,3 @@
-import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import useStore from '../../store';
 import { Button, Container, Grid, Typography } from '@mui/material';
@@ -6,11 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import TopNavBar from '../TopNavBar/TopNavBar';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
 
 const OrdersAndPayments = (props) => {
 
-    const { userName, isTeacher } = useStore();
+    const { backendURL, userName, isTeacher } = useStore();
     const [userInfo, setUserInfo] = useState({});
     const [stripeInfo, setStripeInfo] = useState({});
     const [accountLink, setAccountLink] = useState();

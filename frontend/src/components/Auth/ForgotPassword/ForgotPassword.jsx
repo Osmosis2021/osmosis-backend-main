@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import TopNavBar from '../../TopNavBar/TopNavBar';
 import logo from '../../../assets/Osmosis_Logo.png'
 import './ForgotPassword.css'
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
+import useStore from "../../../store"
 
 const Forgot = () => {
     const navigate = useNavigate()
@@ -13,7 +13,7 @@ const Forgot = () => {
     const [resetCode, setResetCode] = useState('')
     const [newPassword, setNewPassword] = useState('')
     const [repeatPassword, setRepeatPassword] = useState('')
-	// const {backendURL} = useStore();
+	const {backendURL} = useStore()
 
     const requestResetCode = () => {
         fetch(`${backendURL}email/sendResetCode/${email}`)

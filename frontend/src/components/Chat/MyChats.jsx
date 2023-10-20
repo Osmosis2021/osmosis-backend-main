@@ -1,16 +1,14 @@
-import axios from 'axios';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import useStore from '../../store';
 import { styled } from '@mui/material/styles';
 import { Badge, Box, Container, Card, Grid, Typography, Avatar } from '@mui/material';
 import SideDrawer from './SearchUsers';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/';
 
 const MyChats = () => {
     const axiosPrivate = useAxiosPrivate()
-    const {selectedChat, setSelectedChat, chats, setChats, userID, notification} = useStore();
+    const {backendURL, selectedChat, setSelectedChat, chats, setChats, userID, notification} = useStore();
 
     const fetchChats = async (userID) => {
         try {

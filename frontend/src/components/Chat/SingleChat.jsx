@@ -6,7 +6,6 @@ import ScrollableChat from './ScrollableChat';
 import io from 'socket.io-client';
 import { axiosPrivate } from '../../actions/axios';
 
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/';
 
 var socket, selectedChatCompare;
 
@@ -18,7 +17,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     // const [isTyping, setIsTyping] = useState(false);
     // const [typing, setTyping] = useState(false);
     const [isSocketConnected, setIsSocketConnected] = useState(false);
-    const {userID, selectedChat, chat, notification, setNotification} = useStore();
+    const {backendURL, userID, selectedChat, chat, notification, setNotification} = useStore();
 
     const getSender = (userID, users) => {
         return (users?.[0]?._id === userID ? users?.[1]?.userName : users?.[0]?.userName)

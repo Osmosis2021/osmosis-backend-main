@@ -9,7 +9,6 @@ import UserListItem from './UserListItem';
 import UsersLoading from './UsersLoading';
 import { axiosPrivate } from '../../actions/axios';
 
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/';
 
 const SearchUsers = () => {
 
@@ -18,7 +17,7 @@ const SearchUsers = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [open, setOpen] = useState(false);
     const [loadingChat, setLoadingChat] = useState(false);
-    const { setSelectedChat, chats, setChats, userID } = useStore();
+    const { backendURL, setSelectedChat, chats, setChats, userID } = useStore();
 
     const handleModalOpen = () => {
         setOpen(true);

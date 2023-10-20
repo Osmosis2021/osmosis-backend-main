@@ -9,7 +9,7 @@ import './StudentProfile.css';
 import Prof from '../Prof';
 import useAxiosPrivate from "../../../hooks/useAxiosPrivate";
 import useLogout from '../../../hooks/useLogout'
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/';
+
 
 const StudentProfile = () => {
     const logout = useLogout()
@@ -18,7 +18,7 @@ const StudentProfile = () => {
     const [userInfo, setUserInfo] = useState({});
     const [bookings, setBookings] = useState([]);
     const [unratedAndUnreviewedBooking, setUnratedAndUnreviewedBooking] = useState([])
-    const { userID, userName } = useStore();
+    const { backendURL, userID, userName } = useStore();
     const pageUserName = useParams()?.userName
 
     useEffect(() => {

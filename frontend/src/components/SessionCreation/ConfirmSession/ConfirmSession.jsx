@@ -6,12 +6,11 @@ import useStore from '../../../store';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
-
 
 export const ConfirmSession = () => {
 
     const {
+        backendURL,
         newCourseIndustry, setNewCourseIndustry,
         tags, setTags,
         images, setImages,

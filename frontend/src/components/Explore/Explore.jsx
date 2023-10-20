@@ -2,12 +2,11 @@ import { Container, Grid, Stack, Typography } from '@mui/material';
 import React, {useState, useEffect} from 'react';
 import SessionCard from '../SessionCard/SessionCard';
 import axios from 'axios';
-
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
+import useStore from "../../store"
 
 
 export default function Explore() {
-    
+    const {backendURL} = useStore()
     const [classes, setClasses] = useState([]);
     useEffect(()=>{
         axios.get(`${backendURL}course/getClasses`).then(response => {

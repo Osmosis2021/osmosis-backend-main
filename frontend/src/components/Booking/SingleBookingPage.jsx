@@ -5,13 +5,11 @@ import TopNavBar from '../TopNavBar/TopNavBar';
 import axios from 'axios';
 import useStore from '../../store';
 
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
-
 
 function SingleBookingPage() {
 
     const {id} = useParams()
-    const {userName} = useStore();
+    const {backendURL, userName} = useStore();
     const [booking, setBooking] = useState([]);
 
     const formatCurrency = (value) => {

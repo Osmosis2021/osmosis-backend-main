@@ -3,11 +3,12 @@ import ReactMapGL, { Marker, GeolocateControl, Popup } from 'react-map-gl';
 import Prof from '../Profile/Prof';
 import { Box, Button, Container, Grid, Stack, Tab, Typography } from '@mui/material';
 import { Link } from 'react-router-dom';
-import IndustryFilter from '../TopAppBar/IndustryFilter';
 import Tabs, { tabsClasses } from '@mui/material/Tabs';
 import theme from '../../theme.js';
 import { IndustryOptions } from '../TopAppBar/IndustryOptions';
 import './openingMap.css';
+import useStore from "../../store";
+
 
 import mapboxgl from 'mapbox-gl'
 // The following is required to stop "npm build" from transpiling mapbox code.
@@ -16,15 +17,13 @@ import mapboxgl from 'mapbox-gl'
 // eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
 mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker').default;
 
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
-
 
 const MAPBOX_TOKEN =
 	'pk.eyJ1IjoicmFkZXItamFrZSIsImEiOiJjbDU4dXdnMXcyNDZ2M2pvY2k2OW1yajY5In0.VoWote3L5R1CdSF1RPKaZg';
 
 const OpeningMap = () => {
 	const [selectedCourse, setSelectedCourse] = useState(null);
-
+	const {backendURL} = useStore()
 	const [initialViewState, setInitialViewState] = useState({
 		zoom: 10,
 		latitude: 40.7076398,

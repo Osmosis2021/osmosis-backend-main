@@ -19,8 +19,6 @@ mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worke
 
 const ToggleDays = lazy(() => import('../../SessionCreation/ToggleDays/ToggleDays'))
 
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
-
 
   // images / courseTitle / industry / tags / pricePerStudent / capacity / icon / firstName / lastName / address / zipCode / profileImage / city 
 
@@ -33,7 +31,8 @@ const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.i
 // - Payment functionality
 
 const EditCourse = (props) => {
-	const {userName, isTeacher, setClassDays, capacity, newCourseTimeslots, setNewCourseTimeslots, timeslotsToRemove, setTimeslotsToRemove} = useStore();
+	const {userName, isTeacher, setClassDays, capacity, newCourseTimeslots, setNewCourseTimeslots, 
+		backendURL, timeslotsToRemove, setTimeslotsToRemove} = useStore();
 	const [isLoading, setIsLoading] = useState(true)
 	const [isAvailabilityVisible, setIsAvailabilityVisible] = useState(false)
 	const [courseInfo, setCourseInfo] = useState({})

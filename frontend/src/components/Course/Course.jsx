@@ -21,9 +21,6 @@ import mapboxgl from 'mapbox-gl'
 mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker').default;
 
 
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
-
-
 // TO DO:
 // - Figure out Gallery Resizing for larger screens
 // - Mapbox functionality, error regarding unmounted components
@@ -41,7 +38,7 @@ const Course = (props) => {
 	const [teacherInfo, setTeacherInfo] = useState();
 	const [guestsEntered, setGuestsEntered] = useState(1);
 	const paramsCourse = useParams();
-	const {userName} = useStore();
+	const {backendURL, userName} = useStore();
 	const MAPBOX_TOKEN = 'pk.eyJ1IjoicmFkZXItamFrZSIsImEiOiJjbDU4dXdnMXcyNDZ2M2pvY2k2OW1yajY5In0.VoWote3L5R1CdSF1RPKaZg';
 
 	const increaseGuests = () => {

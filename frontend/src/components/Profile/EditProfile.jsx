@@ -6,7 +6,7 @@ import UploadProfilePicture from './UploadProfilePicture';
 import useStore from '../../store';
 import useAuth from '../../hooks/useAuth'
 import TopProfileBar from '../TopNavBar/TopProfileBar';
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
+
 
 function EditProfile() {
 	const {auth} = useAuth()
@@ -14,7 +14,7 @@ function EditProfile() {
     const navigate = useNavigate()
     const location = useLocation()
     const { userID, userName, setUserName, isTeacher, firstName, setFirstName, lastName, setLastName,
-            email, setEmail, description, setDescription} = useStore()
+            email, setEmail, description, setDescription, backendURL} = useStore()
     const [userInfo, setUserInfo] = useState({})
     const [firstName_, setFirstName_] = useState(firstName || '')
     const [lastName_, setLastName_] = useState(lastName || '')
