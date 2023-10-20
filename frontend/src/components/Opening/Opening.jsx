@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import { Link as LinkRouter, useNavigate, useLocation } from 'react-router-dom';
 import useStore from "../../store";
 import logo from '../../assets/Osmosis_Logo.png';
@@ -100,15 +100,15 @@ const Opening = () => {
 			
 						<Grid item>
 							{
-								isWrong ? <TextField variant='outlined' label="Email or Username" placeholder='Email or Username' inputProps={{ autoCapitalize: 'none' }}
+								isWrong ? <TextField variant='outlined' label="Email or Username" inputProps={{ autoCapitalize: 'none' }}
 											error fullWidth onChange={handleChangeEmail} style={{marginBottom:'12px'}}/> :
-								<TextField autoComplete='off' variant='outlined' label="Email or Username" placeholder='Email or Username'
+								<TextField autoComplete='off' variant='outlined' label="Email or Username"
 									fullWidth onChange={handleChangeEmail} inputProps={{ autoCapitalize: 'none' }} />
 							}
 							{
-								isWrong ? <TextField variant='outlined' type="password" label="Password" placeholder='Password' error fullWidth inputProps={{ autoCapitalize: 'none' }}
+								isWrong ? <TextField variant='outlined' type="password" label="Password" error fullWidth inputProps={{ autoCapitalize: 'none' }}
 											autoCapitalize='none' onChange={handleChangePassword} helperText="Incorrect entry."/> :
-								<TextField variant='outlined' type="password" label="Password" placeholder='Password' onChange={handleChangePassword}
+								<TextField variant='outlined' type="password" label="Password" onChange={handleChangePassword}
 											autoCapitalize='none' fullWidth size='large' style={{marginTop: 8, marginBottom: 3}} inputProps={{ autoCapitalize: 'none' }}/>
 							}
 								<LinkRouter to='/forgot' style={{textDecoration:'none'}}>
