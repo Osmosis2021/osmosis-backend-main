@@ -29,11 +29,6 @@ if(process.env.NODE_ENV === 'production') {
     })
 }
 
-// Handle options credentials check - before CORS!
-// and fetch cookies credentials requirement
-app.use(credentials)
-// Cross Origin Resource Sharing
-app.use(cors(corsOptions))
 
 mongoose.connect(process.env.MONGOOSE_CONNECTION_STRING,
     {useNewUrlParser: true, useUnifiedTopology: true})
@@ -45,6 +40,12 @@ mongoose.connect(process.env.MONGOOSE_CONNECTION_STRING,
 // Middleware
 //=============================================================================
 app.use(cookieParser());
+// Handle options credentials check - before CORS!
+// and fetch cookies credentials requirement
+app.use(credentials)
+// Cross Origin Resource Sharing
+app.use(cors(corsOptions))
+
 app.use(express.json({
     limit: '100mb'
   }));

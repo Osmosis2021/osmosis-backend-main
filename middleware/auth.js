@@ -48,7 +48,7 @@ router.post('/login', async (req, res) => {
     
     // Creates Secure Cookie with refresh token if in production
     res.cookie('jwt', refreshToken, {httpOnly: true, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000,
-                                     secure: process.env.NODE_ENV === 'production'})
+                                     secure: true})
     // Send authorization roles and access token to user but don't send the refreshToken
     res.json(resp_obj)
 });
@@ -56,7 +56,7 @@ router.post('/login', async (req, res) => {
 router.get('/logout', async(req, res) => {
     const {userName} = req.body
     res.cookie('jwt', '', {httpOnly: true, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000,
-                                   secure: process.env.NODE_ENV === 'production'})
+                           secure: true})
     res.json({message: `Successfully logged out ${userName} on this device`})
 })
 
