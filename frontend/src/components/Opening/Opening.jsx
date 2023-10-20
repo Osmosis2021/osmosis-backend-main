@@ -100,14 +100,16 @@ const Opening = () => {
 			
 						<Grid item>
 							{
-								isWrong ? <TextField variant='outlined' label="Email or Username" placeholder='Email or Username'
+								isWrong ? <TextField variant='outlined' label="Email or Username" placeholder='Email or Username' inputProps={{ autoCapitalize: 'none' }}
 											error fullWidth onChange={handleChangeEmail} style={{marginBottom:'12px'}}/> :
 								<TextField autoComplete='off' variant='outlined' label="Email or Username" placeholder='Email or Username'
-									fullWidth onChange={handleChangeEmail}/>
+									fullWidth onChange={handleChangeEmail} inputProps={{ autoCapitalize: 'none' }} />
 							}
 							{
-								isWrong ? <TextField variant='outlined' type="password" label="Password" placeholder='Password' error fullWidth onChange={handleChangePassword} helperText="Incorrect entry."/> :
-								<TextField variant='outlined' type="password" label="Password" placeholder='Password' onChange={handleChangePassword} fullWidth size='large' style={{marginTop: 8, marginBottom: 3}} />
+								isWrong ? <TextField variant='outlined' type="password" label="Password" placeholder='Password' error fullWidth inputProps={{ autoCapitalize: 'none' }}
+											autoCapitalize='none' onChange={handleChangePassword} helperText="Incorrect entry."/> :
+								<TextField variant='outlined' type="password" label="Password" placeholder='Password' onChange={handleChangePassword}
+											autoCapitalize='none' fullWidth size='large' style={{marginTop: 8, marginBottom: 3}} inputProps={{ autoCapitalize: 'none' }}/>
 							}
 								<LinkRouter to='/forgot' style={{textDecoration:'none'}}>
 									<Button size='small' fontSize='extra-small' style={{marginBottom:8, marginTop:6}}> Forgot Password?</Button>
