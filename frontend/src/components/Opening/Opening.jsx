@@ -7,7 +7,7 @@ import { TextField, Container, Grid, Button, Typography } from '@mui/material';
 import Bubbles from '../Bubbles/Bubbles';
 import useAuth from '../../hooks/useAuth'
 import axios from '../../actions/axios'
-// import './Opening.css';
+
 
 const Opening = () => {
 	const {setAuth, setPersist} = useAuth()
@@ -26,10 +26,7 @@ const Opening = () => {
 		setEmail_(event.target.value)
 	}
 
-	const toggleThisPersist = e => {
-		console.log('in toggleThisPersist')
-		setThisPersist(!thisPersist)
-	}
+	const toggleThisPersist = e => setThisPersist(!thisPersist)
 
 	const handleChangePassword = (event) => {
 		event.preventDefault()

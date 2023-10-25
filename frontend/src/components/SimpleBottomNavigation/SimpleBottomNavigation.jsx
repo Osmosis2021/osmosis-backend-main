@@ -12,7 +12,7 @@ import './SimpleBottomNavigation.css'
 const SimpleBottomNavigation = () => {
 
   const [value, setValue] = React.useState(0);
-  const {userName, isTeacher, isRegistered, notification, setNotification} = useStore()
+  const {platform, userName, isTeacher, isRegistered, notification, setNotification} = useStore()
   const navigate = useNavigate();
 
   const handleChange = (event, newValue) => {
@@ -29,9 +29,8 @@ const SimpleBottomNavigation = () => {
   };
 
   return (
-    <BottomNavigation
+    <BottomNavigation className={`BottomNav-${platform}`}
       style={{ 
-        // backgroundColor: '#00aeef', 
         backgroundColor: theme.palette.mode === 'dark' ? '#121212' : '#fff',
         boxShadow: '0px -1px 10px 1px #00aeef',
         alignItems:"center", 
@@ -39,8 +38,9 @@ const SimpleBottomNavigation = () => {
         width:'100%', 
         justifyContent:'space-evenly', 
         position:'fixed', 
-        bottom:0 
-        }}
+        bottom: 0,
+        paddingBottom: '25px'
+      }}
       value={value}
       onChange={handleChange}
     >

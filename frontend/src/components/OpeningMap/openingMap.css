@@ -25,3 +25,12 @@
 .opaque-false {
     opacity: .2;
 }
+
+.primaryMap {
+    width: 100vw;
+    height: calc(89vh - 76px);
+}
+
+.primaryMap-web {
+    height: 90vh !important;
+}

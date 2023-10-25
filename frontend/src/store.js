@@ -1,6 +1,9 @@
-import create from "zustand";
+import {create} from "zustand"
+import { Capacitor } from '@capacitor/core'
 
 const useStore = create(set => ({
+    platform: Capacitor.getPlatform() || 'ios',  //  'web', 'ios' or 'android'
+
     backendURL: process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/',
 
     firstName: '',

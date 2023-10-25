@@ -8,8 +8,6 @@ import theme from '../../theme.js';
 import { IndustryOptions } from '../TopAppBar/IndustryOptions';
 import './openingMap.css';
 import useStore from "../../store";
-
-
 import mapboxgl from 'mapbox-gl'
 // The following is required to stop "npm build" from transpiling mapbox code.
 // notice the exclamation point in the import.
@@ -23,7 +21,7 @@ const MAPBOX_TOKEN =
 
 const OpeningMap = () => {
 	const [selectedCourse, setSelectedCourse] = useState(null);
-	const {backendURL} = useStore()
+	const {backendURL, platform} = useStore()
 	const [initialViewState, setInitialViewState] = useState({
 		zoom: 10,
 		latitude: 40.7076398,
@@ -122,10 +120,11 @@ const OpeningMap = () => {
 				</Box>
 			</Container>
 			<ReactMapGL
+				className={`primaryMap primaryMap-${platform}`}
 				initialViewState={initialViewState}
 				mapStyle={`mapbox://styles/mapbox/${theme.palette.mode}-v11`}
 				mapboxAccessToken={MAPBOX_TOKEN}
-				style={{ width: '100vw', height: '90vh' }}>
+			>
 				{filteredCourses.map((course) => (
 					<Marker
 						key={course._id}
@@ -171,52 +170,48 @@ const OpeningMap = () => {
 							style={{ fontFamily: 'Poppins', backgroundColor: theme.palette.mode === 'dark' ? '#121212' : '#fff'}}>
 							<img className='popupImg' src={selectedCourse?.images[0]?.url} alt='' />
 							<div style={{padding: '3%'}}>
-
-							<Typography variant='h4'>{selectedCourse.courseTitle}</Typography>
-							<Grid container direction='row' justifyContent='spaceBetween'>
-								
-								<Grid item xs={6} style={{justifyContent: 'center', display: 'flex'}}>
-									<Prof
-										avatar={teacherInfo.profileImage?.url}
-										name={selectedCourse.userName}
-										tags={selectedCourse.tags}
-										stars={selectedCourse.stars}
-									/>
-								</Grid>
-
-								<Grid item xs={6} style={{justifyContent: 'center', display: 'flex', flexDirection: 'column'}}>
-									<p style={{textAlign: 'center'}}>{selectedCourse.capacity} guests
-										<br/>${selectedCourse.pricePerStudent}/session</p>
-							
-									<Button variant='contained' style={{ textDecoration: 'none', color: 'white' }}>
-										More
-									</Button>
-								</Grid>
-
-							</Grid>
-								<br/>
-							<Grid item fullWidth>
-								<Stack>
-								
-									<Grid container fullWidth>
-										{
-											selectedCourse.tags.map((tag, index) => {
-												return (
-													<Typography 
-														variant='h5' 
-														align='left'
-														key={index} 
-														id={index}
-													>
-														#{tag}&nbsp;
-													</Typography>
-												)
-											})
-										}
+								<Typography variant='h4'>{selectedCourse.courseTitle}</Typography>
+								<Grid container direction='row' justifyContent='spaceBetween'>
+									<Grid item xs={6} style={{justifyContent: 'center', display: 'flex'}}>
+										<Prof
+											avatar={teacherInfo.profileImage?.url}
+											name={selectedCourse.userName}
+											tags={selectedCourse.tags}
+											stars={selectedCourse.stars}
+										/>
 									</Grid>
-								</Stack>
-							</Grid>
 
+									<Grid item xs={6} style={{justifyContent: 'center', display: 'flex', flexDirection: 'column'}}>
+										<p style={{textAlign: 'center'}}>{selectedCourse.capacity} guests
+											<br/>${selectedCourse.pricePerStudent}/session</p>
+								
+										<Button variant='contained' style={{ textDecoration: 'none', color: 'white' }}>
+											More
+										</Button>
+									</Grid>
+
+								</Grid>
+									<br/>
+								<Grid item fullWidth>
+									<Stack>
+										<Grid container fullWidth>
+											{
+												selectedCourse.tags.map((tag, index) => {
+													return (
+														<Typography 
+															variant='h5' 
+															align='left'
+															key={index} 
+															id={index}
+														>
+															#{tag}&nbsp;
+														</Typography>
+													)
+												})
+											}
+										</Grid>
+									</Stack>
+								</Grid>
 							</div>
 						</div>
 					</Popup>

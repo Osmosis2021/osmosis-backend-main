@@ -5,3 +5,7 @@
 .MuiBottomNavigationAction-iconOnly {
     color: gray !important;
 }
+
+.BottomNav-web {
+    padding-bottom: 0;
+}
