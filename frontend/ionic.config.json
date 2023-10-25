@@ -1,0 +1,7 @@
+{
+  "name": "osmosis",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react"
+}

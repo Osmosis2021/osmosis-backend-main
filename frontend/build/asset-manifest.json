@@ -1,12 +1,12 @@
 {
   "files": {
-    "main.css": "/static/css/main.15cd5252.css",
-    "main.js": "/static/js/main.e545fc27.js",
+    "main.css": "/static/css/main.0a71f984.css",
+    "main.js": "/static/js/main.4bb4f33f.js",
     "static/media/Receiving.png": "/static/media/Receiving.0d9bc56dcfde825128d1.png",
     "static/media/many.png": "/static/media/many.8bca10a1739303c8a9d2.png",
     "static/media/little.png": "/static/media/little.7cc0eb34760e06a53ea3.png",
     "static/media/Sharing.png": "/static/media/Sharing.75413ba09a6ed7c544db.png",
-    "static/js/mapbox-gl-csp-worker.cedf6c05.worker.js": "/static/js/mapbox-gl-csp-worker.cedf6c05.worker.js",
+    "static/js/mapbox-gl-csp-worker.1eec8286.worker.js": "/static/js/mapbox-gl-csp-worker.1eec8286.worker.js",
     "static/media/few.png": "/static/media/few.fcb3bee615bad093b717.png",
     "static/media/language.png": "/static/media/language.552811a816fbd702d6ee.png",
     "static/media/Osmosis_Logo.png": "/static/media/Osmosis_Logo.b57c7918b0757ca0a4ac.png",
@@ -25,11 +25,11 @@
     "static/media/slick.ttf": "/static/media/slick.c94f7671dcc99dce43e2.ttf",
     "static/media/slick.woff": "/static/media/slick.295183786cd8a1389865.woff",
     "index.html": "/index.html",
-    "main.15cd5252.css.map": "/static/css/main.15cd5252.css.map",
-    "main.e545fc27.js.map": "/static/js/main.e545fc27.js.map"
+    "main.0a71f984.css.map": "/static/css/main.0a71f984.css.map",
+    "main.4bb4f33f.js.map": "/static/js/main.4bb4f33f.js.map"
   },
   "entrypoints": [
-    "static/css/main.15cd5252.css",
-    "static/js/main.e545fc27.js"
+    "static/css/main.0a71f984.css",
+    "static/js/main.4bb4f33f.js"
   ]
 }
