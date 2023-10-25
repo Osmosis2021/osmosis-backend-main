@@ -39,6 +39,7 @@ const SimpleBottomNavigation = () => {
         justifyContent:'space-evenly', 
         position:'fixed', 
         bottom: 0,
+        paddingTop: '2px',
         paddingBottom: '25px'
       }}
       value={value}
