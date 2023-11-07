@@ -1,0 +1,89 @@
+import { Button, Container, Stack, Typography } from '@mui/material';
+import React, {useEffect, useState} from 'react';
+import { useNavigate } from 'react-router-dom';
+import useStore from '../../../store';
+
+const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
+
+
+const StripeOnboarding = () => {
+
+    const { userName } = useStore();
+    const [userInfo, setUserInfo] = useState({});
+    const [stripeInfo, setStripeInfo] = useState({});
+    const [accountLink, setAccountLink] = useState();
+    const [isLoading, setIsLoading] = useState(true);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+
+        // GET USER INFO WITH STRIPE ID
+        fetch(`${backendURL}user/getUserInfo/${userName}`)
+            .then(res => res.json())
+            .then(data => {
+                setUserInfo(data)
+                if (data.stripeID === undefined) {
+                    return;
+                }
+                const stripeID = data.stripeID
+                console.log(stripeID)
+
+                // USE STRIPE ID TO ONBOARD USER 
+                fetch (`${backendURL}stripe/accountLink/${stripeID}`)
+                .then(res => res.json())
+                .then(data => {
+                    setAccountLink(data.url)
+                    setIsLoading(false)
+
+                    // GET USER INFO WITH STRIPE ID
+                    fetch(`${backendURL}stripe/retrieveStripeAccount/${stripeID}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        setStripeInfo(data)
+                        console.log(data)
+                    })
+                    .catch(err => {
+                        console.log('Error getting stripeInfo:\n', err);
+                    });
+                })
+            })
+    }, [])
+
+    function stripeOnboarding () {
+        navigate(window.location.assign(accountLink))
+    }
+
+    console.log(userInfo)
+    console.log(accountLink)
+
+
+  return (
+    <Container maxWidth='sm' align='center'>
+
+        <Stack mb={2} mt={8} style={{ alignItems: 'center' }}>
+            <Typography variant='h4'>
+                Stripe Onboarding
+            </Typography>
+            <br/>
+            <Typography>
+                Osmosis uses Stripe to get you paid quickly and keep your personal and payment 
+                information secure. Thousands of companies around the world trust Stripe to process payments 
+                for their users. Set up a Stripe account to get paid with Osmosis. 
+                Your stripe ID is: <span style={{color:'#00aeef'}}>{userInfo?.stripeID}</span>
+            </Typography>
+            <br/>
+            <Button
+                style={{textAlign:'left', color:'white'}}
+                onClick={stripeOnboarding}
+                variant='contained'
+            >
+                Setup Payments
+            </Button>
+        </Stack>
+
+    </Container>
+
+  )
+}
+
+export default StripeOnboarding
