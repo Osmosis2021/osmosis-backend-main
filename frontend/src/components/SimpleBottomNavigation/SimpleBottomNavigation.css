@@ -2,6 +2,10 @@
     color:#00aeef !important;
 }
 
+.css-1bjk3jo-MuiButtonBase-root-MuiBottomNavigationAction-root.Mui-selected {
+    color:#00aeef !important;
+}
+
 .MuiBottomNavigationAction-iconOnly {
     color: gray !important;
 }
