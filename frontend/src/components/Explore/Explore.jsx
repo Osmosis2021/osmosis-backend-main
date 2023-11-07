@@ -24,14 +24,14 @@ export default function Explore() {
                     </Typography>
                 </Stack>
                 <Grid container direction='row' spacing={2}>
-                    {classes.length > 0 && classes.map(course => (
+                    {classes?.length > 0 && classes?.map(course => (
                         <Grid item xs={12} sm={6} md={4} lg={3}>
                         <SessionCard 
-                            images={course.images[0].url} 
-                            industry={course.industry}
-                            firstName={course.firstName}
-                            tags={course.tag}
-                            price={course.price}
+                            images={course?.images[0]?.url} 
+                            industry={course?.industry}
+                            firstName={course?.firstName}
+                            tags={course?.tag}
+                            price={course?.price}
                             />
                         </Grid>
                     ))}
