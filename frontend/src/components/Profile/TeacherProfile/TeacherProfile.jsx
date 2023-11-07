@@ -149,6 +149,23 @@ const TeacherProfile = (props) => {
         }
     };
     
+        const [isOnboarded, setIsOnboarded] = useState(false);
+      
+        useEffect(() => {
+          fetch(`${backendURL}user/getUserInfo/${userName}`)
+            .then(res => res.json())
+            .then(data => {
+                fetch (`${backendURL}stripe/retrieveStripeAccount/${data.stripeID}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        setIsOnboarded(data.retrieveAccount.payouts_enabled)
+                    })
+                })
+            .catch((error) => {
+                console.error(error);
+            });
+        }, []);
+            
     return (
         <>
             <TopProfileBar userName={userName} />
@@ -190,6 +207,25 @@ const TeacherProfile = (props) => {
 
             {/* VVV UPCOMING CLASSES VVV */}
             <Container>
+
+                { isOnboarded ? ( <> </> ) : 
+                    (
+                        <Card style={{padding:'5%', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                            <Grid container justifyContent='center' alignItems='center' direction="column">
+                            <Grid item fullWidth>
+                                <Typography>Onboard to Stripe to process payments and get paid!</Typography>
+                            </Grid>
+                            <br/>
+                            <Grid item>
+                                <Link to={`/stripeonboarding/${userName}`}> 
+                                    <Button style={{color:'white'}} variant='contained'>Setup Stripe</Button>
+                                </Link>
+                            </Grid>
+                            </Grid>
+                        </Card>
+                    )
+                }
+
                 {bookings?.length > 0 && userID === teacherInfo?.id && bookings.filter((booking) => !classHappened.some(
                         (classBooking) => classBooking._id === booking._id)).map((booking) => (
                     <>
