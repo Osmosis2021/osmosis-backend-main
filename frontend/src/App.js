@@ -37,6 +37,7 @@ import OrdersAndPayments from './components/Profile/OrdersAndPayments';
 import Chat from './components/Chat/Chat';
 import Layout from './Layout'
 import Unauthorized from './components/Unauthorized'
+import StripeOnboarding from './components/SessionCreation/StripeOnboarding/StripeOnboarding';
 
 axios.defaults.withCredentials = true;
 
@@ -85,6 +86,7 @@ function App() {
 						<Route path='/settings' element={<Settings />} />
 						<Route path='/students' element={<h1 style={{padding: '10px'}}>This is where your personal page will be when you sign up.</h1>} />
 						<Route path='/ordersandpayments' element={<OrdersAndPayments />} />
+						<Route path='/stripeonboarding/:userName' element={<StripeOnboarding /> } />
 						<Route path='/chat' element={<Chat />} />
 						<Route path='/edit' element={<EditProfile />} />
 						<Route path='/confirm' element={
