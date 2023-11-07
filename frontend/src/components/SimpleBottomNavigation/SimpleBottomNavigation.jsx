@@ -40,7 +40,7 @@ const SimpleBottomNavigation = () => {
         position:'fixed', 
         bottom: 0,
         paddingTop: '2px',
-        paddingBottom: '25px'
+        // paddingBottom: '25px'
       }}
       value={value}
       onChange={handleChange}
