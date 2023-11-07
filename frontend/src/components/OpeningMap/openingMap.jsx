@@ -76,7 +76,7 @@ const OpeningMap = () => {
 	}, [selectedCourse]);
 
 	return (
-		<div>
+		<div id='mapComponentContainer'>
 			{/* <IndustryFilter /> */}
 			<Container maxWidth='xl'>
 				<Box
@@ -120,6 +120,7 @@ const OpeningMap = () => {
 				</Box>
 			</Container>
 			<ReactMapGL
+				style={{height: "-webkit-fill-available", width: "100%"}}
 				className={`primaryMap primaryMap-${platform}`}
 				initialViewState={initialViewState}
 				mapStyle={`mapbox://styles/mapbox/${theme.palette.mode}-v11`}
