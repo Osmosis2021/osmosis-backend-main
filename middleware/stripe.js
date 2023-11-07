@@ -1,11 +1,12 @@
 const router = require('express').Router()
 const Stripe = require('stripe');
-const dotenv = require('dotenv')
+const dotenv = require('dotenv');
+const User = require('../models/user');
 dotenv.config()
 const stripe = Stripe(process.env.STRIPE_LIVE_KEY)
 
 router.get('/config', (req, res) => {
-    res.send({publishableKey: process.env.STRIPE_PUBLISHABLE_TEST_KEY,});
+    res.send({publishableKey: process.env.STRIPE_PUBLISHABLE_LIVE_KEY,});
 });
 
 // ACCOUNT LINK

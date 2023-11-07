@@ -7,13 +7,13 @@ const cloudinary = require('cloudinary');
 const bcryptSalt = bcrypt.genSaltSync(7);
 const dotenv = require('dotenv')
 dotenv.config()
-const stripe = Stripe(process.env.STRIPE_TEST_KEY)
+const stripe = Stripe(process.env.STRIPE_LIVE_KEY)
 const jwtSecret = process.env.ACCESS_TOKEN_SECRET
 const refreshSecret = process.env.REFRESH_TOKEN_SECRET
 
 router.get('/config', (req, res) => {
     res.send({
-    publishableKey: process.env.STRIPE_PUBLISHABLE_TEST_KEY,
+    publishableKey: process.env.STRIPE_PUBLISHABLE_LIVE_KEY,
     });
 });
 
