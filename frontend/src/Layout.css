@@ -1,3 +1,8 @@
 .Layout-ios, .Layout-android {
     padding: 40px 0 0;
 }
+
+.App {
+    height: 100vh;
+    min-height: -webkit-fill-available;
+}
