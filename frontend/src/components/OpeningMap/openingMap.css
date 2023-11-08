@@ -32,7 +32,7 @@
     height: calc(100% - 56px);
 }
 .mapboxgl-map {
-    position: fixed;
-    top: 0;
-    height: calc(100% - 72px) !important;
+    position: fixed !important;
+    top: 72px;
+    height: calc(100% - 128px) !important;
 }
