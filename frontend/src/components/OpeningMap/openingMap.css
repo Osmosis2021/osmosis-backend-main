@@ -27,8 +27,12 @@
 }
 
 #mapComponentContainer {
+    position: fixed;
+    top: 0;
     height: calc(100% - 56px);
 }
 .mapboxgl-map {
+    position: fixed;
+    top: 0;
     height: calc(100% - 72px) !important;
 }

@@ -1,5 +1,9 @@
-.Layout-ios, .Layout-android {
+.Layout-ios {
     padding: 40px 0 0;
+}
+
+.Layout-android {
+    padding: 32px 0 0;
 }
 
 .App {
