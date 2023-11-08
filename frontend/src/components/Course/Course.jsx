@@ -32,7 +32,7 @@ const Course = (props) => {
 	const [selectedDateAndTime, setSelectedDateAndTime] = useState({})
 	const [selectedTimeslotID, setSelectedTimeslotID] = useState('')
 	// const [selectedCapacity, setSelectedCapacity] = useState(1)
-	// const [selectedEnrolledStudents, setSelectedEnrolledStudents] = useState([])
+	const [selectedEnrolledStudents, setSelectedEnrolledStudents] = useState([])
 	const [selectedEnrollment, setSelectedEnrollment] = useState(0)
 	const [isLoading, setIsLoading] = useState(true);
 	const [teacherInfo, setTeacherInfo] = useState();
@@ -91,6 +91,12 @@ const Course = (props) => {
 			setRating(averageRating);
 		} else return;
 	}, [courseData?.feedback]);
+
+	function formatDate (inputDate) {
+		const options = { weekday: 'short', month: 'short', day: 'numeric' };
+		const date = new Date(inputDate);
+		return date.toLocaleDateString(undefined, options);
+	}
 	
 	return (
 		<div>
@@ -269,14 +275,14 @@ const Course = (props) => {
 							setSelectedDateAndTime={setSelectedDateAndTime}
 							setSelectedTimeslotID={setSelectedTimeslotID}
 							// setSelectedCapacity={setSelectedCapacity}
-							// setSelectedEnrolledStudents={setSelectedEnrolledStudents}
+							setSelectedEnrolledStudents={setSelectedEnrolledStudents}
 							setSelectedEnrollment={setSelectedEnrollment}
 						/>}
 					</Typography>
 				</Grid>
 				{(selectedDateAndTime.hasOwnProperty('startDate')) &&
 				<div style={{textAlign:'center'}}>
-					<Typography>{selectedDateAndTime.startDate.slice(0, 10)}</Typography>
+					<Typography>{formatDate(selectedDateAndTime.startDate)}</Typography>
 					<Typography>{timeConverter(selectedDateAndTime.startTime)}</Typography>
 				</div>}
 			</Grid>

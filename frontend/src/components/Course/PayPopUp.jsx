@@ -74,6 +74,20 @@ export default function PayPopUp(props) {
   //   return (dateFormat);
   // }
 
+  const timeConverter = (rawTime) => {
+    const array = rawTime.split(':');
+    const parsedInput = parseInt(array[0])
+    const suffix = parsedInput >= 12 ? "PM" : "AM"; 
+    const newTime = ((parsedInput + 11) % 12 + 1);
+    return(newTime + ':' + array[1] + suffix);
+}
+
+  function formatDate (inputDate) {
+		const options = { weekday: 'long', month: 'long', day: 'numeric' };
+		const date = new Date(inputDate);
+		return date.toLocaleDateString(undefined, options);
+	}
+
   return (
     <Container>
         {/* {!(props.isRegistered) &&
@@ -139,13 +153,13 @@ export default function PayPopUp(props) {
                   
                     <Grid item>
                         <Typography variant='h5'>
-                        {props.selectedDateAndTime.startDate}
+                        {formatDate(props.selectedDateAndTime.startDate)}
                         </Typography>
                     </Grid>
 
                     <Grid item>
                         <Typography variant='h6'>
-                        {props.selectedDateAndTime.startTime}
+                        {timeConverter(props.selectedDateAndTime.startTime)}
                         </Typography>
                     </Grid>
 
