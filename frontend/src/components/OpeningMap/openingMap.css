@@ -26,11 +26,9 @@
     opacity: .2;
 }
 
-.primaryMap {
-    width: 100vw;
-    height: calc(89vh - 76px);
+#mapComponentContainer {
+    height: calc(100dvh - 56px);
 }
-
-.primaryMap-web {
-    height: 90vh !important;
+.mapboxgl-map {
+    height: calc(100% - 72px) !important;
 }

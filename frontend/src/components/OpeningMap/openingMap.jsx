@@ -120,8 +120,6 @@ const OpeningMap = () => {
 				</Box>
 			</Container>
 			<ReactMapGL
-				style={{height: "-webkit-fill-available", width: "100%"}}
-				className={`primaryMap primaryMap-${platform}`}
 				initialViewState={initialViewState}
 				mapStyle={`mapbox://styles/mapbox/${theme.palette.mode}-v11`}
 				mapboxAccessToken={MAPBOX_TOKEN}
