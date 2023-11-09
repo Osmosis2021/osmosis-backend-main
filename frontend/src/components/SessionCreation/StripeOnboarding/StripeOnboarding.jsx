@@ -3,12 +3,10 @@ import React, {useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import useStore from '../../../store';
 
-const backendURL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
-
 
 const StripeOnboarding = () => {
 
-    const { userName } = useStore();
+    const { userName, backendURL } = useStore();
     const [userInfo, setUserInfo] = useState({});
     const [stripeInfo, setStripeInfo] = useState({});
     const [accountLink, setAccountLink] = useState();
