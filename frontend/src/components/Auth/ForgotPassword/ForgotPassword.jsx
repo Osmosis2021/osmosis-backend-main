@@ -1,19 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { TextField, Container, Grid, Button, Avatar, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import TopNavBar from '../../TopNavBar/TopNavBar';
 import logo from '../../../assets/Osmosis_Logo.png'
 import './ForgotPassword.css'
 import useStore from "../../../store"
+import useKeyboard from '../../../hooks/useKeyboard'
 
 const Forgot = () => {
     const navigate = useNavigate()
+    const manageKeyboard = useKeyboard()
     const [email, setEmail] = useState('')
 	const [stage, setStage] = useState('email')
     const [resetCode, setResetCode] = useState('')
     const [newPassword, setNewPassword] = useState('')
     const [repeatPassword, setRepeatPassword] = useState('')
 	const {backendURL} = useStore()
+
+    useEffect(() => {
+        manageKeyboard('fieldGrid')
+    }, [])
 
     const requestResetCode = () => {
         fetch(`${backendURL}email/sendResetCode/${email}`)
@@ -81,7 +87,7 @@ const Forgot = () => {
                         <Avatar src={logo} alt='Osmosis Logo' variant="square" sx={{width: 150, height: 150}} align='center' />
                     </Grid>
 
-                    <Grid item className={`display-${stage === 'email'}`}>
+                    <Grid id='fieldGrid' item className={`display-${stage === 'email'}`}>
                         <Typography style={{marginBottom: '10px'}} align='center' variant='h5' mt={6} mb={0}>
                             Enter the email address<br/>associated with your account.<br/>We'll send you a link to reset your password.
                         </Typography>

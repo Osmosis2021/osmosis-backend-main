@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import { Link as LinkRouter, useNavigate, useLocation } from 'react-router-dom';
 import useStore from "../../store";
 import logo from '../../assets/Osmosis_Logo.png';
@@ -6,13 +6,13 @@ import './Opening.css';
 import { TextField, Container, Grid, Button, Typography } from '@mui/material';
 import Bubbles from '../Bubbles/Bubbles';
 import useAuth from '../../hooks/useAuth'
+import useKeyboard from '../../hooks/useKeyboard'
 import axios from '../../actions/axios'
-import {Capacitor} from "@capacitor/core"
-import  { Keyboard } from '@capacitor/keyboard'
 
 
 const Opening = () => {
 	const {setAuth, setPersist} = useAuth()
+	const manageKeyboard = useKeyboard()
 	const navigate = useNavigate()
 	const location = useLocation()
 	const [email_, setEmail_] = useState('')  // underscore to distinguish from those in the store
@@ -23,19 +23,9 @@ const Opening = () => {
     const {setUserID, setUserName, setIsTeacher, setIsStudent, setFirstName, setLastName,
 		   setIsRegistered, setRoles, setEmail, setDescription} = useStore()
 
-	if (Capacitor.isNativePlatform()) {
-		Keyboard.addListener('keyboardDidShow', info => {
-			const bottomNav = document.getElementById('BottomNav')
-			bottomNav.style.display = 'none'  // 56 is the height of the bottom nav bar so this hides the navbar
-			const fieldGrid = document.getElementById('fieldGrid')
-			fieldGrid.scrollIntoView(true, {behavior: 'smooth'})
-		})
-		Keyboard.addListener('keyboardWillHide', info => {
-			const bottomNav = document.getElementById('BottomNav')
-			bottomNav.style.display = 'flex'  // 56 is the height of the bottom nav bar so this hides the navbar
-		})
-	}
-	   
+	useEffect(() => {
+		manageKeyboard('fieldGrid') // hide bottomnav when mobile keyboard showing and scroll fieldGrid into view
+	}, [])
 
 	const handleChangeEmail = (event) => {
 		event.preventDefault()
