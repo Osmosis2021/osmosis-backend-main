@@ -1,16 +1,16 @@
 import * as React from 'react';
-import { AppBar, Box, IconButton, Toolbar, Typography } from '@mui/material';
+import { AppBar, Box, IconButton, Toolbar } from '@mui/material';
 import { Link } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import SettingsIcon from '@mui/icons-material/Settings';
-import IosShareIcon from '@mui/icons-material/IosShare';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import useStore from "../../store";
+import './TopNavBar.css'
 
 export default function TopNavBar(props) {
+  const {platform} = useStore()
   
   return (
     <Box sx={{ flexGrow: 1}}>
-      <AppBar position="absolute" style={{background:'none', boxShadow:'none'}}>
+      <AppBar className={`AppBar-${platform}`} position="absolute" style={{background:'none', boxShadow:'none'}}>
         <Toolbar style={{justifyContent: 'space-between'}}>
           <IconButton
           style={{ background:'#00aeef'}}
