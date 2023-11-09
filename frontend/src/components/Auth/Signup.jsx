@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Container, Typography, Stack, TextField, Grid, Button } from '@mui/material';
 import Radio from '@mui/material/Radio';
@@ -9,6 +9,7 @@ import { Link as LinkRouter} from 'react-router-dom';
 import './Signup.css';
 import TopNavBar from '../TopNavBar/TopNavBar';
 import useStore from "../../store"
+import useKeyboard from '../../hooks/useKeyboard'
 
 
 const Signup = props => {		
@@ -22,7 +23,11 @@ const Signup = props => {
     const [isTempTeacher, setIsTempTeacher] = useState(false)
     const [isTempStudent, setIsTempStudent] = useState(false)
     const navigate = useNavigate();
-    
+	const manageKeyboard = useKeyboard()
+
+	useEffect(() => {
+		manageKeyboard('fieldContainer') // hide bottomnav when mobile keyboard showing and scroll fieldContainer into view
+	}, [])
 
     const changeFirstName = e => {
         setTempFirstName(e.target.value)

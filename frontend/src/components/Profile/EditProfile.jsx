@@ -6,6 +6,7 @@ import UploadProfilePicture from './UploadProfilePicture';
 import useStore from '../../store';
 import useAuth from '../../hooks/useAuth'
 import TopProfileBar from '../TopNavBar/TopProfileBar';
+import useKeyboard from '../../hooks/useKeyboard'
 
 
 function EditProfile() {
@@ -21,6 +22,11 @@ function EditProfile() {
     const [userName_, setUserName_] = useState(userName || '')
     const [email_, setEmail_] = useState(email || '')
     const [description_, setDescription_] = useState(description || '')
+	const manageKeyboard = useKeyboard()
+
+	useEffect(() => {
+		manageKeyboard('editProfileFieldGrid') // hide bottomnav when mobile keyboard showing and scroll editProfileFieldGrid into view
+	}, [])
 
     useEffect(() => {
         let isMounted = true;
@@ -129,7 +135,7 @@ function EditProfile() {
                             </Grid>
                         </Grid>
 
-                        <Grid item style={{display: 'flex', gap: '10px', flexDirection: 'row', width: '100%'}} xs={12}>
+                        <Grid id='editProfileFieldGrid' item style={{display: 'flex', gap: '10px', flexDirection: 'row', width: '100%'}} xs={12}>
                             <Grid>
                                 <Typography style={{textAlign:'left'}} variant="body1">First Name</Typography>
                                 <TextField
