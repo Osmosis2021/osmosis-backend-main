@@ -89,7 +89,7 @@ export default function DateDrawer(props) {
                         <Grid container spacing={2} justifyContent='space-around' style={{marginBottom:'56px'}}>
                         {isScheduleLoading ? <></> : schedule.map((availability) => {
                             return (
-                                <Grid item xs={4}
+                                <Grid item xs={4} style={{cursor:'pointer'}}
                                     onClick={() => {selectionHandler(availability.startDate, availability.startTime, availability._id,
                                         availability.enrolledStudents, availability.enrollment, availability.capacity)}}
                                 >
