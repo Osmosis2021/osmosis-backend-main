@@ -114,23 +114,23 @@ const Opening = () => {
 								<TextField variant='outlined' type="password" label="Password" onChange={handleChangePassword}
 											autoCapitalize='none' fullWidth size='large' style={{marginTop: 8, marginBottom: 3}} inputProps={{ autoCapitalize: 'none' }}/>
 							}
-								<LinkRouter to='/forgot' style={{textDecoration:'none'}}>
-									<Button size='small' fontSize='extra-small' style={{marginBottom:8, marginTop:6}}> Forgot Password?</Button>
-								</LinkRouter>
+							<LinkRouter to='/forgot' style={{textDecoration:'none'}}>
+								<Button size='small' fontSize='extra-small' style={{marginBottom:8, marginTop:6}}> Forgot Password?</Button>
+							</LinkRouter>
 
-								<div className="persistCheck" onChange={toggleThisPersist}>
-									<input style={{zIndex: 3, position: 'relative'}} type="checkbox" id="persists" checked={thisPersist} />
-									<label style={{zIndex: 3, position: 'relative'}} htmlFor="persists">Remember me</label>
-								</div>
-								<Button variant='contained' size='large' fullWidth style={{fontSize: 14, fontFamily:'Poppins', color:'white', marginTop: '16px'}} onClick={handleLogin}>Login</Button>
+							<div className="persistCheck" onChange={toggleThisPersist}>
+								<input style={{zIndex: 3, position: 'relative'}} type="checkbox" id="persists" checked={thisPersist} />
+								<label style={{zIndex: 3, position: 'relative'}} htmlFor="persists">Remember me</label>
+							</div>
+							<Button variant='contained' size='large' fullWidth style={{fontSize: 14, fontFamily:'Poppins', color:'white', marginTop: '16px'}} onClick={handleLogin}>Login</Button>
 
-								<Typography variant='h5' mt={2} mb={2} align='center'>OR</Typography>
-												
-								<LinkRouter to='/sign-up' align='center' style={{textDecoration: 'none'}}>
-									<Button variant="contained" size="large" align='center' style={{fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth>
-										Signup Today
-									</Button>
-								</LinkRouter>
+							<Typography variant='h5' mt={2} mb={2} align='center'>OR</Typography>
+											
+							<LinkRouter to='/sign-up' align='center' style={{textDecoration: 'none'}}>
+								<Button variant="contained" size="large" align='center' style={{fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth>
+									Signup Today
+								</Button>
+							</LinkRouter>
 						</Grid>
 					</>
 				}

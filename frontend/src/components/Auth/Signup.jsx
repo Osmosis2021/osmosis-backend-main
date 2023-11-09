@@ -21,11 +21,6 @@ const Signup = props => {
     const [repeatedTempPassword, setRepeatedTempPassword] = useState('')
     const [isTempTeacher, setIsTempTeacher] = useState(false)
     const [isTempStudent, setIsTempStudent] = useState(false)
-    // const [open, setOpen] = useState(false)
-    // const handleClose = () => {
-    //     setOpen(false);
-    //   };
-
     const navigate = useNavigate();
     
 
@@ -145,8 +140,7 @@ const Signup = props => {
 
         <form>
             <Typography variant='h6' mt={8} mb={6} align='center' fontSize={21}>Sign up Today!</Typography>
-            <Stack >
-            <Container align='center' style={{width:"80vw"}} sx={{ py: 2, }}>
+            <Container id='fieldContainer' align='center' style={{width:"80vw"}} sx={{ py: 2, }}>
                 <Grid container direction='row' spacing={2}>
                     <Grid item xs={6}>
                         <Grid item>
@@ -220,23 +214,20 @@ const Signup = props => {
                     </RadioGroup>
                 </Grid>
 
-            <LinkRouter to='/MapOpen' align='center' style={{textDecoration: 'none'}}>
-                <Button onClick={handleUserRegistration} type='submit' variant="contained" size="large" align='center' style={{fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth>
-                    Sign up Today
-                </Button>
-            </LinkRouter>
+                <LinkRouter to='/MapOpen' align='center' style={{textDecoration: 'none'}}>
+                    <Button onClick={handleUserRegistration} type='submit' variant="contained" size="large" align='center' style={{fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth>
+                        Sign up Today
+                    </Button>
+                </LinkRouter>
 
-            <Grid container py={2} justifyContent='center' alignItems='center'>
+                <Grid container py={2} justifyContent='center' alignItems='center'>
                     <Grid item fullWidth>
                         <Typography>By signing up you agree to our <span><a style={{color:'#00aeef'}} href='/termsofservice'>Terms of Service</a></span></Typography>
                     </Grid>
                 </Grid>
-
             </Container>
-        </Stack>
-    </form>
-    
-</>
-  )}
+        </form>
+    </>
+)}
 
 export default Signup;
