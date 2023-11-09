@@ -29,7 +29,7 @@ const SimpleBottomNavigation = () => {
   };
 
   return (
-    <BottomNavigation className={`BottomNav-${platform}`}
+    <BottomNavigation id='BottomNav' className={`BottomNav-${platform}`}
       style={{ 
         backgroundColor: theme.palette.mode === 'dark' ? '#121212' : '#fff',
         boxShadow: '0px -1px 10px 1px #00aeef',

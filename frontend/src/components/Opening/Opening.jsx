@@ -7,6 +7,8 @@ import { TextField, Container, Grid, Button, Typography } from '@mui/material';
 import Bubbles from '../Bubbles/Bubbles';
 import useAuth from '../../hooks/useAuth'
 import axios from '../../actions/axios'
+import {Capacitor} from "@capacitor/core"
+import  { Keyboard } from '@capacitor/keyboard'
 
 
 const Opening = () => {
@@ -20,6 +22,20 @@ const Opening = () => {
 	const [thisPersist, setThisPersist] = useState(true)
     const {setUserID, setUserName, setIsTeacher, setIsStudent, setFirstName, setLastName,
 		   setIsRegistered, setRoles, setEmail, setDescription} = useStore()
+
+	if (Capacitor.isNativePlatform()) {
+		Keyboard.addListener('keyboardDidShow', info => {
+			const bottomNav = document.getElementById('BottomNav')
+			bottomNav.style.display = 'none'  // 56 is the height of the bottom nav bar so this hides the navbar
+			const fieldGrid = document.getElementById('fieldGrid')
+			fieldGrid.scrollIntoView(true, {behavior: 'smooth'})
+		})
+		Keyboard.addListener('keyboardWillHide', info => {
+			const bottomNav = document.getElementById('BottomNav')
+			bottomNav.style.display = 'flex'  // 56 is the height of the bottom nav bar so this hides the navbar
+		})
+	}
+	   
 
 	const handleChangeEmail = (event) => {
 		event.preventDefault()
@@ -95,7 +111,7 @@ const Opening = () => {
 					<>
 						<Typography variant='subtitle1' mt={2} mb={2}>Already have an account:</Typography>
 			
-						<Grid item>
+						<Grid id='fieldGrid' item>
 							{
 								isWrong ? <TextField variant='outlined' label="Email or Username" inputProps={{ autoCapitalize: 'none' }}
 											error fullWidth onChange={handleChangeEmail} style={{marginBottom:'12px'}}/> :
