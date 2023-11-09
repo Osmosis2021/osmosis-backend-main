@@ -3,7 +3,7 @@ import { Button, Box, Container, Drawer, Grid, Paper, styled, Typography, IconBu
 import CloseIcon from '@mui/icons-material/Close';
 
 export const timeConverter = (rawTime) => {
-    const array = rawTime.split(':');
+    const array = rawTime?.split(':');
     const parsedInput = parseInt(array[0])
     const suffix = parsedInput >= 12 ? "PM" : "AM"; 
     const newTime = ((parsedInput + 11) % 12 + 1);

@@ -27,7 +27,7 @@ export default function PayPopUp(props) {
   const paymentMetadata = {
     teacherUserName: props.teacherUserName,
     time: props.selectedDateAndTime.startTime,
-    date: String(props.selectedDateAndTime.startDate).split('T')[0]
+    date: String(props.selectedDateAndTime.startDate)?.split('T')[0]
   }
   const stripeID = props.stripeID
   console.log(stripeID)
@@ -75,11 +75,11 @@ export default function PayPopUp(props) {
   // }
 
   const timeConverter = (rawTime) => {
-    const array = rawTime.split(':');
-    const parsedInput = parseInt(array[0])
+    const array = rawTime?.split(':');
+    const parsedInput = parseInt(array?.[0])
     const suffix = parsedInput >= 12 ? "PM" : "AM"; 
     const newTime = ((parsedInput + 11) % 12 + 1);
-    return(newTime + ':' + array[1] + suffix);
+    return(newTime + ':' + array?.[1] + suffix);
 }
 
   function formatDate (inputDate) {
