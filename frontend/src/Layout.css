@@ -7,6 +7,7 @@
 }
 
 .App {
-    height: 100vh;
+    position: relative;
+    height: calc(100% - 70px);
     min-height: -webkit-fill-available;
 }
