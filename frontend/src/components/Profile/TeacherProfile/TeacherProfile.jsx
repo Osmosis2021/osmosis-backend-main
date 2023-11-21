@@ -158,7 +158,8 @@ const TeacherProfile = (props) => {
                 fetch (`${backendURL}stripe/retrieveStripeAccount/${data.stripeID}`)
                     .then(res => res.json())
                     .then(data => {
-                        setIsOnboarded(data.retrieveAccount.payouts_enabled)
+                        console.log('In teacherprofile', {data})
+                        setIsOnboarded(data?.retrieveAccount?.payouts_enabled || false)
                     })
                 })
             .catch((error) => {
