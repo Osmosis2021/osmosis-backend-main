@@ -68,10 +68,11 @@ app.use(express.urlencoded({ extended: true }));
 //=============================================================================
 
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET
+let stripeKey = ''
 if (process.env.NODE_ENV === 'production') {
-    const stripeKey = process.env.STRIPE_LIVE_KEY
+    stripeKey = process.env.STRIPE_LIVE_KEY
 } else {
-    const stripeKey =  process.env.STRIPE_TEST_KEY
+    stripeKey =  process.env.STRIPE_TEST_KEY
 }
 const _stripe = Stripe(stripeKey);
 
