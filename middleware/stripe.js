@@ -1,6 +1,10 @@
 const router = require('express').Router()
 const Stripe = require('stripe');
-const stripeKey = process.env.NODE_ENV === 'production' ? process.env.STRIPE_LIVE_KEY : process.env.STRIPE_TEST_KEY
+if (process.env.NODE_ENV === 'production') {
+    const stripeKey = process.env.STRIPE_LIVE_KEY
+} else {
+    const stripeKey =  process.env.STRIPE_TEST_KEY
+}
 const stripe = Stripe(stripeKey);
 
 router.get('/config', (req, res) => {

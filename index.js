@@ -68,7 +68,11 @@ app.use(express.urlencoded({ extended: true }));
 //=============================================================================
 
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET
-const stripeKey = process.env.NODE_ENV === 'production' ? process.env.STRIPE_LIVE_KEY : process.env.STRIPE_TEST_KEY
+if (process.env.NODE_ENV === 'production') {
+    const stripeKey = process.env.STRIPE_LIVE_KEY
+} else {
+    const stripeKey =  process.env.STRIPE_TEST_KEY
+}
 const _stripe = Stripe(stripeKey);
 
 app.post('/stripe/webhook', express.raw({type: 'application/json'}), async (req, res) => {
