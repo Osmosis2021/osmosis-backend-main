@@ -29,14 +29,19 @@ router.get('/accountLink/:stripeID', async (req, res) => {
 router.get('/retrieveStripeAccount/:stripeID', async (req, res) => {
     const {stripeID} = req.params;
     console.log('inside retrieveStripeAccount with this ID:', stripeID)
-    const retrieveAccount = await stripe.accounts.retrieve(stripeID);
-    // const balance = await stripe.balance.retrieve({});
-        
-    const stripeObj = {
-        retrieveAccount: retrieveAccount,
-        // balanace: balance            
+    try {
+        const retrieveAccount = await stripe.accounts.retrieve(stripeID);
+        // const balance = await stripe.balance.retrieve({});
+            
+        const stripeObj = {
+            retrieveAccount: retrieveAccount,
+            // balanace: balance            
+        }
+        res.json(stripeObj)
+    } catch (error) {
+        console.error(error);
+        res.json({ message: 'An error occurred while retrieving the Stripe account' });
     }
-    res.json(stripeObj)
 })
 
 // STUDENT PAYING FOR COURSE vvvvvv
