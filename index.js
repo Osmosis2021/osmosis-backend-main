@@ -70,7 +70,8 @@ app.use(express.urlencoded({ extended: true }));
 //=============================================================================
 
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET
-const _stripe = Stripe(process.env.STRIPE_LIVE_KEY);
+const stripeKey = process.env.NODE_ENV === 'production' ? process.env.STRIPE_LIVE_KEY : process.env.STRIPE_TEST_KEY
+const _stripe = Stripe(stripeKey);
 
 app.post('/stripe/webhook', express.raw({type: 'application/json'}), async (req, res) => {
     const sig = req.headers['stripe-signature'];
