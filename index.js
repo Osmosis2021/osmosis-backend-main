@@ -16,8 +16,6 @@ const Booking = require('./models/booking');
 const cookieParser = require('cookie-parser');
 const allowedOrigins = require('./config/allowedOrigins');
 // const cloudinary = require('cloudinary').v2
-const dotenv = require('dotenv')
-dotenv.config()
 const app = express();
 
 if(process.env.NODE_ENV === 'production') {

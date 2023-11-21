@@ -4,9 +4,7 @@ const User = require('../models/user');
 const Chat = require('../models/chat');
 const jwt = require('jsonwebtoken');
 const Message = require('../models/message');
-const dotenv = require('dotenv');
 const mongoose = require('mongoose');
-dotenv.config()
 const jwtSecret = process.env.ACCESS_TOKEN_SECRET
 
 

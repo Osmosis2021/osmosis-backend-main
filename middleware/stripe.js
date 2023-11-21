@@ -1,8 +1,5 @@
 const router = require('express').Router()
 const Stripe = require('stripe');
-const dotenv = require('dotenv');
-const User = require('../models/user');
-dotenv.config()
 const stripeKey = process.env.NODE_ENV === 'production' ? process.env.STRIPE_LIVE_KEY : process.env.STRIPE_TEST_KEY
 const stripe = Stripe(stripeKey);
 

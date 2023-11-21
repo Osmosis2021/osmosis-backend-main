@@ -2,8 +2,6 @@ const router = require('express').Router();
 const Booking = require('../models/booking');
 const CourseTimeslot = require('../models/courseTimeslot');
 const jwt = require('jsonwebtoken');
-const dotenv = require('dotenv')
-dotenv.config()
 const jwtSecret = process.env.ACCESS_TOKEN_SECRET
 
 
