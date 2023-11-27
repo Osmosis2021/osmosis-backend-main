@@ -209,8 +209,9 @@ const TeacherProfile = (props) => {
             {/* VVV UPCOMING CLASSES VVV */}
             <Container>
 
-                { isOnboarded ? ( <> </> ) : 
-                    (
+                { 
+                    isOnboarded === false && userID === teacherInfo?.id ? ( 
+                        <>
                         <Card style={{padding:'5%', display:'flex', alignItems:'center', justifyContent:'center'}}>
                             <Grid container justifyContent='center' alignItems='center' direction="column">
                             <Grid item fullWidth>
@@ -224,6 +225,10 @@ const TeacherProfile = (props) => {
                             </Grid>
                             </Grid>
                         </Card>
+                        </> 
+                        ) : 
+                    (
+                        <></>
                     )
                 }
 
