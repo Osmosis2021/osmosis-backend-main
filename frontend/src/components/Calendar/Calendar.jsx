@@ -1,0 +1,195 @@
+import React, { useEffect, useState } from 'react';
+import { Button, Grid, Typography, Drawer, Card } from '@mui/material';
+import { useParams } from 'react-router-dom';
+import useAxiosPrivate from '../../hooks/useAxiosPrivate';
+
+const Calendar = () => {
+
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [anchorEl, setAnchorEl] = useState(null);
+    const pageUserName = useParams()?.userName
+    const axiosPrivate = useAxiosPrivate()
+    const [dummyBookingData, setDummyBookingData] = useState([]);
+    const [selectedBooking, setSelectedBooking] = useState(null);
+
+
+
+    const dummyData = [
+        {
+            timestamp: 1688154290971,
+            studentID: '649e12f59f32ca9da1bce7b7',
+            numberOfGuests: 2,
+            total: 40,
+            courseTimeslotID: '649af52745b05d0aa83c2eb4',
+            courseID: '649af52745b05d0aa83c2eb1',
+            teacherID: '649af2db45b05d0aa83c2e81',
+            teacherUserName: 'Davidlowry',
+            time: '11:00',
+            date: '2023-11-29T00:00:00.000Z',
+            studentUserName: 'Sarah',
+            ratedAndReviewed: false,
+        }
+    ]
+
+    useEffect(() => {
+        setDummyBookingData(dummyData);
+        console.log(dummyData)
+    }, []);
+
+    const hasBookingsForDay = (day) => {
+        return dummyBookingData.some((booking) => {
+            const bookingDate = new Date(booking.date);
+            return (
+                bookingDate.getUTCFullYear() === day.getUTCFullYear() &&
+                bookingDate.getUTCMonth() === day.getUTCMonth() &&
+                bookingDate.getUTCDate() === day.getUTCDate()
+            );
+        });
+    };
+
+    const handlePrevMonth = () => {
+        setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1));
+    };
+
+    const handleNextMonth = () => {
+        setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1));
+    };
+
+    const handleDayClick = (day) => async (event) => {
+        setAnchorEl(event.currentTarget);
+    
+        const clickedDate = new Date(Date.UTC(day.getFullYear(), day.getMonth(), day.getDate()));
+        const bookingForDay = dummyBookingData.find((booking) => {
+            const bookingDate = new Date(booking.date);
+            return (
+                bookingDate.getUTCFullYear() === clickedDate.getUTCFullYear() &&
+                bookingDate.getUTCMonth() === clickedDate.getUTCMonth() &&
+                bookingDate.getUTCDate() === clickedDate.getUTCDate()
+            );
+        });
+    
+        setSelectedBooking(bookingForDay);
+    };
+    
+
+    const handleClosePopover = () => {
+        setAnchorEl(null);
+    };
+
+    const isCurrentDay = (day) => {
+        const today = new Date();
+        return day.toDateString() === today.toDateString();
+    };    
+
+    const open = Boolean(anchorEl);
+
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const startingDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1).getDay();
+    const daysInMonth = getCalendarDays(selectedDate);
+
+    return (
+        <Card style={{margin:'2%', padding:'2%'}}>
+            <Grid container spacing={2} justifyContent="space-between">
+                <Grid item>
+                    <Button variant="outlined" onClick={handlePrevMonth}>
+                        Previous Month
+                    </Button>
+                </Grid>
+                
+                <Grid item>
+                    <Typography variant="h5">
+                        {new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(selectedDate)}
+                    </Typography>
+                </Grid>
+                
+                <Grid item>
+                    <Button variant="outlined" onClick={handleNextMonth}>
+                        Next Month
+                    </Button>
+                </Grid>
+            </Grid>
+
+            {/* Weekday headers */}
+            <Grid container spacing={2} style={{ marginTop: '10px' }}>
+                {
+                    weekdays.map((day, index) => (
+                        <Grid item key={index} style={{ textAlign: 'center', width: 'calc(100% / 7)' }}>
+                            <Typography variant="subtitle2">{day}</Typography>
+                        </Grid>
+                    ))
+                }
+            </Grid>
+
+            {/* Calendar days */}
+            <Grid container spacing={2} textAlign='center'>
+                {
+                    [...Array(startingDay)].map((_, index) => (
+                    <Grid item key={index} style={{ width: 'calc(100% / 7)' }}></Grid>
+                    ))
+                }
+
+                {
+                    daysInMonth.map((day, index) => (
+                        <Grid item key={index} style={{ width: 'calc(100% / 7)' }}>
+                            <Button 
+                                onClick={handleDayClick(day)} 
+                                variant="outlined"
+                                style={{ 
+                                    backgroundColor: isCurrentDay(day) ? '#00aeef' : 'inherit', 
+                                    color: isCurrentDay(day) ? 'white' : 'inherit',
+                                    border: hasBookingsForDay(day) ? '2px solid #00aeef' : '2px solid #ccc',
+                                    minWidth:'40px',
+                                }}
+                            >
+                            {day.getDate()}
+                            </Button>
+                        </Grid>
+                    ))
+                }
+
+            </Grid>
+
+            {/* Popup for displaying schedule */}
+            <Drawer
+                open={open}
+                // anchorEl={anchorEl}
+                anchor='bottom'
+                onClose={handleClosePopover}
+            >
+                <div style={{ padding: '10px', height:'30vh' }}>
+                    {/* Display booking information if available */}
+                    {selectedBooking ? (
+                        <div>
+                            <Typography variant="h6">Booking Details</Typography>
+                            <Typography>Date: {selectedBooking.date}</Typography>
+                            <Typography>Time: {selectedBooking.time}</Typography>
+                            <Typography>Student: {selectedBooking.studentUserName}</Typography>
+                            {/* Add more details as needed */}
+                        </div>
+                    ) : (
+                        // Display a message when no booking is available
+                        <Typography>No bookings for this day.</Typography>
+                    )}
+                </div>
+            </Drawer>
+
+        </Card>
+    );
+};
+
+    // Helper function to get an array of days in the current month
+    const getCalendarDays = (date) => {
+        
+        const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+        const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+        const daysInMonth = [];
+        
+        for (let day = firstDayOfMonth; day <= lastDayOfMonth; day.setDate(day.getDate() + 1)) {
+            daysInMonth.push(new Date(day));
+        }
+
+        return daysInMonth;
+    };
+
+export default Calendar;
