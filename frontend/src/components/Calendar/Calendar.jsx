@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Button, Grid, Typography, Drawer, Card } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
+import axios from 'axios';
+import useStore from '../../store';
 
 const Calendar = () => {
 
@@ -9,7 +11,10 @@ const Calendar = () => {
     const [anchorEl, setAnchorEl] = useState(null);
     const pageUserName = useParams()?.userName
     const axiosPrivate = useAxiosPrivate()
+    const {userName} = useStore();
     const [dummyBookingData, setDummyBookingData] = useState([]);
+    const [bookings, setBookings] = useState([]);
+    const [studentBookings, setStudentBookings] = useState([]);
     const [selectedBooking, setSelectedBooking] = useState(null);
 
 
@@ -32,12 +37,31 @@ const Calendar = () => {
     ]
 
     useEffect(() => {
-        setDummyBookingData(dummyData);
-        console.log(dummyData)
-    }, []);
+        const getBookingInfo = async () => {
+            try {
+                const teacherResponse = await axiosPrivate.get(`booking/teacherBookings/${userName}`);
+                const studentResponse = await axiosPrivate.get(`booking/bookings/${userName}`);
+    
+                // Check if the responses are successful before accessing data
+                if (teacherResponse.status === 200 && studentResponse.status === 200) {
+                    console.log('Teacher bookings:', teacherResponse.data);
+                    console.log('Student bookings:', studentResponse.data);
+                    
+                    setBookings(teacherResponse.data);
+                    setStudentBookings(studentResponse.data);
+                } else {
+                    console.error('Error fetching data. Status codes:', teacherResponse.status, studentResponse.status);
+                }
+            } catch (err) {
+                console.error('Error fetching data:', err);
+            }
+        };
+    
+        getBookingInfo();
+    }, [userName]);
 
     const hasBookingsForDay = (day) => {
-        return dummyBookingData.some((booking) => {
+        return studentBookings.some((booking) => {
             const bookingDate = new Date(booking.date);
             return (
                 bookingDate.getUTCFullYear() === day.getUTCFullYear() &&
@@ -59,7 +83,7 @@ const Calendar = () => {
         setAnchorEl(event.currentTarget);
     
         const clickedDate = new Date(Date.UTC(day.getFullYear(), day.getMonth(), day.getDate()));
-        const bookingForDay = dummyBookingData.find((booking) => {
+        const bookingForDay = studentBookings.find((booking) => {
             const bookingDate = new Date(booking.date);
             return (
                 bookingDate.getUTCFullYear() === clickedDate.getUTCFullYear() &&
@@ -160,10 +184,21 @@ const Calendar = () => {
                     {/* Display booking information if available */}
                     {selectedBooking ? (
                         <div>
+                            {/* <Typography variant="h6">Booking Details</Typography>
+                            <Typography>Date: {selectedBooking.date}</Typography>
+                            <Typography>Time: {selectedBooking.time}</Typography>
+                            <Typography>Student: {selectedBooking.studentUserName}</Typography> */}
                             <Typography variant="h6">Booking Details</Typography>
                             <Typography>Date: {selectedBooking.date}</Typography>
                             <Typography>Time: {selectedBooking.time}</Typography>
                             <Typography>Student: {selectedBooking.studentUserName}</Typography>
+                            <Typography>Number of Guests: {selectedBooking.numberOfGuests}</Typography>
+                            <Typography>Total Amount: {selectedBooking.total}</Typography>
+                            {/* Display course information */}
+                            <Typography variant="h6">Course Details</Typography>
+                            <Typography>Course Title: {selectedBooking.courseID.courseTitle}</Typography>
+                            <Typography>Course Description: {selectedBooking.courseID.courseDescription}</Typography>
+                            <Typography>Location: {selectedBooking.courseID.address.city}, {selectedBooking.courseID.address.state}</Typography>
                             {/* Add more details as needed */}
                         </div>
                     ) : (
