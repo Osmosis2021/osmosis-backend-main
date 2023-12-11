@@ -20,7 +20,7 @@ const SimpleBottomNavigation = () => {
   };
 
   const notificationFunction = () => {
-    navigate(`/${isRegistered ? 'chat' : '/'}`)
+    navigate(`${isRegistered ? '/chat' : '/'}`)
     // Clear the first notification from the array
     if (notification.length > 0) {
       const [ , ...restNotifications] = notification;
@@ -46,7 +46,7 @@ const SimpleBottomNavigation = () => {
       onChange={handleChange}
     >
 
-      <BottomNavigationAction onClick={()=>navigate('/')} value="home" icon={<HomeIcon sx={{ fontSize: 34 }}/>} />
+      <BottomNavigationAction onClick={()=>navigate(`${isRegistered ? '/explore' : '/'}`)} value="home" icon={<HomeIcon sx={{ fontSize: 34 }}/>} />
       <BottomNavigationAction onClick={()=>navigate('/MapOpen')} value="search" icon={<ExploreRoundedIcon sx={{ fontSize: 34 }}/>} /> 
       
       <BottomNavigationAction onClick={notificationFunction} value="messages" icon={
@@ -57,7 +57,7 @@ const SimpleBottomNavigation = () => {
       /> 
 
       <BottomNavigationAction value="profile" icon={<AccountCircleRoundedIcon sx={{ fontSize: 34 }}/>}
-        onClick={()=>navigate(`/${isTeacher ? 'teachers' : 'students'}/${userName}`)} />
+        onClick={()=>navigate(`${isTeacher ? '/teachers' : '/students'}/${userName}`)} />
     
     </BottomNavigation>
   );
