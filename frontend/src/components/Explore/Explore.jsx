@@ -11,6 +11,7 @@ export default function Explore() {
     useEffect(()=>{
         axios.get(`${backendURL}course/getClasses`).then(response => {
             setClasses(response.data)
+            console.log(response.data)
         })
     }, []);
 
@@ -26,12 +27,17 @@ export default function Explore() {
                 <Grid container direction='row' spacing={2}>
                     {classes?.length > 0 && classes?.map(course => (
                         <Grid item xs={12} sm={6} md={4} lg={3}>
-                        <SessionCard 
-                            images={course?.images[0]?.url} 
-                            industry={course?.industry}
-                            firstName={course?.firstName}
-                            tags={course?.tag}
-                            price={course?.price}
+                            <SessionCard 
+                                images={course?.images[0]?.url} 
+                                industry={course?.industry}
+                                courseTitle={course?.courseTitle}
+                                firstName={course?.teacherID?.firstName}
+                                lastName={course?.teacherID?.lastName}
+                                tags={course?.tags}
+                                price={course?.price}
+                                icon={course?.industry}
+                                profileImage={course?.teacherID?.profileImage?.url}
+                                capacity={course?.capacity}
                             />
                         </Grid>
                     ))}
