@@ -6,6 +6,8 @@ const useKeyboard = () => {
         // hide bottom navbar while keyboard is showing, and scroll the `scrollToId` element to top if given
         if (Capacitor.isNativePlatform()) {
             Keyboard.addListener('keyboardDidShow', info => {
+                // const root = document.getElementById('root')
+                // root.style.paddingBottom = String(info.keyboardHeight + 10) + 'px'
                 const bottomNav = document.getElementById('BottomNav')
                 bottomNav.style.display = 'none'
                 if (scrollToId) {
@@ -14,6 +16,8 @@ const useKeyboard = () => {
                 }
             })
             Keyboard.addListener('keyboardWillHide', info => {
+                // const root = document.getElementById('root')
+                // root.style.paddingBottom = '70px'
                 const bottomNav = document.getElementById('BottomNav')
                 bottomNav.style.display = 'flex'
             })

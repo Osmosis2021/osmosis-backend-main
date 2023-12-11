@@ -1,9 +1,6 @@
 import RequireAuth from './RequireAuth';
 import axios from 'axios'
-import useAuth from './hooks/useAuth'
-// import axios from '../../actions/axios'
 import PersistLogin from './components/Profile/PersistLogin'
-import {useState, useEffect} from 'react'
 import { Routes, Route } from 'react-router-dom';
 import {Opening, Role} from './components/index';
 import UpdatedProgressBar from './components/TopNavBar/UpdatedProgressBar';
