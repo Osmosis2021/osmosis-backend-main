@@ -35,6 +35,7 @@ import Chat from './components/Chat/Chat';
 import Layout from './Layout'
 import Unauthorized from './components/Unauthorized'
 import StripeOnboarding from './components/SessionCreation/StripeOnboarding/StripeOnboarding';
+import Calendar from './components/Calendar/Calendar.jsx';
 
 axios.defaults.withCredentials = true;
 
@@ -111,6 +112,8 @@ function App() {
 						{/* TO RENDER TEACHER FLOW INPUT ELEMENTS FOR PRODUCTION */}
 						<Route path='/availability' element={<ToggleDays />} />
 						<Route path='/FLOW' element={<UpdatedProgressBar />} />
+
+						<Route path='/calendar' element={<Calendar/>} />
 
 						<Route path='/explore' element={<Explore />} />
 						{/* SIGN UP PROMPT FOR TEACHERS*/}

@@ -29,62 +29,60 @@ const TeacherProfile = (props) => {
     const pageUserName = useParams()?.userName
 
     useEffect(() => {
-        let isMounted = true
-        const controller = new AbortController()
-
-        const getPageInfo = async () => {
+        let isMounted = true;
+        const controller = new AbortController();
+        const _today = new Date(); // Move _today definition to a higher scope
+    
+        const getTeacherBookings = async () => {
             try {
-                const resp = await axiosPrivate.get(`booking/teacherBookings/${pageUserName}`,
-                                                    {signal: controller.signal})
-                const _today = new Date();
+                const resp = await axiosPrivate.get(`booking/teacherBookings/${pageUserName}`, { signal: controller.signal });
                 const teacherClassHappened = resp.data.filter(booking => {
                     const slotDate = new Date(booking.date);
                     return slotDate <= _today;
                 });
                 if (isMounted) {
-                    setBookings(resp.data)
-                    setClassHappened(teacherClassHappened)
+                    setBookings(resp.data);
+                    setClassHappened(teacherClassHappened);
                 }
-
+            } catch (err) {
+                console.error('Error fetching teacher bookings:', err);
+            }
+        };
+    
+        const getStudentBookings = async () => {
+            try {
                 if (isStudent) {
-                    const studentResp = axios.get(`booking/bookings/${pageUserName}`, {signal: controller.signal})
+                    const studentResp = await axiosPrivate.get(`booking/bookings/${pageUserName}`, { signal: controller.signal });
                     if (studentResp.data) {
                         const bookingHappenedAndNotReviewed = studentResp.data.filter(booking => {
                             const slotDate = new Date(booking.date);
                             return slotDate <= _today && !booking.ratedAndReviewed;
-                        })
+                        });
                         const studentClassHappened = studentResp.data.filter(booking => {
                             const slotDate = new Date(booking.date);
                             return slotDate <= _today;
-                        })
+                        });
                         if (isMounted) {
-                            setUnratedAndUnreviewedBooking(bookingHappenedAndNotReviewed)
-                            setClassHappened(studentClassHappened)
-                            console.log('student classes that happened.....', studentClassHappened)
+                            setUnratedAndUnreviewedBooking(bookingHappenedAndNotReviewed);
+                            setClassHappened(studentClassHappened);
+                            console.log('Student classes that happened:', studentClassHappened);
                         }
                     }
                 }
             } catch (err) {
-                console.error(err)
+                console.error('Error fetching student bookings:', err);
             }
-        }
-        getPageInfo()
-
-        // axios.get(`booking/teacherBookings/${pageUserName}`).then(response => {
-        //     setBookings(response.data);
-        //     const _today = new Date();
-        //     const _classHappened = response.data.filter(booking => {
-        //         const slotDate = new Date(booking.date);
-        //         return slotDate <= _today;
-        //     });
-        //     setClassHappened(_classHappened);
-        // })
-
+        };
+    
+        getTeacherBookings();
+        getStudentBookings();
+    
         return () => {
-            isMounted = false
-            controller.abort()
-        }
+            isMounted = false;
+            controller.abort();
+        };
     }, [pageUserName, isStudent]);
+    
     
 	useEffect(() => {
         const _controller = new AbortController()
@@ -209,8 +207,9 @@ const TeacherProfile = (props) => {
             {/* VVV UPCOMING CLASSES VVV */}
             <Container>
 
-                { isOnboarded ? ( <> </> ) : 
-                    (
+                { 
+                    isOnboarded === false && userID === teacherInfo?.id ? ( 
+                        <>
                         <Card style={{padding:'5%', display:'flex', alignItems:'center', justifyContent:'center'}}>
                             <Grid container justifyContent='center' alignItems='center' direction="column">
                             <Grid item fullWidth>
@@ -224,6 +223,11 @@ const TeacherProfile = (props) => {
                             </Grid>
                             </Grid>
                         </Card>
+                        <br/>
+                        </> 
+                        ) : 
+                    (
+                        <></>
                     )
                 }
 
@@ -259,7 +263,7 @@ const TeacherProfile = (props) => {
                 {userID === teacherInfo?._id && unratedAndUnreviewedBooking.length > 0 &&
                     <Typography variant="h4">Rate your session:</Typography>
                 }
-
+                        {console.log({isStudent, userID, teacherInfo, unratedAndUnreviewedBooking})}
                 {userID === teacherInfo?._id && unratedAndUnreviewedBooking.map(booking => {
                     return (
                         <React.Fragment key={booking._id}>

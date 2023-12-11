@@ -187,7 +187,7 @@ export default function TopProfileBar(props) {
                 {/* MODAL */}
                 <Drawer anchor='bottom' open={isDrawerOpen} onClose={()=> setIsDrawerOpen(false)}>
                 <Box p={2} textAlign='center' role='presentation'>
-                    <Container>
+                    <Container style={{marginBottom:'35px'}}>
                         <Grid container spacing={2}>
                         <List style={{width:'100%', display:'flex', flexDirection:'column', justifyContent: 'center', }}>
 

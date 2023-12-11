@@ -69,7 +69,7 @@ router.get('/getCourse/:courseID', async (req, res) => {
 // Get Classes from DB
 
 router.get('/getClasses', async (req,res) => {
-    res.json( await Course.find() );
+    res.json( await Course.find().populate('teacherID'));
   });
 
 
