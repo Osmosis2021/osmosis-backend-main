@@ -4,7 +4,6 @@ import { AppBar, Box, Button, Container, Drawer, Grid, IconButton, List, ListIte
 // import { Link } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
-
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import LockIcon from '@mui/icons-material/Lock';
 import PrivacyTipIcon from '@mui/icons-material/PrivacyTip';
@@ -22,6 +21,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import useStore from '../../store';
+import useLogout from '../../hooks/useLogout';
 
 export default function TopProfileBar(props) {
 
@@ -37,6 +37,7 @@ export default function TopProfileBar(props) {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false)
     const [open, setOpen] = React.useState(false);
     const {isTeacher} = useStore();
+    const signout = useLogout();
 
     const handleClickOpen = () => {
         setOpen(true);
@@ -95,7 +96,8 @@ export default function TopProfileBar(props) {
           name: 'Logout',
           icon: <LogoutIcon fontSize='large'/>,
           key: 7,
-          link: '/'
+          link: '/',
+          func: signout
         },
       ]
   
@@ -195,7 +197,7 @@ export default function TopProfileBar(props) {
 
   <ListItem key={setting.key}>
   <Link to={setting.link} style={{textDecoration:'none', color:'black'}}>
-    <ListItemButton>
+    <ListItemButton onClick={setting?.func}>
       <ListItemIcon>
       {setting.icon}
       </ListItemIcon>
