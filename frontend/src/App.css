@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300&display=swap');
 
+:root {
+  --iosTopPadding: 52px;
+  --androidTopPadding: 0px;
+}
 
 body {
   overflow-x: hidden;
@@ -11,6 +15,3 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-#root {
-  padding-bottom: 70px;
-}

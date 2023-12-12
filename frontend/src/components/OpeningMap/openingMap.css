@@ -28,11 +28,17 @@
 
 #mapComponentContainer {
     position: fixed;
-    top: 0;
-    height: calc(100% - 56px);
 }
+
 #mapComponentContainer .mapboxgl-map {
     position: fixed !important;
-    top: 72px;
+}
+.mapComponentContainer-web .mapboxgl-map {
     height: calc(100% - 128px) !important;
+}
+.mapComponentContainer-ios .mapboxgl-map {
+    height: calc(100% - 128px - var(--iosTopPadding)) !important;
+}
+.mapComponentContainer-android .mapboxgl-map {
+    height: calc(100% - 128px - var(--androidTopPadding)) !important;
 }

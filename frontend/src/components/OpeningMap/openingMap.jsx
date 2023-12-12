@@ -76,7 +76,7 @@ const OpeningMap = () => {
 	}, [selectedCourse]);
 
 	return (
-		<div id='mapComponentContainer'>
+		<div id='mapComponentContainer' class={`mapComponentContainer-${platform}`}>
 			{/* <IndustryFilter /> */}
 			<Container maxWidth='xl'>
 				<Box

@@ -6,6 +6,6 @@
     color: gray !important;
 }
 
-.BottomNav-web {
-    padding-bottom: 0;
+.BottomNav-ios {
+    padding-bottom: 14px;
 }
