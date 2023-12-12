@@ -92,7 +92,7 @@ const Forgot = () => {
                             Enter the email address<br/>associated with your account.<br/>We'll send you a link to reset your password.
                         </Typography>
                         <TextField variant='outlined' label='Email' placeholder='Email' fullWidth size='large' value={email}
-                             style={{margin: '16px 0'}} onChange={e => setEmail(e.target.value)}/>
+                            inputProps={{ autoCapitalize: 'none' }} style={{margin: '16px 0'}} onChange={e => setEmail(e.target.value)}/>
                         <Button variant='contained' size='large' fullWidth onClick={requestResetCode}
                             style={{fontSize:18, color:'white', fontFamily:'Poppins'}}>
                             Send Password Reset Code
@@ -104,7 +104,7 @@ const Forgot = () => {
                     </Grid>
                     <Grid item className={`display-${stage === 'resetCode'}`}>
                         <TextField variant='outlined' label='Reset Code' placeholder='Code' fullWidth size='large'
-                            value={resetCode} onChange={e => {setResetCode(e.target.value)}}/>
+                            value={resetCode} onChange={e => {setResetCode(e.target.value)}} inputProps={{ autoCapitalize: 'none' }}/>
                         <Button variant='contained' size='large' fullWidth sx={{marginTop: 2}} 
                             onClick={verifyResetCode} style={{fontSize:18, color:'white', fontFamily:'Poppins', marginBottom: '25px'}}>
                             Verify Password Reset Code
@@ -114,9 +114,9 @@ const Forgot = () => {
                     <Grid item className={`display-${stage === 'newPassword'}`}>
                         <Typography align='center' variant='h5' mt={6} mb={0}> Enter a new password <br/> at least 8 letters long.</Typography> 
                         <TextField variant='outlined' label='New Password' placeholder='Password' value={newPassword} type="password"
-                            onChange={e => {setNewPassword(e.target.value)}} fullWidth size='large' style={{marginTop: '16px'}}/>
+                            onChange={e => {setNewPassword(e.target.value)}} fullWidth size='large' style={{marginTop: '16px'}} inputProps={{ autoCapitalize: 'none' }}/>
                         <TextField variant='outlined' label='Repeat Password' placeholder='Repeat Password' value={repeatPassword} type="password"
-                            onChange={e => {setRepeatPassword(e.target.value)}} fullWidth size='large' style={{margin: '16px 0'}}/>
+                            onChange={e => {setRepeatPassword(e.target.value)}} fullWidth size='large' style={{margin: '16px 0'}} inputProps={{ autoCapitalize: 'none' }}/>
                         <Button variant='contained' size='large' fullWidth onClick={updatePassword} 
                             style={{fontSize:18, color:'white', fontFamily:'Poppins'}}>
                             Save New Password

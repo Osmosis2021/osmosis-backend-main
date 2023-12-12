@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-import { Container, Typography, Stack, TextField, Grid, Button } from '@mui/material';
+import { Container, Typography, TextField, Grid, Button } from '@mui/material';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -177,25 +177,25 @@ const Signup = props => {
                 <Grid container py={2}>
                     <Grid item xs={12}>
                         <Typography style={{textAlign:'left'}} variant="body1">Username</Typography>
-                        <TextField id='userNameInput' onChange={changeUserName} value={tempUserName} fullWidth placeholder='Unique Username'></TextField>
+                        <TextField id='userNameInput' inputProps={{ autoCapitalize: 'none' }} onChange={changeUserName} value={tempUserName} fullWidth placeholder='Unique Username'></TextField>
                     </Grid>
                 </Grid>
                 <Grid container >
                     <Grid item xs={12}>
                     <Typography style={{textAlign:'left'}} variant="body1">Email</Typography>
-                        <TextField  onChange={changeEmail} value={tempEmail} fullWidth placeholder='Email'></TextField>
+                        <TextField inputProps={{ autoCapitalize: 'none' }} onChange={changeEmail} value={tempEmail} fullWidth placeholder='Email'></TextField>
                     </Grid>
                 </Grid>
                 <Grid container py={2}>
                     <Grid item xs={12}>
                     <Typography style={{textAlign:'left'}} variant="body1">Password</Typography>
-                        <TextField onChange={changePassword} type="password" value={tempPassword} fullWidth placeholder='Your Password'></TextField>
+                        <TextField inputProps={{ autoCapitalize: 'none' }} onChange={changePassword} type="password" value={tempPassword} fullWidth placeholder='Your Password'></TextField>
                     </Grid>
                 </Grid>
                 <Grid container>
                     <Grid item xs={12}>
                     <Typography style={{textAlign:'left'}} variant="body1">Repeat Password</Typography>
-                        <TextField onChange={changeRepeatedPassword} type="password" value={repeatedTempPassword} placeholder='Repeat Your Password'
+                        <TextField inputProps={{ autoCapitalize: 'none' }} onChange={changeRepeatedPassword} type="password" value={repeatedTempPassword} placeholder='Repeat Your Password'
                             style={repeatedTempPassword === tempPassword ? {} : {border: '3px solid pink', borderRadius: '5px'}} fullWidth>
                         </TextField>
                     </Grid>
