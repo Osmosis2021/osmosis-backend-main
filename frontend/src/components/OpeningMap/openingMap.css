@@ -26,10 +26,6 @@
     opacity: .2;
 }
 
-#mapComponentContainer {
-    position: fixed;
-}
-
 #mapComponentContainer .mapboxgl-map {
     position: fixed !important;
 }
