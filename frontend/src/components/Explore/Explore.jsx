@@ -17,7 +17,7 @@ export default function Explore() {
 
     return (
         <>
-            <Container maxWidth='sm' align='center'>
+            <Container align='center'>
                 <Stack mb={4} mt={6} style={{ alignItems: 'center' }}>
                     <Typography variant='h3'>
                         <span style={{ color: '#00aeef' }}>Explore </span>
@@ -34,7 +34,7 @@ export default function Explore() {
                                 firstName={course?.teacherID?.firstName}
                                 lastName={course?.teacherID?.lastName}
                                 tags={course?.tags}
-                                price={course?.price}
+                                price={course?.pricePerStudent}
                                 icon={course?.industry}
                                 profileImage={course?.teacherID?.profileImage?.url}
                                 capacity={course?.capacity}
