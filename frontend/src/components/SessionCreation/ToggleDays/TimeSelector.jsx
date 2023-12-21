@@ -18,7 +18,7 @@ function TimeSelector( { courseStartTime, setCourseStartTime }) {
   }
 
   return (
-    <div>
+    <div style={{minWidth:'70px'}}>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <MobileTimePicker
           label='Start Time'
