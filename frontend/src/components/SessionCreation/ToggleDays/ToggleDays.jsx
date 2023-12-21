@@ -169,7 +169,7 @@ const ToggleDays = (props) => {
                 child.innerHTML = `
                 <div id='timeslot-${i}' class='existingTimeslot'>
                 <div>${slot.startTime}</div>
-                <button class='toRemoveButton' id='remove-${slot.startDate}'>Remove</button>
+                <button class='toRemoveButton' id='remove-${slot.startDate}'>x</button>
                 </div>`
                 dayContainer.appendChild(child)
                 setTimeout(() => {
