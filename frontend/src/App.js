@@ -36,6 +36,7 @@ import Layout from './Layout'
 import Unauthorized from './components/Unauthorized'
 import StripeOnboarding from './components/SessionCreation/StripeOnboarding/StripeOnboarding';
 import Calendar from './components/Calendar/Calendar.jsx';
+import LandingPage from './components/LandingPage/LandingPage.jsx';
 
 axios.defaults.withCredentials = true;
 
@@ -108,7 +109,7 @@ function App() {
 						{/* <Route path='/teacherComponents/Calendar' element={<Calendar/>} /> */}
 
 						<Route path='/forgot' element={<Forgot />} />
-
+						<Route path='landing' element={<LandingPage />} />
 						{/* TO RENDER TEACHER FLOW INPUT ELEMENTS FOR PRODUCTION */}
 						<Route path='/availability' element={<ToggleDays />} />
 						<Route path='/FLOW' element={<UpdatedProgressBar />} />

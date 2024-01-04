@@ -1,0 +1,58 @@
+import React from 'react';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import useScrollTrigger from '@mui/material/useScrollTrigger';
+import Slide from '@mui/material/Slide';
+import { Link } from 'react-router-dom';
+
+const pages = ['Teach', 'Learn', 'Explore', 'Support']
+
+function HideOnScroll(props) {
+    
+    const { children, window } = props;
+    
+    const trigger = useScrollTrigger({
+        target: window ? window() : undefined,
+    });
+  
+    return (
+        <Slide appear={false} direction="down" in={!trigger}>
+            {children}
+        </Slide>
+    );
+}
+  
+
+function ResponsiveAppBar(props) {
+
+    return (
+        <React.Fragment>
+            <HideOnScroll {...props}>
+                <AppBar>
+                    <Toolbar>
+                        <Typography
+                            variant="h4"
+                            noWrap
+                            component="a"
+                            sx={{ mr: 2, display: { xs: 'flex', md: 'flex', lg: 'flex' }, flexGrow:1, fontFamily: 'Poppins', color: 'white', textDecoration: 'none' }}>   
+                            Osmosis
+                        </Typography>
+                        
+                        <Link to='/'>
+                            <Button style={{margin:'5px', color:'white'}} variant='contained'>Login</Button>
+                        </Link>
+                        <Link to='/sign-up'>
+                            <Button style={{margin:'5px', color:'#00aeef', backgroundColor:'white'}} variant='contained'>Signup</Button>
+                        </Link>
+
+                    </Toolbar>
+                </AppBar>
+            </HideOnScroll>
+        </React.Fragment>
+    );
+}
+
+export default ResponsiveAppBar;
