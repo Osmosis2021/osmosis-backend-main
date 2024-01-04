@@ -3,7 +3,7 @@ import useStore from '../../store';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Prof from './Prof';
-
+import { axiosPrivate } from '../../actions/axios';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 // import PhotoCamera from '@mui/icons-material/PhotoCamera';
 // import TopNavBar from '../../../TopNavBar/TopNavBar';
@@ -46,9 +46,8 @@ export default function UploadProfilePicture() {
 
     const uploadFile = async (e) => {
         e.preventDefault();
-			axios.put(`${backendURL}user/updateProfileImage/${userID}`, {
-				image
-			}).then(res => {
+			axiosPrivate.put(`${backendURL}user/updateProfileImage/${userID}`, { image }, {withCredentials: true}
+			).then(res => {
 				alert('Image updated')
 		})
     }

@@ -212,14 +212,15 @@ router.put('/updateProfile/:id', async (req, res) => {
 
 // UPDATE PROFILE IMAGE
 router.put('/updateProfileImage/:id', async (req, res) => {
-    const accessToken = req.cookies?.accessToken || req.cookies?.token
+    // const accessToken = req.cookies?.accessToken || req.cookies?.token
+    const accessToken = req?.headers?.authorization?.slice(7)  // slice(7) because it begins 'Bearer '
     const data = { profileImage: req.body.image }
 
     jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
         if (err) throw err;
         const currentUser = await User.findById(req.params.id)
         try {
-            if(userData.id === currentUser.id) {
+            if(userData.userName === currentUser.userName) {
                 if (req.body.image !== '') {
                     const ImgId = currentUser.profileImage.public_id;
                     if (ImgId) {
