@@ -255,9 +255,12 @@ router.put('/updateProfileImage/:id', async (req, res) => {
 
 
 // DELETE USER
-router.delete('/deleteProfile/:id', async (req, res) => {
+router.delete('/deleteProfile/:id/:password', async (req, res) => {
     const foundUser = await User.findById(req.params.id);
     // retrieve image(s)
+
+    const passOk = bcrypt.compareSync(req.params.password, foundUser.password)
+    if(!passOk) return res.sendStatus(401)  // Unauthorized, email/password don't match
 
     if(foundUser.profileImage.url !== ''){
         const profileImage = foundUser.profileImage.public_id;
