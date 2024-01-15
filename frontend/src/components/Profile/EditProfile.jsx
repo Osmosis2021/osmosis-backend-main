@@ -7,7 +7,6 @@ import useStore from '../../store';
 import useAuth from '../../hooks/useAuth'
 import TopProfileBar from '../TopNavBar/TopProfileBar';
 import useKeyboard from '../../hooks/useKeyboard'
-import { response } from 'express';
 
 
 function EditProfile() {
