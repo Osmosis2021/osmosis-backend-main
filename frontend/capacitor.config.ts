@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.getosmosis',
+  appId: 'io.getosmosis.osmosis',
   appName: 'osmosis',
   webDir: 'build',
   server: {
