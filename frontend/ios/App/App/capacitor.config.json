@@ -1,5 +1,5 @@
 {
-	"appId": "io.getosmosis",
+	"appId": "io.getosmosis.osmosis",
 	"appName": "osmosis",
 	"webDir": "build",
 	"server": {
