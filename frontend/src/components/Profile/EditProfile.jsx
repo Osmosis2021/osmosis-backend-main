@@ -1,4 +1,8 @@
-import { Button, Container, Grid, Stack, TextField, Typography } from '@mui/material';
+import { Button, Container, Grid, Stack, TextField, Typography } from '@mui/material'
+import IconButton from '@mui/material/IconButton'
+import InputAdornment from '@mui/material/InputAdornment'
+import Visibility from '@mui/icons-material/Visibility'
+import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import React, { useState, useEffect } from 'react';
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -26,6 +30,7 @@ function EditProfile() {
     const [deleteSequence, setDeleteSequence] = useState(false)
     const [confirmUserName, setConfirmUserName] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
 
 	useEffect(() => {
 		manageKeyboard('editProfileFieldGrid') // hide bottomnav when mobile keyboard showing and scroll editProfileFieldGrid into view
@@ -202,7 +207,16 @@ function EditProfile() {
                         
                                 <Grid item xs={12}>
                                     <Typography style={{textAlign:'left'}} variant="body1">Password</Typography>
-                                    <TextField id='confirmPasswordInput' fullWidth type='password' placeholder='Enter your password' onChange={changeConfirmPassword}></TextField>
+                                    <TextField id='confirmPasswordInput' type={showPassword ? "text" : "password"}
+                                        placeholder='Enter your password' onChange={changeConfirmPassword} fullWidth
+                                        InputProps={{endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton onClick={() => setShowPassword(!showPassword)}>
+                                                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                                                </IconButton>
+                                            </InputAdornment>
+                                        )}}
+                                    />
                                 </Grid>
                         
                                 <Grid container spacing={2}>

@@ -4,7 +4,11 @@ import useStore from "../../store";
 import logo from '../../assets/Osmosis_Logo.png';
 import './Opening.css';
 import { TextField, Container, Grid, Button, Typography } from '@mui/material';
-import Bubbles from '../Bubbles/Bubbles';
+import IconButton from '@mui/material/IconButton'
+import InputAdornment from '@mui/material/InputAdornment'
+import Visibility from '@mui/icons-material/Visibility'
+import VisibilityOff from '@mui/icons-material/VisibilityOff'
+import Bubbles from '../Bubbles/Bubbles'
 import useAuth from '../../hooks/useAuth'
 import useKeyboard from '../../hooks/useKeyboard'
 import axios from '../../actions/axios'
@@ -17,6 +21,7 @@ const Opening = () => {
 	const location = useLocation()
 	const [email_, setEmail_] = useState('')  // underscore to distinguish from those in the store
 	const [password, setPassword] = useState('')
+	const [showPassword, setShowPassword] = useState('')
 	const [isWrong, setIsWrong] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	const [thisPersist, setThisPersist] = useState(true)
@@ -109,10 +114,30 @@ const Opening = () => {
 									fullWidth onChange={handleChangeEmail} inputProps={{ autoCapitalize: 'none' }} />
 							}
 							{
-								isWrong ? <TextField variant='outlined' type="password" label="Password" error fullWidth inputProps={{ autoCapitalize: 'none' }}
-											autoCapitalize='none' onChange={handleChangePassword} helperText="Incorrect entry."/> :
-								<TextField variant='outlined' type="password" label="Password" onChange={handleChangePassword}
-											autoCapitalize='none' fullWidth size='large' style={{marginTop: 8, marginBottom: 3}} inputProps={{ autoCapitalize: 'none' }}/>
+								isWrong ? <TextField variant='outlined' type={showPassword ? "text" : "password"} label="Password" error
+									fullWidth inputProps={{ autoCapitalize: 'none' }} onChange={handleChangePassword} helperText="Incorrect entry."
+									InputProps={{ // <-- This is where the toggle button is added
+										endAdornment: (
+											<InputAdornment position="end">
+												<IconButton onClick={() => setShowPassword(!showPassword)} >
+													{showPassword ? <VisibilityOff /> : <Visibility />}
+												</IconButton>
+											</InputAdornment>
+										)
+									}}
+								/>
+								: <TextField variant='outlined' type={showPassword ? "text" : "password"} label="Password" onChange={handleChangePassword}
+									autoCapitalize='none' fullWidth size='large' style={{marginTop: 8, marginBottom: 3}} inputProps={{ autoCapitalize: 'none' }}
+									InputProps={{ // <-- This is where the toggle button is added
+										endAdornment: (
+											<InputAdornment position="end">
+												<IconButton onClick={() => setShowPassword(!showPassword)} >
+													{showPassword ? <VisibilityOff /> : <Visibility />}
+												</IconButton>
+											</InputAdornment>
+										)
+									}}
+								/>
 							}
 							<LinkRouter to='/forgot' style={{textDecoration:'none'}}>
 								<Button size='small' fontSize='extra-small' style={{marginBottom:8, marginTop:6}}> Forgot Password?</Button>

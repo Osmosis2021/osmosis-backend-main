@@ -5,6 +5,10 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { Link as LinkRouter} from 'react-router-dom';
 import './Signup.css';
 import TopNavBar from '../TopNavBar/TopNavBar';
@@ -19,10 +23,12 @@ const Signup = props => {
     const [tempUserName, setTempUserName] = useState('')
     const [tempEmail, setTempEmail] = useState('')
     const [tempPassword, setTempPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
     const [repeatedTempPassword, setRepeatedTempPassword] = useState('')
+    const [showRepeatedPassword, setShowRepeatedPassword] = useState(false)
     const [isTempTeacher, setIsTempTeacher] = useState(false)
     const [isTempStudent, setIsTempStudent] = useState(false)
-    const navigate = useNavigate();
+    const navigate = useNavigate()
 	const manageKeyboard = useKeyboard()
 
 	useEffect(() => {
@@ -188,16 +194,36 @@ const Signup = props => {
                 </Grid>
                 <Grid container py={2}>
                     <Grid item xs={12}>
-                    <Typography style={{textAlign:'left'}} variant="body1">Password</Typography>
-                        <TextField inputProps={{ autoCapitalize: 'none' }} onChange={changePassword} type="password" value={tempPassword} fullWidth placeholder='Your Password'></TextField>
+                        <Typography style={{textAlign:'left'}} variant="body1">Password</Typography>
+                        <TextField inputProps={{ autoCapitalize: 'none' }} onChange={changePassword}
+                            type={showPassword ? "text" : "password"} value={tempPassword} fullWidth
+                            placeholder='Your Password'
+                            InputProps={{ // <-- This is where the toggle button is added
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={() => setShowPassword(!showPassword)} >
+                                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>)}}
+                        />
                     </Grid>
                 </Grid>
                 <Grid container>
                     <Grid item xs={12}>
-                    <Typography style={{textAlign:'left'}} variant="body1">Repeat Password</Typography>
-                        <TextField inputProps={{ autoCapitalize: 'none' }} onChange={changeRepeatedPassword} type="password" value={repeatedTempPassword} placeholder='Repeat Your Password'
-                            style={repeatedTempPassword === tempPassword ? {} : {border: '3px solid pink', borderRadius: '5px'}} fullWidth>
-                        </TextField>
+                        <Typography style={{textAlign:'left'}} variant="body1">Repeat Password</Typography>
+                        <TextField inputProps={{ autoCapitalize: 'none' }} onChange={changeRepeatedPassword}
+                            type={showRepeatedPassword ? "text" : "password"} value={repeatedTempPassword}
+                            style={repeatedTempPassword === tempPassword ? {} : {border: '3px solid pink', borderRadius: '5px'}} 
+                            placeholder='Repeat Your Password' fullWidth
+                            InputProps={{ // <-- This is where the toggle button is added
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={() => setShowRepeatedPassword(!showRepeatedPassword)} >
+                                            {showRepeatedPassword ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>)
+                            }}
+                        />
                     </Grid>
                 </Grid>
                 <Grid container py={2}>
