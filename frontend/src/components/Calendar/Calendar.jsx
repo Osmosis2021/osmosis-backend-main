@@ -11,30 +11,11 @@ const Calendar = () => {
     const [anchorEl, setAnchorEl] = useState(null);
     const pageUserName = useParams()?.userName
     const axiosPrivate = useAxiosPrivate()
-    const {userName} = useStore();
-    const [dummyBookingData, setDummyBookingData] = useState([]);
-    const [bookings, setBookings] = useState([]);
+    const {userName, isTeacher} = useStore();
+    const [teacherBookings, setTeacherBookings] = useState([]);
     const [studentBookings, setStudentBookings] = useState([]);
+    const [bookings, setBookings] = useState([]);
     const [selectedBooking, setSelectedBooking] = useState(null);
-
-
-
-    const dummyData = [
-        {
-            timestamp: 1688154290971,
-            studentID: '649e12f59f32ca9da1bce7b7',
-            numberOfGuests: 2,
-            total: 40,
-            courseTimeslotID: '649af52745b05d0aa83c2eb4',
-            courseID: '649af52745b05d0aa83c2eb1',
-            teacherID: '649af2db45b05d0aa83c2e81',
-            teacherUserName: 'Davidlowry',
-            time: '11:00',
-            date: '2023-11-29T00:00:00.000Z',
-            studentUserName: 'Sarah',
-            ratedAndReviewed: false,
-        }
-    ]
 
     useEffect(() => {
         const getBookingInfo = async () => {
@@ -47,8 +28,9 @@ const Calendar = () => {
                     console.log('Teacher bookings:', teacherResponse.data);
                     console.log('Student bookings:', studentResponse.data);
                     
-                    setBookings(teacherResponse.data);
+                    setTeacherBookings(teacherResponse.data);
                     setStudentBookings(studentResponse.data);
+                    setBookings(isTeacher ? teacherResponse.data : studentResponse.data)
                 } else {
                     console.error('Error fetching data. Status codes:', teacherResponse.status, studentResponse.status);
                 }
@@ -61,7 +43,7 @@ const Calendar = () => {
     }, [userName]);
 
     const hasBookingsForDay = (day) => {
-        return studentBookings.some((booking) => {
+        return bookings?.some((booking) => {
             const bookingDate = new Date(booking.date);
             return (
                 bookingDate.getUTCFullYear() === day.getUTCFullYear() &&
@@ -83,7 +65,7 @@ const Calendar = () => {
         setAnchorEl(event.currentTarget);
     
         const clickedDate = new Date(Date.UTC(day.getFullYear(), day.getMonth(), day.getDate()));
-        const bookingForDay = studentBookings.find((booking) => {
+        const bookingForDay = bookings.find((booking) => {
             const bookingDate = new Date(booking.date);
             return (
                 bookingDate.getUTCFullYear() === clickedDate.getUTCFullYear() &&
