@@ -4,10 +4,12 @@ import { useParams } from 'react-router-dom'
 import TopNavBar from '../TopNavBar/TopNavBar';
 import axios from 'axios';
 import useStore from '../../store';
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 
 
 function SingleBookingPageForStudent() {
 
+    const axiosPrivate = useAxiosPrivate();
     const {id} = useParams()
     const {backendURL, userName} = useStore();
     const [booking, setBooking] = useState([]);
@@ -22,7 +24,7 @@ function SingleBookingPageForStudent() {
     };
 
     useEffect(() => {
-      axios.get(`${backendURL}booking/studentBookingInfo/${id}`).then(response => {
+      axiosPrivate.get(`${backendURL}booking/studentBookingInfo/${id}`).then(response => {
         const data = response.data;
         setBooking(...data);
         console.log(id)
