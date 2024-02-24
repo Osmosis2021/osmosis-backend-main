@@ -119,6 +119,14 @@ const useStore = create(set => ({
     notification: [], 
     setNotification: notification => set({ notification }),
 
+    paymentMethodID: [], 
+    setPaymentMethodID: paymentMethodID => set({ paymentMethodID }),
+
+    customerStripeID: [], 
+    setCustomerStripeID: customerStripeID => set({ customerStripeID }),
+
+    
+
 }));
 
 export default useStore;
