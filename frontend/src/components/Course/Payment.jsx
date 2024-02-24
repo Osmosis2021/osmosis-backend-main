@@ -8,10 +8,26 @@ import useStore from '../../store';
 function Payment(props) {
     const [stripePromise, setStripePromise] = useState(null);
     const [clientSecret, setClientSecret] = useState('');
-    const {backendURL} = useStore()
+    const {backendURL, customerStripeID, paymentMethodID} = useStore()
+    console.log('paymentMethodID', paymentMethodID)
 
+    console.log('customerStripeID', customerStripeID)
         // Fetch publishableKey from the server
     useEffect(() => {
+        const requestBody = {
+            amount: props.item.pricePerStudent,
+            capacity: props.item.guests,
+            metadata: props.paymentMetadata,
+            stripeID: props.stripeID,
+        };
+        // Include paymentMethodID only if it exists
+        if (paymentMethodID) {
+            requestBody.paymentMethodID = paymentMethodID;
+        }
+        if (customerStripeID) {
+            requestBody.customerStripeID = customerStripeID;
+        }
+
         fetch(`${backendURL}stripe/config`).then(async (res) => {
             const { publishableKey } = await res.json();
             setStripePromise(loadStripe(publishableKey));
@@ -20,12 +36,7 @@ function Payment(props) {
             fetch(`${backendURL}stripe/create-payment-intent`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    amount: props.item.pricePerStudent,
-                    capacity: props.item.guests,
-                    metadata: props.paymentMetadata,
-                    stripeID: props.stripeID
-                }),
+                body: JSON.stringify(requestBody),
             }).then(async (res) => {
                 const {clientSecret} = await res.json();
                 setClientSecret(clientSecret);
@@ -49,6 +60,7 @@ function Payment(props) {
             clientSecret={clientSecret}
             bookThisCourse={props.bookThisCourse}
             paymentMetadata={props.paymentMetadata}
+            paymentMethodID={paymentMethodID}
           />
         </Elements>
       )}
