@@ -28,6 +28,12 @@ const UserSchema = new mongoose.Schema(
 		stripeID : {
 			type: String,
 		},
+		customerStripeID : {
+			type: String,
+		},
+		paymentMethodID : {
+			type: String,
+		},
 		isStudent: {
 			type: Boolean,
 			default: false
