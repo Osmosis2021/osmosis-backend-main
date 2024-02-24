@@ -78,29 +78,79 @@ router.get('/isUserNameUnique/:userName', async (req, res) => {
 router.post('/registerUser', async (req, res) => {
     const exisitingUserName = await User.findOne({userName: req.body.userName})
 
-    const account = await stripe.accounts.create({
-        type: 'express',
-        country: 'US',
-        email: req.body.email,
-        business_type: 'individual',
-        business_profile: {
-            url: `https://getosmosis.io/teachers/${req.body.userName}`,
-          },
-        individual: {
-            first_name: req.body.firstName,
-            last_name: req.body.lastName,
-            email: req.body.email
-        },
+    const {isStudent} = req.body
+    const {isTeacher} = req.body
 
-        capabilities: {
-            transfers: {
-                requested: true,
-              },
-            }
-        
+    let accountID;
+    let customerID;
+
+    // Create BOTH Stripe Customer & Stripe Account 
+    if (isStudent === true && isTeacher === true) {
+
+        const customer = await stripe.customers.create({
+            name: req.body.firstName + req.body.lastName,
+            email: req.body.email,
         });
-      
-      const accountID = account.id
+
+        const account = await stripe.accounts.create({
+            type: 'express',
+            country: 'US',
+            email: req.body.email,
+            business_type: 'individual',
+            business_profile: {
+                url: `https://getosmosis.io/teachers/${req.body.userName}`,
+            },
+            individual: {
+                first_name: req.body.firstName,
+                last_name: req.body.lastName,
+                email: req.body.email
+            },
+            capabilities: {
+                transfers: {
+                    requested: true,
+                },
+            }
+        });
+
+        accountID = account.id
+        customerID = customer.id
+
+    // Create Stripe Account
+    } else if (isTeacher === true) {
+
+        const account = await stripe.accounts.create({
+            type: 'express',
+            country: 'US',
+            email: req.body.email,
+            business_type: 'individual',
+            business_profile: {
+                url: `https://getosmosis.io/teachers/${req.body.userName}`,
+            },
+            individual: {
+                first_name: req.body.firstName,
+                last_name: req.body.lastName,
+                email: req.body.email
+            },
+            capabilities: {
+                transfers: {
+                    requested: true,
+                },
+            }
+        });
+
+        accountID = account.id
+
+    // Create Stripe Customer
+    } else if (isStudent === true) {
+
+        const customer = await stripe.customers.create({
+            name: req.body.firstName + req.body.lastName,
+            email: req.body.email,
+        });
+        
+        customerID = customer.id
+
+    }
 
     if (exisitingUserName) {
         return res.json({message: 'Unsuccessful. This username is already taken.'})
@@ -115,7 +165,7 @@ router.post('/registerUser', async (req, res) => {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         userName: req.body.userName,
-        stripeID: accountID,
+        // stripeID: accountID,
         stars: req.body.stars,
         description: req.body.description,
         industries: req.body.industries,
@@ -124,6 +174,16 @@ router.post('/registerUser', async (req, res) => {
         isStudent: req.body.isStudent,
         isTeacher: req.body.isTeacher
     };
+
+    // Add stripeID only if it exists (for users with a Stripe account)
+    if (accountID) {
+        userInfo.stripeID = accountID;
+    }
+
+    if (customerID) {
+        userInfo.customerStripeID = customerID;
+    }
+
     // delete undefined properties in userInfo
     Object.keys(userInfo).forEach(key => {
         if(userInfo[key] === undefined) {
