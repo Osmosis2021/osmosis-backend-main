@@ -1,15 +1,23 @@
 const router = require('express').Router()
 const Stripe = require('stripe');
+const User = require('../models/user');
 let stripeKey = ''
 if (process.env.NODE_ENV === 'production') {
     stripeKey = process.env.STRIPE_LIVE_KEY
 } else {
     stripeKey =  process.env.STRIPE_TEST_KEY
 }
+let stripePublishableKey = ''
+if (process.env.NODE_ENV === 'production') {
+    stripePublishableKey = process.env.STRIPE_PUBLISHABLE_KEY
+} else {
+    stripePublishableKey =  process.env.STRIPE_PUBLISHABLE_TEST_KEY
+}
+
 const stripe = Stripe(stripeKey);
 
 router.get('/config', (req, res) => {
-    res.send({publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,});
+    res.send({publishableKey: stripePublishableKey,});
 });
 
 // ACCOUNT LINK
@@ -44,24 +52,107 @@ router.get('/retrieveStripeAccount/:stripeID', async (req, res) => {
     }
 })
 
+
+// Stripe Customer Account 
+router.get('/retrieveStripeCustomerAccount/:customerStripeID', async (req, res) => {
+    const {customerStripeID} = req.params; 
+    console.log('inside retrieve StripeCustomer with this id:', customerStripeID)
+    try {
+
+        // Find user based on customerStripeID
+        const user = await User.findOne({ customerStripeID });
+        if (user && user.paymentMethodID) {
+            // Retrieve the payment method using the stored paymentMethod in mongoDB
+            const paymentMethod = await stripe.paymentMethods.retrieve(user.paymentMethodID)
+            res.json({ card: paymentMethod.card });
+        } else {
+            res.json({ message: 'No payment method associated with the user.' });
+        }
+
+    } catch (error) {
+        console.log('This is the error', error)
+    }
+})
+
+// Saving Customer Payment Method
+router.post('/save-payment-method/:customerStripeID', async (req, res) => {
+
+    console.log('stripeKey', stripeKey)                                           
+    const { customerStripeID } = req.params;
+    const { paymentMethodID } = req.body;
+
+    try {
+
+        const attachedPaymentMethod = await stripe.paymentMethods.attach(
+            paymentMethodID, { customer: customerStripeID }
+        )
+
+        // Save paymentMethodID in User schema 
+
+            const user = await User.findOneAndUpdate(
+                {customerStripeID}, 
+                { $set: { paymentMethod: paymentMethodID } }, 
+                { new: true }
+            )
+
+            res.json({ attachedPaymentMethod });
+
+            // const setupIntent = await stripe.setupIntents.create({
+            //     payment_method_types: ['card'],
+            // });
+            
+            // const retrievePaymentMethod = await stripe.paymentMethods.retrieve(
+            //     paymentMethodID
+            // );
+
+            // await stripe.customers.update(
+            //     customerStripeID, { card: { default_payment_method: paymentMethodID } }
+            // )
+            
+
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Failed to save payment method' });
+        }
+    }
+);
+
 // STUDENT PAYING FOR COURSE vvvvvv
 router.post('/create-payment-intent', async(req, res) => {
-    const { amount, capacity, metadata, stripeID} = req.body
+    const { amount, capacity, metadata, stripeID, customerStripeID, paymentMethodID} = req.body
     console.log('in create-payment-intent route with this request:', amount * capacity, metadata, stripeID)
+    console.log('this is the paymentMethodID:', paymentMethodID)
+    console.log('this is the customerStripeID:', customerStripeID)
     // console.log('app fee:', Math.round(amount * capacity * 9.9) + 30)
 
-    const paymentIntent = await stripe.paymentIntents.create({
-        amount: (amount * capacity) * 100,
-        currency: 'usd',
-        automatic_payment_methods: { enabled: true },
-        metadata: metadata,
-        application_fee_amount: Math.round(amount * capacity * 9.9) + 30,
-        transfer_data: {
-            destination: stripeID,
-            },
-    })
-    // Return client secret to frontend
-    res.send({ paymentIntent, clientSecret: paymentIntent.client_secret })
+    try {
+        let paymentIntentOptions = {
+            amount: (amount * capacity) * 100,
+            currency: 'usd',
+            metadata: metadata,
+            application_fee_amount: Math.round(amount * capacity * 9.9) + 30,
+            transfer_data: {
+                destination: stripeID,
+                },
+            // payment_method: paymentMethodID,
+            // customer: customerStripeID,
+            // receipt_email: email,
+        }
+         // Include paymentMethodID only if it exists
+        if (paymentMethodID) {
+            paymentIntentOptions.payment_method = paymentMethodID;
+        }
+        if (customerStripeID) {
+            paymentIntentOptions.customer = customerStripeID;
+        }
+        const paymentIntent = await stripe.paymentIntents.create(paymentIntentOptions)
+        // Return client secret to frontend
+        res.send({ clientSecret: paymentIntent.client_secret })
+
+    } catch (error) {
+        console.error('Error creating payment intent:', error);
+        res.status(500).json({ error: 'Failed to create payment intent' });
+    }
 });
 
 
