@@ -1,22 +1,35 @@
-import { useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
+import { useStripe, useElements, PaymentElement, CardElement } from "@stripe/react-stripe-js";
 import { useState } from "react";
 import useStore from "../../store";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 
 export default function CheckoutForm(props) {
   const stripe = useStripe();
   const elements = useElements();
   const clientSecret = props.clientSecret
+  const paymentMethodID = props.paymentMethodID
   console.log('CheckoutForm props =>', props)
   const [message, setMessage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const {userName, isTeacher} = useStore();
+  const [cardInfo, setCardInfo] = useState()
+  const {userName, isTeacher, customerStripeID, backendURL} = useStore();
   const navigate = useNavigate();
   // const elements = stripe.elements({ clientSecret: props.clientSecret})
   // const paymentElement = elements.create('payment')
   // paymentElement.mount('#payment-element')
+
+    useEffect(() => {
+        fetch(`${backendURL}stripe/retrieveStripeCustomerAccount/${customerStripeID}`).then(async (res) => {
+            const stripeCustomerData = await res.json();
+            setCardInfo(stripeCustomerData.card)
+            console.log('stripeCustomerData', stripeCustomerData)
+        })
+
+    }, [])
+
   
   async function handleSubmit(e) {
     e.preventDefault();
