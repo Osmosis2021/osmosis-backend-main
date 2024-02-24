@@ -41,7 +41,12 @@ import LandingPage from './components/LandingPage/LandingPage.jsx';
 axios.defaults.withCredentials = true;
 
 function App() {
-	const stripePromise = loadStripe('pk_live_51NEDr1EXMtM9g584AK4nAQEYtR0SPnJe9j26tOFo1NuIQo1oYCgltKv3RNp7mHKDIMIRpo98lU3it2MPCCTfJJay002KYxktGX');
+	let stripePromise
+	if (process.env.NODE_ENV === 'production') {
+		stripePromise = loadStripe(process.env.STRIPE_PUBLISHABLE_KEY)
+	} else {
+		stripePromise =  loadStripe(process.env.STRIPE_PUBLISHABLE_TEST_KEY)
+	}
 	// const [isAuthenticating, setIsAuthenticating] = useState(true);
 	// const {setAuth, persist, setPersist} = useAuth()
   
