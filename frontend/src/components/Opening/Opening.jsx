@@ -26,7 +26,7 @@ const Opening = () => {
 	const [isLoading, setIsLoading] = useState(false)
 	const [thisPersist, setThisPersist] = useState(true)
     const {setUserID, setUserName, setIsTeacher, setIsStudent, setFirstName, setLastName,
-		   setIsRegistered, setRoles, setEmail, setDescription} = useStore()
+		   setIsRegistered, setRoles, setEmail, setDescription, setCustomerStripeID, setPaymentMethodID} = useStore()
 
 	useEffect(() => {
 		manageKeyboard('fieldGrid') // hide bottomnav when mobile keyboard showing and scroll fieldGrid into view
@@ -69,6 +69,8 @@ const Opening = () => {
 				setEmail(userDoc.email)
 				setDescription(userDoc.description)
 				setIsRegistered(true);
+				setCustomerStripeID(userDoc.customerStripeID)
+				setPaymentMethodID(userDoc.paymentMethodID)
                 
 				const from = location.state?.from?.pathname
 				if (from) {
