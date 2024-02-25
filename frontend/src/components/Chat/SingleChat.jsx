@@ -129,7 +129,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                                         size="xl"
                                         w={20}
                                         h={20}
-                                        style={{justifyContent:"center", alignItems:'center'}}
+                                        style={{display:'flex', justifyContent:"center", alignItems:'center', height:'70vh'}}
                                         margin="auto"
                                     />
                                     ) : (

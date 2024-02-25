@@ -5,17 +5,19 @@ import ChatBox from './ChatBox';
 
 const Chat = () => {
     return (
-        <Grid container direction='row' style={{width:"100vw", display: 'flex' }} >
+        <div style={{overflowY:'hidden', height:'93vh'}}>
+            <Grid container direction='row' style={{height:"100%", display: 'flex' }} >
 
-            <Grid item xs={4}>
-                <MyChats/>
+                <Grid item xs={5}>
+                    <MyChats/>
+                </Grid>
+
+                <Grid item xs={7}>
+                    <ChatBox />
+                </Grid>
+
             </Grid>
-
-            <Grid item xs={8}>
-                <ChatBox />
-            </Grid>
-
-        </Grid>
+        </div>
     )
 }
 
