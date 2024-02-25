@@ -2,6 +2,7 @@ import {Outlet} from 'react-router-dom'
 import {useState, useEffect} from 'react'
 import useRefreshToken from '../../hooks/useRefreshToken'
 import useAuth from '../../hooks/useAuth'
+import { CircularProgress } from '@mui/material'
 
 const PersistLogin = () => {
     const [isLoading, setIsLoading] = useState(true)
@@ -28,7 +29,15 @@ const PersistLogin = () => {
             {!persist
                 ? <Outlet />
                 : isLoading
-                    ? <p>Loading...</p>
+                    ?  (
+                            <CircularProgress 
+                                size="xl"
+                                w={20}
+                                h={20}
+                                style={{display:'flex', justifyContent:"center", alignItems:'center', height:'70vh'}}
+                                margin="auto"
+                            />
+                        )
                     : <Outlet />
             }
         </>

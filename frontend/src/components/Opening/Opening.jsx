@@ -3,7 +3,7 @@ import { Link as LinkRouter, useNavigate, useLocation } from 'react-router-dom';
 import useStore from "../../store";
 import logo from '../../assets/Osmosis_Logo.png';
 import './Opening.css';
-import { TextField, Container, Grid, Button, Typography } from '@mui/material';
+import { TextField, Container, Grid, Button, Typography, CircularProgress } from '@mui/material';
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
 import Visibility from '@mui/icons-material/Visibility'
@@ -104,7 +104,16 @@ const Opening = () => {
 				<Typography variant='h4' mt={2} mb={2} align='center'>Learning through <br/>human connections 🤝</Typography>
 				
 				{
-					isLoading ? <><br/><br/><br/><br/><br/><Typography variant='h4'>Loading...</Typography> </> :
+					isLoading ? 
+					(
+						<CircularProgress
+							size="xl"
+							w={20}
+							h={20}
+							style={{display:'flex', justifyContent:"center", alignItems:'center', height:'70vh'}}
+							margin="auto"
+						/>
+					):
 					<>
 						<Typography variant='subtitle1' mt={2} mb={2}>Already have an account:</Typography>
 			
