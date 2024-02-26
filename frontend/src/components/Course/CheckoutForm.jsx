@@ -4,6 +4,7 @@ import useStore from "../../store";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { CircularProgress } from "@mui/material";
 
 
 export default function CheckoutForm(props) {
@@ -84,18 +85,31 @@ export default function CheckoutForm(props) {
   };
 
   return (
-    <form id="payment-form" onSubmit={handleSubmit}>
-      <PaymentElement />
-      <button style={{display: 'flex', flexDirection: 'column', margin: 'auto', justifyContent: 'center', alignItems: 'center',
-        background: 'transparent', border: 'none'}} disabled={isProcessing || !stripe || !elements} id="submit">
-        <CheckCircleIcon style={{fontSize:'105px', color:'#00aeef'}}/>
-        <span id="button-text">
-          {isProcessing ? "Processing ... " : "Pay now"}
-        </span>
-      </button>
-      {/* Show any error or success messages */}
-      {message && <div style={{color: 'red', fontSize: '20px'}} id="payment-message">{message}</div>}
+    <>
+            <PaymentElement />
+    {
+        isProcessing ? (
+            <CircularProgress
+                size="xl"
+                w={20}
+                h={20}
+                style={{display:'flex', justifyContent:"center", alignItems:'center', height:'70vh'}}
+                margin="auto"
+            />
+        ) :
+        <form id="payment-form" onSubmit={handleSubmit}>
+            <button style={{display: 'flex', flexDirection: 'column', margin: 'auto', justifyContent: 'center', alignItems: 'center',
+                background: 'transparent', border: 'none'}} disabled={isProcessing || !stripe || !elements} id="submit">
+                <CheckCircleIcon style={{fontSize:'105px', color:'#00aeef'}}/>
+                <span id="button-text">
+                Pay now
+                </span>
+            </button>
+            {/* Show any error or success messages */}
+            {message && <div style={{color: 'red', fontSize: '20px'}} id="payment-message">{message}</div>}
   
-    </form>
+        </form>
+    }
+</>
   );
 }

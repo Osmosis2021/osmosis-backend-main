@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-import { Container, Typography, TextField, Grid, Button } from '@mui/material';
+import { Container, Typography, TextField, Grid, Button, CircularProgress } from '@mui/material';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -28,6 +28,7 @@ const Signup = props => {
     const [showRepeatedPassword, setShowRepeatedPassword] = useState(false)
     const [isTempTeacher, setIsTempTeacher] = useState(false)
     const [isTempStudent, setIsTempStudent] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
     const navigate = useNavigate()
 	const manageKeyboard = useKeyboard()
 
@@ -101,7 +102,7 @@ const Signup = props => {
             isTeacher: isTempTeacher,
             isStudent: isTempStudent
         }
-
+        setIsLoading(true)
 		try {
 			await fetch(`${backendURL}user/registerUser`, {
 				body: JSON.stringify(userObj),
@@ -126,6 +127,7 @@ const Signup = props => {
                 // } else if (userObj.isStudent) {
                 //     navigate(`/students/${userObj.userName}`)
                 // }
+                setIsLoading(false)
                 alert('Successfully registered, you can now login')
                 // setOpen(true)
 
@@ -148,8 +150,18 @@ const Signup = props => {
                 </Typography>
             </Alert>
         </Backdrop> */}
-
-        <form>
+    {
+        isLoading ? (
+            <CircularProgress 
+                size="xl"
+                w={20}
+                h={20}
+                style={{display:'flex', justifyContent:"center", alignItems:'center', height:'70vh'}}
+                margin="auto"
+            />
+        ) : 
+    
+        <form> 
             <Typography variant='h6' mt={8} mb={6} align='center' fontSize={21}>Sign up Today!</Typography>
             <Container id='fieldContainer' align='center' style={{width:"80vw"}} sx={{ py: 2, }}>
                 <Grid container direction='row' spacing={2}>
@@ -258,6 +270,7 @@ const Signup = props => {
                 </Grid>
             </Container>
         </form>
+    }
     </>
 )}
 
