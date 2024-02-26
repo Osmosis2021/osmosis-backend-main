@@ -119,24 +119,31 @@ router.post('/save-payment-method/:customerStripeID', async (req, res) => {
 
 // STUDENT PAYING FOR COURSE vvvvvv
 router.post('/create-payment-intent', async(req, res) => {
-    const { amount, capacity, metadata, stripeID, customerStripeID, paymentMethodID} = req.body
+    const { amount, capacity, metadata, stripeID, customerStripeID, paymentMethodID, email} = req.body
+    console.log('this is the email address we got.........................................', email)
     console.log('in create-payment-intent route with this request:', amount * capacity, metadata, stripeID)
     console.log('this is the paymentMethodID:', paymentMethodID)
     console.log('this is the customerStripeID:', customerStripeID)
     // console.log('app fee:', Math.round(amount * capacity * 9.9) + 30)
 
     try {
+        // Retrieve account info and determine if onboarded (payouts enabled)
+        const stripeAccountData = await stripe.accounts.retrieve(stripeID)
+        const payoutsEnabled = stripeAccountData?.payouts_enabled
+        // Set destination account based on whether onboarded
+        // This stripe account is our temp account to accept payments on behalf of our teachers --> acct_1OnmPHI0y4kZR3uX
+        const destinationAccount = payoutsEnabled ? stripeID : 'acct_1OnmPHI0y4kZR3uX'
         let paymentIntentOptions = {
             amount: (amount * capacity) * 100,
             currency: 'usd',
             metadata: metadata,
             application_fee_amount: Math.round(amount * capacity * 9.9) + 30,
             transfer_data: {
-                destination: stripeID,
+                destination: destinationAccount,
                 },
             // payment_method: paymentMethodID,
             // customer: customerStripeID,
-            // receipt_email: email,
+            receipt_email: email,
         }
          // Include paymentMethodID only if it exists
         if (paymentMethodID) {
