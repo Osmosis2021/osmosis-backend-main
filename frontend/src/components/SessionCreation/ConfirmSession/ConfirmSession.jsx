@@ -1,4 +1,4 @@
-import { Container, Grid, IconButton, Typography } from '@mui/material'
+import { CircularProgress, Container, Grid, IconButton, Typography } from '@mui/material'
 import React, {useEffect, useState} from 'react'
 import SessionCard from '../../SessionCard/SessionCard'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -138,7 +138,13 @@ export const ConfirmSession = () => {
                     </IconButton>
                        
                     <Typography variant='h3' color='#00aeef'>
-                        { isLoading ?  'Pending' : 
+                        { isLoading ?  <CircularProgress 
+                                            size="xl"
+                                            w={20}
+                                            h={20}
+                                            style={{display:'flex', justifyContent:"center", alignItems:'center', height:'70vh'}}
+                                            margin="auto"
+                                        /> : 
                           !Boolean(userName) ? 'Please sign in to add a course' :
                           !Boolean(isTeacher) ? "You're not signed up as a teacher" :
                           'Go Live Today' }
