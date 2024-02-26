@@ -6,54 +6,61 @@ const jwtSecret = process.env.ACCESS_TOKEN_SECRET
 
 
 router.post('/createBooking', async (req, res) => {
-    const accessToken = req.cookies?.jwt
-    const { 
-        timestamp,
-        numberOfGuests,
-        total, 
-        courseTimeslotID,
-        courseID, 
-        teacherID,
-        teacherUserName,
-        studentUserName,
-        time,
-        date, 
-    } = req.body 
-
+    const accessToken = req?.headers?.authorization?.slice(7)
+    console.log('accessToken', accessToken)
     jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
+        console.log('userData', userData)
         try {
-            if(err) throw err;
-        } catch (error) {
-            console.log('Error in /createBooking', error)
+            if (err) throw err;
+
+            const { 
+                timestamp,
+                numberOfGuests,
+                total, 
+                courseTimeslotID,
+                courseID, 
+                teacherID,
+                teacherUserName,
+                studentUserName,
+                time,
+                date, 
+            } = req.body 
+
+            Booking.create({
+                timestamp: timestamp,
+                // Don't pass this on since it wasn't encoded in the jwt VV
+                //studentID: userData.id, 
+                numberOfGuests: numberOfGuests, 
+                courseTimeslotID: courseTimeslotID,
+                courseID: courseID,
+                total: total, 
+                teacherID: teacherID,
+                teacherUserName,
+                studentUserName,
+                time: time,
+                date: date, 
+                // status: 'pending payment'
+                // address: courseAddress,
+                // city: courseCity,
+                // zipCode: courseZipcode,
+            }).then(async(doc) => {
+                console.log(doc)
+                const courseTimeslotUpdate = await CourseTimeslot.findOneAndUpdate({_id: doc.courseTimeslotID},
+                    {$push: {enrolledStudents: doc.studentID}, $inc: {enrollment: doc.numberOfGuests}}, {new: true})
+                if(courseTimeslotUpdate) {
+                    res.json({'message': 'stored a courseTimeslotUpdate'});
+                }
+            }).catch((err) => {
+                throw err;
+            })
+        } catch (err) {
+            console.log('Error in /createBooking', err);
+            res.status(500).json({ err: 'Failed to create booking' });
         }
-        // return userData;
-        Booking.create({
-            timestamp: timestamp,
-            // studentID: userData.id,  // Don't pass this on since it wasn't encoded in the jwt
-            numberOfGuests: numberOfGuests, 
-            courseTimeslotID: courseTimeslotID,
-            courseID: courseID,
-            total: total, 
-            teacherID: teacherID,
-            teacherUserName,
-            studentUserName,
-            time: time,
-            date: date, 
-            // status: 'pending payment'
-            // address: courseAddress,
-            // city: courseCity,
-            // zipCode: courseZipcode,
-        }).then(async(doc) => {
-            const courseTimeslotUpdate = await CourseTimeslot.findOneAndUpdate({_id: doc.courseTimeslotID},
-                {$push: {enrolledStudents: doc.studentID}, $inc: {enrollment: doc.numberOfGuests}}, {new: true})
-            if(courseTimeslotUpdate) {
-                res.json({'message': 'stored a courseTimeslotUpdate'});
-            }
-        }).catch((err) => {
-            throw err;
-        })
+
     })
-});
+})
+
 
 // ROUTE TO POPULATE BOOKINGS FOR STUDENT PROFILE
 router.get('/bookings/:userName', async (req, res) => {
