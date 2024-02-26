@@ -8,7 +8,7 @@ import useStore from '../../store';
 function Payment(props) {
     const [stripePromise, setStripePromise] = useState(null);
     const [clientSecret, setClientSecret] = useState('');
-    const {backendURL, customerStripeID, paymentMethodID} = useStore()
+    const {backendURL, customerStripeID, paymentMethodID, email} = useStore()
     console.log('paymentMethodID', paymentMethodID)
 
     console.log('customerStripeID', customerStripeID)
@@ -19,6 +19,7 @@ function Payment(props) {
             capacity: props.item.guests,
             metadata: props.paymentMetadata,
             stripeID: props.stripeID,
+            email: email
         };
         // Include paymentMethodID only if it exists
         if (paymentMethodID) {
