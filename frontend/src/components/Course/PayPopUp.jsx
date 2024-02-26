@@ -15,6 +15,7 @@ import { Grid } from '@mui/material';
 import axios from 'axios';
 import useStore from '../../store';
 import Payment from './Payment';
+import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -24,6 +25,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 export default function PayPopUp(props) {
   const [open, setOpen] = React.useState(false);
   const {userID, backendURL} = useStore();
+  const axiosPrivate = useAxiosPrivate();
   const paymentMetadata = {
     teacherUserName: props.teacherUserName,
     time: props.selectedDateAndTime.startTime,
@@ -47,7 +49,7 @@ export default function PayPopUp(props) {
     }
 
 
-    const bookingResponse = await axios.post(`${backendURL}booking/createBooking`, bookingObj);
+    const bookingResponse = await axiosPrivate.post(`${backendURL}booking/createBooking`, bookingObj);
     console.log({bookingResponse});
     return bookingResponse;
     // navigate(`/${isTeacher ? 'teachers' : 'students'}/${userName}`)
