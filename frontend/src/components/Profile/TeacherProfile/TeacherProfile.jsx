@@ -12,6 +12,7 @@ import Prof from '../Prof';
 import axios from '../../../actions/axios'
 import useAxiosPrivate from "../../../hooks/useAxiosPrivate"
 import useLogout from '../../../hooks/useLogout'
+import CalendarViewButton from '../CalendarViewButton';
 
 
 const TeacherProfile = (props) => {
@@ -349,6 +350,8 @@ const TeacherProfile = (props) => {
                 })}
 
                 <br/>
+<CalendarViewButton />
+                
                 {<>
                     {userID === teacherInfo._id && sessionCard.length > 0
                         ? <Typography variant="h4" style={{justifyContent:'left', marginBottom:'-35px'}}>Classes:</Typography>

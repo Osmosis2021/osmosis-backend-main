@@ -9,6 +9,7 @@ import './StudentProfile.css';
 import Prof from '../Prof';
 import useAxiosPrivate from "../../../hooks/useAxiosPrivate";
 import useLogout from '../../../hooks/useLogout'
+import CalendarViewButton from '../CalendarViewButton';
 
 
 const StudentProfile = () => {
@@ -247,6 +248,15 @@ const StudentProfile = () => {
                         <Typography variant="h4">Start Learning Today</Typography>
                     )
                 }
+
+
+                <div> 
+                <h1>This is a placeholder for calendar view</h1>
+                
+                <CalendarViewButton/>
+                </div>
+
+
 
                 <br />
 
