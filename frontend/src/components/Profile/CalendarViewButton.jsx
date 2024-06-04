@@ -72,6 +72,7 @@ export default function CalendarViewButton() {
                 width: 50,
                 height: 50,
                 color: "white",
+                marginLeft: "0.5rem",
               }}
               onClick={toggleDrawer(anchor, false)}
               aria-label="close"

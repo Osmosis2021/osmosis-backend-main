@@ -164,7 +164,12 @@ const Calendar = () => {
       </Grid>
 
       {/* Calendar days */}
-      <Grid container spacing={2} textAlign="center">
+      <Grid
+        container
+        spacing={2}
+        textAlign="center"
+        sx={{ pr: { xs: "11px", md: "0px" } }}
+      >
         {[...Array(startingDay)].map((_, index) => (
           <Grid item key={index} style={{ width: "calc(100% / 7)" }}></Grid>
         ))}
@@ -173,7 +178,6 @@ const Calendar = () => {
           <Grid item key={index} style={{ width: "calc(100% / 7)" }}>
             <button
               onClick={handleDayClick(day)}
-              //   className={styles.button_8}
               className={styles.calendar_day}
               style={{
                 backgroundColor: isCurrentDay(day)
