@@ -116,7 +116,6 @@ const Calendar = () => {
 
   return (
     <Card style={{ margin: "2%", padding: "2%" }}>
-      {/* <Grid container spacing={2} justifyContent="space-between"> */}
       <Grid container justifyContent="space-between">
         <Grid item>
           <Button
@@ -201,7 +200,7 @@ const Calendar = () => {
         anchor="bottom"
         onClose={handleClosePopover}
       >
-        <div style={{ padding: "10px", height: "30vh" }}>
+        <div style={{ padding: "10px", height: "45vh" }}>
           {/* Display booking information if available */}
           {selectedBooking ? (
             <div>
@@ -209,29 +208,70 @@ const Calendar = () => {
                             <Typography>Date: {selectedBooking.date}</Typography>
                             <Typography>Time: {selectedBooking.time}</Typography>
                             <Typography>Student: {selectedBooking.studentUserName}</Typography> */}
-              <Typography variant="h6">Booking Details</Typography>
-              <Typography>Date: {selectedBooking.date}</Typography>
-              <Typography>Time: {selectedBooking.time}</Typography>
-              <Typography>
-                Student: {selectedBooking.studentUserName}
+              <Typography variant="h6" sx={{ textAlign: "center" }}>
+                Booking Details
               </Typography>
-              <Typography>
-                Number of Guests: {selectedBooking.numberOfGuests}
-              </Typography>
-              <Typography>Total Amount: {selectedBooking.total}</Typography>
+              <div className="flex justify-center items-center gap-12">
+                <p className="w-[48%] text-right inline-block">Date:</p>
+                <p className="flex-1 text-left inline-block">
+                  {selectedBooking.date}
+                </p>
+              </div>
+              <div className="flex justify-center items-center gap-12">
+                <p className="w-[48%] text-right inline-block">Time:</p>
+                <p className="flex-1 text-left inline-block">
+                  {selectedBooking.time}
+                </p>
+              </div>
+              <div className="flex justify-center items-center gap-12">
+                <p className="w-[48%] text-right inline-block">Student:</p>
+                <p className="flex-1 text-left inline-block">
+                  {selectedBooking.studentUserName}
+                </p>
+              </div>
+              <div className="flex justify-center items-center gap-12">
+                <p className="w-[48%] text-right inline-block">
+                  Number of Guests:
+                </p>
+                <p className="flex-1 text-left inline-block">
+                  {selectedBooking.numberOfGuests}
+                </p>
+              </div>
+              <div className="flex justify-center items-center gap-12">
+                <p className="w-[48%] text-right inline-block">Total Amount:</p>
+                <p className="flex-1 text-left inline-block">
+                  {selectedBooking.total}
+                </p>
+              </div>
+              <br />
+
               {/* Display course information */}
-              <Typography variant="h6">Course Details</Typography>
-              <Typography>
-                Course Title: {selectedBooking.courseID.courseTitle}
+              <Typography variant="h6" sx={{ textAlign: "center" }}>
+                Course Details
               </Typography>
-              <Typography>
-                Course Description: {selectedBooking.courseID.courseDescription}
-              </Typography>
-              <Typography>
-                Location: {selectedBooking.courseID.address.city},{" "}
-                {selectedBooking.courseID.address.state}
-              </Typography>
+              <div className="flex justify-center items-center gap-12">
+                <p className="w-[48%] text-right inline-block">Course Title:</p>
+                <p className="flex-1 text-left inline-block">
+                  {selectedBooking.courseID.courseTitle}
+                </p>
+              </div>
+              <div className="flex justify-center items-center gap-12">
+                <p className="w-[48%] text-right inline-block">
+                  Course Description:
+                </p>
+                <p className="flex-1 text-left inline-block">
+                  {selectedBooking.courseID.courseDescription}
+                </p>
+              </div>
+              <div className="flex justify-center items-center gap-12">
+                <p className="w-[48%] text-right inline-block">Location:</p>
+                <p className="flex-1 text-left inline-block">
+                  {selectedBooking.courseID.address.city},{" "}
+                  {selectedBooking.courseID.address.state}
+                </p>
+              </div>
               {/* Add more details as needed */}
+              <br />
             </div>
           ) : (
             // Display a message when no booking is available
