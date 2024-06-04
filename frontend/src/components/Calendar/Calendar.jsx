@@ -116,9 +116,14 @@ const Calendar = () => {
 
   return (
     <Card style={{ margin: "2%", padding: "2%" }}>
-      <Grid container spacing={2} justifyContent="space-between">
+      {/* <Grid container spacing={2} justifyContent="space-between"> */}
+      <Grid container justifyContent="space-between">
         <Grid item>
-          <Button variant="outlined" onClick={handlePrevMonth}>
+          <Button
+            variant="outlined"
+            onClick={handlePrevMonth}
+            sx={{ px: { xs: "5px", md: "30px" } }}
+          >
             <ArrowRightIcon sx={{ transform: "rotate(180deg)" }} />
             <pre> </pre>Previous Month
           </Button>
@@ -134,7 +139,11 @@ const Calendar = () => {
         </Grid>
 
         <Grid item>
-          <Button variant="outlined" onClick={handleNextMonth}>
+          <Button
+            variant="outlined"
+            onClick={handleNextMonth}
+            sx={{ px: { xs: "5px", md: "30px" } }}
+          >
             Next Month <pre> </pre>
             <ArrowRightIcon />
           </Button>
