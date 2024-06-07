@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Button, Grid, Typography, Drawer, Card } from "@mui/material";
 import { useParams } from "react-router-dom";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
+import ClassIcon from "@mui/icons-material/Class";
+import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import axios from "axios";
@@ -200,45 +202,67 @@ const Calendar = () => {
         anchor="bottom"
         onClose={handleClosePopover}
       >
-        <div style={{ padding: "10px", height: "45vh" }}>
+        <div className="p-8 pb-16 flex flex-col justify-center">
+          {/* <div className="p-3 h-[55vh] lg:h-[45vh] flex flex-col justify-center"> */}
           {/* Display booking information if available */}
           {selectedBooking ? (
-            <div>
+            <div className="flex flex-col justify-center">
               {/* <Typography variant="h6">Booking Details</Typography>
                             <Typography>Date: {selectedBooking.date}</Typography>
                             <Typography>Time: {selectedBooking.time}</Typography>
                             <Typography>Student: {selectedBooking.studentUserName}</Typography> */}
               <Typography variant="h6" sx={{ textAlign: "center" }}>
+                <ClassIcon />
                 Booking Details
               </Typography>
-              <div className="flex justify-center items-center gap-12">
-                <p className="w-[48%] text-right inline-block">Date:</p>
+              <div className="flex justify-center items-center gap-12 py-2 text-nowrap">
+                <p className="w-[40%] sm:w-[47.5%] md:w-[48%] text-right inline-block">
+                  Date:
+                </p>
                 <p className="flex-1 text-left inline-block">
                   {selectedBooking.date}
                 </p>
               </div>
-              <div className="flex justify-center items-center gap-12">
-                <p className="w-[48%] text-right inline-block">Time:</p>
+              <div className="flex justify-center">
+                <hr className="border-b border-solid border-[#dedee0] w-1/2" />
+              </div>
+              <div className="flex justify-center items-center gap-12 py-2 text-nowrap">
+                <p className="w-[40%] sm:w-[47.5%] md:w-[48%] text-right inline-block">
+                  Time:
+                </p>
                 <p className="flex-1 text-left inline-block">
                   {selectedBooking.time}
                 </p>
               </div>
-              <div className="flex justify-center items-center gap-12">
-                <p className="w-[48%] text-right inline-block">Student:</p>
+              <div className="flex justify-center">
+                <hr className="border-b border-solid border-[#dedee0] w-1/2" />
+              </div>
+              <div className="flex justify-center items-center gap-12 py-2 text-nowrap">
+                <p className="w-[40%] sm:w-[47.5%] md:w-[48%] text-right inline-block">
+                  Student:
+                </p>
                 <p className="flex-1 text-left inline-block">
                   {selectedBooking.studentUserName}
                 </p>
               </div>
-              <div className="flex justify-center items-center gap-12">
-                <p className="w-[48%] text-right inline-block">
+              <div className="flex justify-center">
+                <hr className="border-b border-solid border-[#dedee0] w-1/2" />
+              </div>
+              <div className="flex justify-center items-center gap-12 py-2 text-nowrap">
+                <p className="w-[40%] sm:w-[47.5%] md:w-[48%] text-right inline-block">
                   Number of Guests:
                 </p>
                 <p className="flex-1 text-left inline-block">
                   {selectedBooking.numberOfGuests}
                 </p>
               </div>
-              <div className="flex justify-center items-center gap-12">
-                <p className="w-[48%] text-right inline-block">Total Amount:</p>
+              <div className="flex justify-center">
+                <hr className="border-b border-solid border-[#dedee0] w-1/2" />
+              </div>
+              <div className="flex justify-center items-center gap-12 py-2 text-nowrap">
+                <p className="w-[40%] sm:w-[47.5%] md:w-[48%] text-right inline-block">
+                  Total Amount:
+                </p>
                 <p className="flex-1 text-left inline-block">
                   {selectedBooking.total}
                 </p>
@@ -246,25 +270,39 @@ const Calendar = () => {
               <br />
 
               {/* Display course information */}
-              <Typography variant="h6" sx={{ textAlign: "center" }}>
+              <Typography
+                variant="h6"
+                sx={{ textAlign: "center", marginTop: "1rem" }}
+              >
+                <LibraryBooksIcon />
                 Course Details
               </Typography>
-              <div className="flex justify-center items-center gap-12">
-                <p className="w-[48%] text-right inline-block">Course Title:</p>
+              <div className="flex justify-center items-center gap-12 py-2">
+                <p className="w-[40%] sm:w-[47.5%] md:w-[48%] text-right inline-block">
+                  Course Title:
+                </p>
                 <p className="flex-1 text-left inline-block">
                   {selectedBooking.courseID.courseTitle}
                 </p>
               </div>
-              <div className="flex justify-center items-center gap-12">
-                <p className="w-[48%] text-right inline-block">
+              <div className="flex justify-center">
+                <hr className="border-b border-solid border-[#dedee0] w-1/2" />
+              </div>
+              <div className="flex justify-center items-center gap-12 py-2">
+                <p className="w-[40%] sm:w-[47.5%] md:w-[48%] text-right inline-block">
                   Course Description:
                 </p>
-                <p className="flex-1 text-left inline-block">
+                <p className="flex-1 text-left inline-block md:mr-52">
                   {selectedBooking.courseID.courseDescription}
                 </p>
               </div>
-              <div className="flex justify-center items-center gap-12">
-                <p className="w-[48%] text-right inline-block">Location:</p>
+              <div className="flex justify-center">
+                <hr className="border-b border-solid border-[#dedee0] w-1/2" />
+              </div>
+              <div className="flex justify-center items-center gap-12 py-2">
+                <p className="w-[40%] sm:w-[47.5%] md:w-[48%] text-right inline-block">
+                  Location:
+                </p>
                 <p className="flex-1 text-left inline-block">
                   {selectedBooking.courseID.address.city},{" "}
                   {selectedBooking.courseID.address.state}
