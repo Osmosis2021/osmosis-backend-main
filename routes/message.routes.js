@@ -5,14 +5,15 @@ const Chat = require('../models/chat');
 const jwt = require('jsonwebtoken');
 const Message = require('../models/message');
 const mongoose = require('mongoose');
-const jwtSecret = process.env.ACCESS_TOKEN_SECRET
+const env = require('../config/env');
+const jwtSecret = env.ACCESS_TOKEN_SECRET
 
 
 // SENDING MESSAGE
 router.post('/sendMessage', asyncHandler(async (req, res) => {
     const { chatId, content, _id } = req.body;
     const accessToken = req?.headers?.authorization?.slice(7);
-    
+
     if (!content || !chatId) {
         console.log('Invalid data passed into request');
         return res.sendStatus(400);
@@ -73,9 +74,9 @@ router.post('/sendMessage', asyncHandler(async (req, res) => {
 
 // FETCHING MESSAGES
 router.get('/allMessages/:chatId', asyncHandler(async (req, res) => {
-    const {chatId} = req.params;
+    const { chatId } = req.params;
     // const accessToken = req.headers.authorization
-    const accessToken = req?.headers?.authorization?.slice(7) 
+    const accessToken = req?.headers?.authorization?.slice(7)
 
     // Verify the JWT accessToken to get user data
     jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
@@ -88,10 +89,10 @@ router.get('/allMessages/:chatId', asyncHandler(async (req, res) => {
             const messages = await Message.find({ chat: chatId }).populate(
                 'sender', 'userName profileImage')
                 .populate('chat');
-                res.json(messages)
+            res.json(messages)
         } catch (error) {
             res.status(400)
-            throw new Error (error.message)
+            throw new Error(error.message)
         }
     })
 }))

@@ -28,7 +28,8 @@
     "mongoose": "^6.5.1",
     "nodemailer": "^6.9.7",
     "socket.io": "^4.7.1",
-    "stripe": "^11.15.0"
+    "stripe": "^11.15.0",
+    "zod": "^4.3.5"
   },
   "name": "osmosis-backend",
   "description": "Backend for Osmosis lesson app",
@@ -41,14 +42,17 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "build": "cd frontend && npm run build",
     "install-client": "cd frontend && npm install",
     "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install --prefix frontend && npm run build --prefix frontend",
     "start": "node --env-file=.env index.js",
     "server": "node index.js",
     "client": "npm run start --prefix frontend",
-    "dev": "NODE_ENV=development node --env-file=.env index.js"
+    "dev": "NODE_ENV=development node --env-file=.env index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write ."
   },
   "repository": {
     "type": "git",
@@ -60,5 +64,15 @@
   "bugs": {
     "url": "https://github.com/Osmosis2021/osmosis-backend/issues"
   },
-  "homepage": "https://github.com/Osmosis2021/osmosis-backend#readme"
+  "homepage": "https://github.com/Osmosis2021/osmosis-backend#readme",
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-node": "^11.1.0",
+    "jest": "^30.2.0",
+    "mongodb-memory-server": "^11.0.1",
+    "prettier": "^3.7.4",
+    "supertest": "^7.2.2"
+  }
 }

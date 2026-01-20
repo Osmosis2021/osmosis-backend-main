@@ -2,7 +2,7 @@ import RequireAuth from './RequireAuth';
 import axios from 'axios'
 import PersistLogin from './components/Profile/PersistLogin'
 import { Routes, Route } from 'react-router-dom';
-import {Opening, Role} from './components/index';
+import { Opening, Role } from './components/index';
 import UpdatedProgressBar from './components/TopNavBar/UpdatedProgressBar';
 import Major from './components/Student/Major.jsx';
 import StudentProfile from './components/Profile/StudentProfile/StudentProfile';
@@ -12,8 +12,8 @@ import MapOpen from './components/OpeningMap/MapOpen';
 import Course from './components/Course/Course';
 import Forgot from './components/Auth/ForgotPassword/ForgotPassword';
 import './App.css';
-import { ThemeProvider } from '@material-ui/core/styles';
-import { CssBaseline } from '@material-ui/core';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { CssBaseline } from '@mui/material';
 import theme from './theme.js';
 import Settings from './components/Settings/Settings';
 import ToggleDays from './components/SessionCreation/ToggleDays/ToggleDays';
@@ -45,11 +45,11 @@ function App() {
 	if (process.env.NODE_ENV === 'production') {
 		stripePromise = loadStripe(process.env.STRIPE_PUBLISHABLE_KEY)
 	} else {
-		stripePromise =  loadStripe(process.env.STRIPE_PUBLISHABLE_TEST_KEY)
+		stripePromise = loadStripe(process.env.STRIPE_PUBLISHABLE_TEST_KEY)
 	}
 	// const [isAuthenticating, setIsAuthenticating] = useState(true);
 	// const {setAuth, persist, setPersist} = useAuth()
-  
+
 	// // Effectively persist the user login by checking for it in this top-level component
 	// useEffect(async () => {
 	// 	const authResult = await axios.get(`user/persistCheck`, 
@@ -58,12 +58,12 @@ function App() {
 	// 		setAuth(authResult);
 	// 	}
 	// 	setIsAuthenticating(false);
-		
+
 	// 	if (isAuthenticating) {
 	// 		return null; // or loading or whatever
 	// 	}
 	// }, [])
-	
+
 
 	return (
 		<ThemeProvider theme={theme}>
@@ -88,9 +88,9 @@ function App() {
 						{/* STUDENT */}
 						<Route path='/students/:userName' element={<StudentProfile />} />
 						<Route path='/settings' element={<Settings />} />
-						<Route path='/students' element={<h1 style={{padding: '10px'}}>This is where your personal page will be when you sign up.</h1>} />
+						<Route path='/students' element={<h1 style={{ padding: '10px' }}>This is where your personal page will be when you sign up.</h1>} />
 						<Route path='/ordersandpayments' element={<OrdersAndPayments />} />
-						<Route path='/stripeonboarding/:userName' element={<StripeOnboarding /> } />
+						<Route path='/stripeonboarding/:userName' element={<StripeOnboarding />} />
 						<Route path='/chat' element={<Chat />} />
 						<Route path='/edit' element={<EditProfile />} />
 						<Route path='/confirm' element={
@@ -98,7 +98,7 @@ function App() {
 								<Confirm />
 							</Elements>
 						} />
-					
+
 						<Route path='/bookings' element={<BookingPage />} />
 
 						<Route path='teacher/bookings/:id' element={<SingleBookingPage />} />
@@ -119,13 +119,13 @@ function App() {
 						<Route path='/availability' element={<ToggleDays />} />
 						<Route path='/FLOW' element={<UpdatedProgressBar />} />
 
-						<Route path='/calendar' element={<Calendar/>} />
+						<Route path='/calendar' element={<Calendar />} />
 
 						<Route path='/explore' element={<Explore />} />
 						{/* SIGN UP PROMPT FOR TEACHERS*/}
-						<Route path='/sign-up' element={<Signup isTeacher={true}/>} />
+						<Route path='/sign-up' element={<Signup isTeacher={true} />} />
 						{/* SIGN UP PROMPT FOR STUDENTS*/}
-						<Route path='/student-sign-up' element={<Signup isStudent={true}/>} />
+						<Route path='/student-sign-up' element={<Signup isStudent={true} />} />
 
 						<Route path='/unauthorized' element={<Unauthorized />} />
 

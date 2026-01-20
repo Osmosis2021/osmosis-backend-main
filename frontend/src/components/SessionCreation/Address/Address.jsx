@@ -1,3 +1,4 @@
+import TERMS from '../../../constants/terms';
 import React, { useState, useEffect } from 'react'
 import useStore from "../../../store";
 import { Button, Container, Stack, Typography, Grid, TextField, InputLabel, MenuItem, FormControl, Select } from '@mui/material'
@@ -17,7 +18,6 @@ mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worke
 // import Geocoder from 'react-map-gl-geocoder'
 const MAPBOX_TOKEN =
     'pk.eyJ1IjoicmFkZXItamFrZSIsImEiOiJjbDU4dXdnMXcyNDZ2M2pvY2k2OW1yajY5In0.VoWote3L5R1CdSF1RPKaZg';
-
 
 const Address = props => {
     const {
@@ -42,7 +42,7 @@ const Address = props => {
     useEffect(() => {
         const geo = new MapboxGeocoder({
             accessToken: MAPBOX_TOKEN,
-            proximity: {longitude: -73.9569994, latitude: 40.7297027},
+            proximity: { longitude: -73.9569994, latitude: 40.7297027 },
             bbox: [-74.2713341, 40.4873118, -72.5270252, 41.2417642]
         })
         geo.addTo('#geocoderContainer')
@@ -77,68 +77,68 @@ const Address = props => {
     }, [])
 
     props.setIsNextDisabled([newCourseAddressLine1, newCourseAddressCity, newCourseAddressZipcode,
-      newCourseAddressState, newCourseLatitude].some(val => !Boolean(val)))
-    
+        newCourseAddressState, newCourseLatitude].some(val => !Boolean(val)))
+
 
     return (
-    <div>
-    <Typography variant='h4' mb={2} mt={8} align='center'>Where will you teach?</Typography>
-    <Container style={{width:"90vw", display: 'flex', flexWrap:'wrap', justifyContent:'center' }} sx={{ py: 2, }}>
-        <Stack spacing={4}>
-            <div id='geocoderContainer'></div>
-            <TextField className={`display-${showFields}`}
-                value={newCourseAddressLine1}
-                onChange={e => setNewCourseAddressLine1(e.target.value)}
-                required
-                id="outlined-required"
-                label="Address Line 1"
-            />
-            <TextField className={`display-${showFields}`}
-                value={newCourseAddressLine2}
-                onChange={e => setNewCourseAddressLine2(e.target.value)}
-                required
-                id="outlined-required"
-                label="Suite or Apt # etc."
-            />
-            <Grid className={`display-${showFields}`} container direction="row" sx={{}}>
-                <Grid item xs={8} spacing={4} sx={{}}>
-                    <TextField fullWidth label='City' placeholder='City'
-                        onChange={e => setNewCourseAddressCity(e.target.value)} value={newCourseAddressCity} >xs=8</TextField>
-                </Grid>
-                <Grid item xs={4} sx={{}} style={{paddingLeft:"2%"}}>
-                    <FormControl variant="standard">
-                    <InputLabel id="demo-simple-select-standard-label">State</InputLabel>
-                        <Select
-                            id="demo-simple-select-standard"
-                            value={newCourseAddressState}
-                            onChange={e => setNewCourseAddressCity(e.target.value)}
-                        >
-                            <MenuItem value="">
-                                <em>Select State</em>
-                            </MenuItem>
-                            <MenuItem value="NY">NY</MenuItem>
-                            <MenuItem value="FL">FL</MenuItem>
-                            <MenuItem value="CA">CA</MenuItem>
-                        </Select>
-                    </FormControl>
-                </Grid>
-            </Grid>
-            <Grid className={`display-${showFields}`} item xs={4} sx={{}}>
-                <TextField fullWidth label='Zipcode' placeholder='Zipcode'
-                    onChange={e => setNewCourseAddressZipcode(e.target.value)} value={newCourseAddressZipcode}></TextField>
-            </Grid>
-        </Stack>
-        {showFields &&
-        <ReactMapGL mapboxAccessToken={MAPBOX_TOKEN}
-            initialViewState={{zoom: 14, latitude: newCourseLatitude, longitude: newCourseLongitude}}
-            mapStyle={`mapbox://styles/mapbox/${theme.palette.mode}-v11`}
-            style={{ width: '100%', height: '30vh' }}
-            // onLoad={onMapLoad}
-        >
-            <Marker
-                latitude={newCourseLatitude}
-                longitude={newCourseLongitude}>
-                {/* <div>
+        <div>
+            <Typography variant='h4' mb={2} mt={8} align='center'>Where will you host?</Typography>
+            <Container style={{ width: "90vw", display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }} sx={{ py: 2, }}>
+                <Stack spacing={4}>
+                    <div id='geocoderContainer'></div>
+                    <TextField className={`display-${showFields}`}
+                        value={newCourseAddressLine1}
+                        onChange={e => setNewCourseAddressLine1(e.target.value)}
+                        required
+                        id="outlined-required"
+                        label="Address Line 1"
+                    />
+                    <TextField className={`display-${showFields}`}
+                        value={newCourseAddressLine2}
+                        onChange={e => setNewCourseAddressLine2(e.target.value)}
+                        required
+                        id="outlined-required"
+                        label="Suite or Apt # etc."
+                    />
+                    <Grid className={`display-${showFields}`} container direction="row" sx={{}}>
+                        <Grid item xs={8} spacing={4} sx={{}}>
+                            <TextField fullWidth label='City' placeholder='City'
+                                onChange={e => setNewCourseAddressCity(e.target.value)} value={newCourseAddressCity} >xs=8</TextField>
+                        </Grid>
+                        <Grid item xs={4} sx={{}} style={{ paddingLeft: "2%" }}>
+                            <FormControl variant="standard">
+                                <InputLabel id="demo-simple-select-standard-label">State</InputLabel>
+                                <Select
+                                    id="demo-simple-select-standard"
+                                    value={newCourseAddressState}
+                                    onChange={e => setNewCourseAddressCity(e.target.value)}
+                                >
+                                    <MenuItem value="">
+                                        <em>Select State</em>
+                                    </MenuItem>
+                                    <MenuItem value="NY">NY</MenuItem>
+                                    <MenuItem value="FL">FL</MenuItem>
+                                    <MenuItem value="CA">CA</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                    </Grid>
+                    <Grid className={`display-${showFields}`} item xs={4} sx={{}}>
+                        <TextField fullWidth label='Zipcode' placeholder='Zipcode'
+                            onChange={e => setNewCourseAddressZipcode(e.target.value)} value={newCourseAddressZipcode}></TextField>
+                    </Grid>
+                </Stack>
+                {showFields &&
+                    <ReactMapGL mapboxAccessToken={MAPBOX_TOKEN}
+                        initialViewState={{ zoom: 14, latitude: newCourseLatitude, longitude: newCourseLongitude }}
+                        mapStyle={`mapbox://styles/mapbox/${theme.palette.mode}-v11`}
+                        style={{ width: '100%', height: '30vh' }}
+                    // onLoad={onMapLoad}
+                    >
+                        <Marker
+                            latitude={newCourseLatitude}
+                            longitude={newCourseLongitude}>
+                            {/* <div>
                     <button
                         style={{
                             background: 'none',
@@ -160,21 +160,21 @@ const Address = props => {
                         />
                     </button>
                 </div> */}
-            </Marker>
-        </ReactMapGL>
-        }
+                        </Marker>
+                    </ReactMapGL>
+                }
 
-        <Button variant="contained" size="large" align='center' disabled={[newCourseAddressLine1, newCourseAddressCity, newCourseAddressZipcode,
-            newCourseAddressState, newCourseLatitude].some(val => !Boolean(val))}
-            style={{margin: '25% 0 20px', width:'80%', fontSize: 26, fontFamily:'Poppins', color:'white'}} fullWidth
-            onClick={props.handleNext}>
-            Next
-        </Button>
+                <Button variant="contained" size="large" align='center' disabled={[newCourseAddressLine1, newCourseAddressCity, newCourseAddressZipcode,
+                    newCourseAddressState, newCourseLatitude].some(val => !Boolean(val))}
+                    style={{ margin: '25% 0 20px', width: '80%', fontSize: 26, fontFamily: 'Poppins', color: 'white' }} fullWidth
+                    onClick={props.handleNext}>
+                    Next
+                </Button>
 
-    </Container>
+            </Container>
 
-    </div>
-  )
+        </div>
+    )
 }
 
 export default Address;

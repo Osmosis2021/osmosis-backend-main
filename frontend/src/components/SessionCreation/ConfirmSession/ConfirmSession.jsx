@@ -1,14 +1,30 @@
-import { CircularProgress, Container, Grid, IconButton, Typography } from '@mui/material'
-import React, {useEffect, useState} from 'react'
+import {
+    CircularProgress,
+    Container,
+    Grid,
+    IconButton,
+    Typography,
+    Box,
+    Stack,
+    Button,
+    Divider,
+    Fade
+} from '@mui/material'
+import React, { useEffect, useState } from 'react'
 import SessionCard from '../../SessionCard/SessionCard'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import ShareIcon from '@mui/icons-material/Share';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import useStore from '../../../store';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import TERMS from '../../../constants/terms';
+import CompletenessChecklist from '../CompletenessChecklist/CompletenessChecklist';
+import { PremiumSectionHeader } from '../../../ui/PremiumSectionHeader';
+import { PremiumCard } from '../../../ui/PremiumCard';
 
-
-export const ConfirmSession = () => {
-
+export const ConfirmSession = (props) => {
     const {
         backendURL,
         newCourseIndustry, setNewCourseIndustry,
@@ -28,18 +44,23 @@ export const ConfirmSession = () => {
         newCourseAddressCountry, setNewCourseAddressCountry,
         courseTitle, setCourseTitle,
         courseDescription, setCourseDescription,
+        studioVibe, setStudioVibe,
+        whatToBring, setWhatToBring,
         newCourseLatitude, setNewCourseLatitude,
         newCourseLongitude, setNewCourseLongitude,
         newCourseTimeslots, setNewCourseTimeslots,
     } = useStore();
+
     const navigate = useNavigate();
-    const [isLoading, setIsLoading] = useState();
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     const [teacherInfo, setTeacherInfo] = useState();
+    const [newCourseID, setNewCourseID] = useState('');
 
     const handleCourseRegistration = async (e) => {
-		e.preventDefault();
+        e.preventDefault();
         setIsLoading(true)
-		try {
+        try {
             const courseInfo = {
                 teacherID: userID,
                 userName,
@@ -55,20 +76,24 @@ export const ConfirmSession = () => {
                 latitude: newCourseLatitude,
                 industry: newCourseIndustry,
                 tags,
-                pricePerStudent: newCourseCost, 
+                pricePerStudent: newCourseCost,
                 courseTitle,
                 capacity: capacity,
                 duration: newCourseDuration,
-                images, 
+                images,
                 schedule: newCourseTimeslots,
                 courseDescription: courseDescription,
+                studioVibe: studioVibe,
+                whatToBring: whatToBring,
             }
 
-            const {data} = await axios.post(backendURL + 'course/registerCourse', courseInfo)
+            const { data } = await axios.post(backendURL + 'course/registerCourse', courseInfo)
             setIsLoading(false);
-            console.log('finished submitting course registration. resp:', data);
-            // alert('Course succesfully created!')
-            if  (data.success === true) {
+
+            if (data.success === true) {
+                setNewCourseID(data.courseID);
+                setIsSuccess(true);
+                // Reset store
                 setNewCourseIndustry('')
                 setTags([])
                 setImages([])
@@ -83,76 +108,208 @@ export const ConfirmSession = () => {
                 setNewCourseAddressCountry('')
                 setCourseTitle('')
                 setCourseDescription('')
+                setStudioVibe('')
+                setWhatToBring('')
                 setNewCourseLatitude(-73.9569994)
                 setNewCourseLongitude(40.7297027)
                 setNewCourseTimeslots([])
             }
-            navigate(`/teachers/${userName}`)
         } catch (error) {
             console.log(error)
+            setIsLoading(false)
         }
     }
+
     useEffect(() => {
-        fetch (`${backendURL}user/getUserInfo/${userName}`)
-            .then((res) => {
-                return res.json();
-            }).then((data) => {
+        fetch(`${backendURL}user/getUserInfo/${userName}`)
+            .then((res) => res.json())
+            .then((data) => {
                 setTeacherInfo(data)
-                console.log(data)
             }).catch((err) => {
                 console.log('Error getting teacher info:\n', err)
             });
     }, [])
 
+    const handleCopyLink = () => {
+        const url = `${window.location.origin}/teachers/${userName}/${newCourseID}`;
+        navigator.clipboard.writeText(url);
+        alert('Link copied to clipboard!');
+    };
 
-  return (
-        <Container maxWidth='sm' align='center'>
-            <Grid container spacing={2} justifyContent='center' alignItems='center'>
+    const handleShare = async () => {
+        const url = `${window.location.origin}/teachers/${userName}/${newCourseID}`;
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: courseTitle,
+                    text: `Check out my new Studio Time: ${courseTitle}`,
+                    url: url,
+                });
+            } catch (err) {
+                console.log('Error sharing:', err);
+            }
+        } else {
+            handleCopyLink();
+        }
+    };
 
+    if (isSuccess) {
+        return (
+            <Fade in={true} timeout={800}>
+                <Container maxWidth="sm" sx={{ py: 8, textAlign: 'center' }}>
+                    <Box sx={{ mb: 4 }}>
+                        <CheckCircleIcon sx={{ fontSize: 80, color: 'success.main', mb: 2 }} />
+                        <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>
+                            Your Studio Time is live!
+                        </Typography>
+                        <Typography variant="h6" color="text.secondary">
+                            Congratulations! Your experience is now discoverable by the community.
+                        </Typography>
+                    </Box>
+
+                    <Stack spacing={2} sx={{ mb: 6 }}>
+                        <Button
+                            variant="contained"
+                            size="large"
+                            fullWidth
+                            startIcon={<VisibilityIcon />}
+                            component={Link}
+                            to={`/teachers/${userName}/${newCourseID}`}
+                            sx={{ py: 2, fontWeight: 700, borderRadius: 3 }}
+                        >
+                            View Your Listing
+                        </Button>
+                        <Stack direction="row" spacing={2}>
+                            <Button
+                                variant="outlined"
+                                fullWidth
+                                startIcon={<ContentCopyIcon />}
+                                onClick={handleCopyLink}
+                                sx={{ py: 1.5, fontWeight: 700, borderRadius: 3 }}
+                            >
+                                Copy Link
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                fullWidth
+                                startIcon={<ShareIcon />}
+                                onClick={handleShare}
+                                sx={{ py: 1.5, fontWeight: 700, borderRadius: 3 }}
+                            >
+                                Share
+                            </Button>
+                        </Stack>
+                    </Stack>
+
+                    <PremiumCard sx={{ textAlign: 'left', p: 3 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
+                            Next Steps
+                        </Typography>
+                        <Stack spacing={2}>
+                            <Box sx={{ display: 'flex', gap: 2 }}>
+                                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'primary.main', mt: 1 }} />
+                                <Typography variant="body2">
+                                    Add more availability to your calendar to get more bookings.
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', gap: 2 }}>
+                                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'primary.main', mt: 1 }} />
+                                <Typography variant="body2">
+                                    Share your link on Instagram or Twitter to reach your audience.
+                                </Typography>
+                            </Box>
+                        </Stack>
+                        <Button
+                            component={Link}
+                            to={`/teachers/${userName}`}
+                            sx={{ mt: 3, fontWeight: 700, textTransform: 'none' }}
+                        >
+                            Back to Dashboard
+                        </Button>
+                    </PremiumCard>
+                </Container>
+            </Fade>
+        );
+    }
+
+    return (
+        <Container maxWidth='md' sx={{ py: 4 }}>
+            <Grid container spacing={4}>
                 <Grid item xs={12}>
-                    <Typography mt={8} variant='h4'>Confirm your information</Typography>
-                </Grid>
-
-                <Grid item xs={12}>
-                    <SessionCard
-                        images={images[0]}
-                        profileImage={teacherInfo?.profileImage?.url}
-                        industry={newCourseIndustry}
-                        tags={tags}
-                        courseTitle={courseTitle}
-                        icon={newCourseIndustry}
-                        price={newCourseCost}
-                        firstName={userName}
-                        capacity={capacity}
-                        address={newCourseAddressLine1}
-                        city={newCourseAddressCity}
-                        zipCode={newCourseAddressZipcode}
+                    <PremiumSectionHeader
+                        title="Review & Go Live"
+                        subtitle="One last look before your studio doors open."
+                        align="center"
                     />
                 </Grid>
-                
-                <Grid item xs={12}>
-                    <IconButton type='submit' onClick={handleCourseRegistration} variant='contained' size='large'
-                        disabled={(!Boolean(userName) || !Boolean(isTeacher)) || Boolean(isLoading)}>
-                        <CheckCircleIcon sx={{fontSize:'150px', color:'#00aeef'}}>
-                        </CheckCircleIcon> 
-                    </IconButton>
-                       
-                    <Typography variant='h3' color='#00aeef'>
-                        { isLoading ?  <CircularProgress 
-                                            size="xl"
-                                            w={20}
-                                            h={20}
-                                            style={{display:'flex', justifyContent:"center", alignItems:'center', height:'70vh'}}
-                                            margin="auto"
-                                        /> : 
-                          !Boolean(userName) ? 'Please sign in to add a course' :
-                          !Boolean(isTeacher) ? "You're not signed up as a teacher" :
-                          'Go Live Today' }
-                    </Typography>
-                        
+
+                <Grid item xs={12} md={7}>
+                    <Stack spacing={4}>
+                        <Box>
+                            <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
+                                Completeness Checklist
+                            </Typography>
+                            <CompletenessChecklist setActiveStep={props.setActiveStep} />
+                        </Box>
+
+                        <PremiumCard sx={{ p: 3, bgcolor: 'rgba(0,174,239,0.02)' }}>
+                            <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
+                                Host Agreement
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                By going live, you agree to host this experience as described and follow the Studio Time community guidelines.
+                            </Typography>
+                            <Button
+                                variant="contained"
+                                size="large"
+                                fullWidth
+                                onClick={handleCourseRegistration}
+                                disabled={(!Boolean(userName) || !Boolean(isTeacher)) || isLoading}
+                                sx={{
+                                    py: 2,
+                                    fontWeight: 800,
+                                    fontSize: '1.1rem',
+                                    borderRadius: 3,
+                                    boxShadow: '0 8px 24px rgba(0,174,239,0.25)'
+                                }}
+                            >
+                                {isLoading ? <CircularProgress size={24} sx={{ color: 'primary.main' }} /> : 'Go Live Today'}
+                            </Button>
+                            {!isTeacher && (
+                                <Typography variant="caption" color="error" sx={{ mt: 2, display: 'block', textAlign: 'center' }}>
+                                    You must be registered as a host to go live.
+                                </Typography>
+                            )}
+                        </PremiumCard>
+                    </Stack>
                 </Grid>
-                
+
+                <Grid item xs={12} md={5}>
+                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
+                        Preview
+                    </Typography>
+                    <Box sx={{ position: 'sticky', top: 100 }}>
+                        <SessionCard
+                            images={images[0]?.url || images[0]}
+                            profileImage={teacherInfo?.profileImage?.url}
+                            industry={newCourseIndustry}
+                            tags={tags}
+                            courseTitle={courseTitle || 'Your Experience Title'}
+                            icon={newCourseIndustry}
+                            price={newCourseCost || 0}
+                            firstName={userName}
+                            capacity={capacity}
+                            address={newCourseAddressLine1}
+                            city={newCourseAddressCity}
+                            zipCode={newCourseAddressZipcode}
+                        />
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block', textAlign: 'center' }}>
+                            This is how your experience will appear in search.
+                        </Typography>
+                    </Box>
+                </Grid>
             </Grid>
         </Container>
     )
 }
+

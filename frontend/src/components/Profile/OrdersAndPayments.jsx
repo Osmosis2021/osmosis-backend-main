@@ -23,7 +23,7 @@ const OrdersAndPayments = (props) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        
+
         fetch(`${backendURL}stripe/config`).then(async (res) => {
             const { publishableKey } = await res.json();
             setStripePromise(loadStripe(publishableKey));
@@ -41,10 +41,10 @@ const OrdersAndPayments = (props) => {
             // USE STRIPE ID TO ONBOARD USER 
             if (userData?.stripeID !== undefined) {
                 const stripeID = userData?.stripeID
-                const accountLinkResponse = await fetch (`${backendURL}stripe/accountLink/${stripeID}`)
+                const accountLinkResponse = await fetch(`${backendURL}stripe/accountLink/${stripeID}`)
                 const accountLinkData = await accountLinkResponse?.json()
                 setAccountLink(accountLinkData?.url)
-                
+
                 // GET USER INFO WITH STRIPE ID
                 const stripeAccountResponse = await fetch(`${backendURL}stripe/retrieveStripeAccount/${stripeID}`)
                 const stripeAccountData = await stripeAccountResponse?.json()
@@ -56,7 +56,7 @@ const OrdersAndPayments = (props) => {
                 const stripeCustomerData = await stripeCustomerFetch?.json()
                 setCardInfo(stripeCustomerData.card)
                 console.log(stripeCustomerData)
-            }    
+            }
         };
 
         fetchData();
@@ -64,13 +64,13 @@ const OrdersAndPayments = (props) => {
 
     }, [])
 
-    function stripeOnboarding () {
+    function stripeOnboarding() {
         navigate(window.location.assign(accountLink))
     }
 
     const handleSavePaymentMethod = (paymentMethodID) => {
         // Save the payment method ID to your backend
-        axiosPrivate.post(`${backendURL}stripe/save-payment-method/${userInfo?.customerStripeID}`, 
+        axiosPrivate.post(`${backendURL}stripe/save-payment-method/${userInfo?.customerStripeID}`,
             { paymentMethodID: paymentMethodID }
         ).then((response) => {
             const { attachedPaymentMethod, retrievePaymentMethod } = response.data;
@@ -84,67 +84,67 @@ const OrdersAndPayments = (props) => {
 
     return (
         <>
-            <TopNavBar back={`/${isTeacher ? 'teachers' : 'students'}/${userName}`}/>
+            <TopNavBar back={`/${isTeacher ? 'teachers' : 'students'}/${userName}`} />
 
-            <Container style={{ marginTop: '2rem', width:'90vw' }}>
+            <Container style={{ marginTop: '2rem', width: '90vw' }}>
 
                 <Grid container style={{ flexDirection: 'column', alignItems: 'center' }}>
 
                     <Typography variant='h3'>Orders & Payments</Typography>
 
                     {/* vvv Add isOnboarded conditional vvv */}
-                    { 
+                    {
                         isLoading && isTeacher ? <></> :
-                        <>
-                            <Typography>
-                                Osmosis uses Stripe to get you paid quickly and keep your personal and payment 
-                                information secure. Thousands of companies around the world trust Stripe to process payments 
-                                for their users. Set up a Stripe account to get paid with Osmosis. 
-                                Your stripe ID is: <span style={{color:'#00aeef'}}>{userInfo?.stripeID}</span>
-                            </Typography>
+                            <>
+                                <Typography>
+                                    Studio Time uses Stripe to get you paid quickly and keep your personal and payment
+                                    information secure. Thousands of companies around the world trust Stripe to process payments
+                                    for their users. Set up a Stripe account to get paid with Studio Time.
+                                    Your stripe ID is: <span style={{ color: '#000000' }}>{userInfo?.stripeID}</span>
+                                </Typography>
 
-                            <br/>
+                                <br />
 
-                            <Button 
-                                style={{textAlign:'left', color:'white'}}
-                                onClick={stripeOnboarding}
-                                variant='contained'>
-                                Setup Payments
-                            </Button>
+                                <Button
+                                    style={{ textAlign: 'left', color: 'white' }}
+                                    onClick={stripeOnboarding}
+                                    variant='contained'>
+                                    Setup Payments
+                                </Button>
 
-                            <br/>
+                                <br />
 
-                            {/* DID USER COMPLETE STRIPE ONBOARDING? IF SO DISPLAY BELOW */}
+                                {/* DID USER COMPLETE STRIPE ONBOARDING? IF SO DISPLAY BELOW */}
 
-                            {/* IS DEBIT CARD OR BANK ACCOUNT? IF SO CHANGE ICONS */} 
+                                {/* IS DEBIT CARD OR BANK ACCOUNT? IF SO CHANGE ICONS */}
 
-                            {/* User should be able to edit CC and Bank Payout */} 
-                                
-                            <Typography variant='h4'>You'll receive payouts here:</Typography>
+                                {/* User should be able to edit CC and Bank Payout */}
 
-                            <br/>
+                                <Typography variant='h4'>You'll receive payouts here:</Typography>
 
-                            <Grid container justifyContent='center' columnSpacing={2}>
-                                
-                                <Grid item>
-                                    <AccountBalanceIcon style={{fontSize:'30px'}}/>
+                                <br />
+
+                                <Grid container justifyContent='center' columnSpacing={2}>
+
+                                    <Grid item>
+                                        <AccountBalanceIcon style={{ fontSize: '30px' }} />
+                                    </Grid>
+
+                                    <Grid item>
+                                        <Typography variant='h4'>
+                                            {stripeInfo?.retrieveAccount?.external_accounts?.data?.[0]?.brand}
+                                            ******{stripeInfo?.retrieveAccount?.external_accounts?.data?.[0]?.last4}
+                                        </Typography>
+                                    </Grid>
+
                                 </Grid>
 
-                                <Grid item>
-                                    <Typography variant='h4'>
-                                        {stripeInfo?.retrieveAccount?.external_accounts?.data?.[0]?.brand}
-                                        ******{stripeInfo?.retrieveAccount?.external_accounts?.data?.[0]?.last4}
-                                    </Typography>
-                                </Grid>
+                                <br />
 
-                            </Grid>
-                                
-                            <br/>
+                                {/* <Typography variant='h4'>Your pending payouts are currently at:</Typography> */}
+                                {/* <Typography variant='h4'>{stripeInfo?.balance?.pending?.[0].amount}</Typography> */}
 
-                            {/* <Typography variant='h4'>Your pending payouts are currently at:</Typography> */}
-                            {/* <Typography variant='h4'>{stripeInfo?.balance?.pending?.[0].amount}</Typography> */}
-
-                        </>
+                            </>
                     }
 
                 </Grid>
@@ -152,13 +152,13 @@ const OrdersAndPayments = (props) => {
                 <hr></hr>
                 <br></br>
 
-                <Grid container justifyContent='space-between' padding={2} direction='column' style={{borderRadius:'5px', backgroundColor:'#00aeef', height:'150px', maxWidth:'310px'}}>
+                <Grid container justifyContent='space-between' padding={2} direction='column' style={{ borderRadius: '5px', backgroundColor: '#000000', height: '150px', maxWidth: '310px' }}>
 
-                    <Typography color='white' style={{fontSize:'18px', textAlign:'right'}}>
+                    <Typography color='white' style={{ fontSize: '18px', textAlign: 'right' }}>
                         {cardInfo?.brand}
                     </Typography>
 
-                    <Typography color='white' size='large' style={{fontSize:'24px', justifyContent:'center', display:'flex' }}>
+                    <Typography color='white' size='large' style={{ fontSize: '24px', justifyContent: 'center', display: 'flex' }}>
                         **** **** **** {cardInfo?.last4}
                     </Typography>
 
@@ -185,15 +185,15 @@ const OrdersAndPayments = (props) => {
 
                 <Grid container>
                     {
-                        isStudent && stripePromise ? 
+                        isStudent && stripePromise ?
                             <>
-                                <Typography style={{marginTop:'4%'}} variant="h4">Add a Payment Method:</Typography>
+                                <Typography style={{ marginTop: '4%' }} variant="h4">Add a Payment Method:</Typography>
 
                                 <Elements stripe={stripePromise}>
-                                    <PaymentMethodForm onSavePaymentMethod={handleSavePaymentMethod}/>
+                                    <PaymentMethodForm onSavePaymentMethod={handleSavePaymentMethod} />
                                 </Elements>
                             </>
-                        : <> </>
+                            : <> </>
                     }
                 </Grid>
 

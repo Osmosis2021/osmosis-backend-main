@@ -8,20 +8,29 @@ import useStore from '../../store';
 function Payment(props) {
     const [stripePromise, setStripePromise] = useState(null);
     const [clientSecret, setClientSecret] = useState('');
-    const {backendURL, customerStripeID, paymentMethodID, email} = useStore()
+    const { backendURL, customerStripeID, paymentMethodID, email } = useStore()
     console.log('paymentMethodID', paymentMethodID)
 
     console.log('customerStripeID', customerStripeID)
-        // Fetch publishableKey from the server
+    // Fetch publishableKey from the server
     useEffect(() => {
+        // Validation: Host must have a Stripe ID
+        if (!props.stripeID) {
+            console.error("Missing Host Stripe ID - Cannot process payment");
+            return; // Stop early
+        }
+
+        // Convert Price to Cents (Stripe Requirement)
+        const amountInCents = Math.round(Number(props.item.pricePerStudent) * 100);
+
         const requestBody = {
-            amount: props.item.pricePerStudent,
+            amount: amountInCents,
             capacity: props.item.guests,
             metadata: props.paymentMetadata,
             stripeID: props.stripeID,
             email: email
         };
-        // Include paymentMethodID only if it exists
+
         if (paymentMethodID) {
             requestBody.paymentMethodID = paymentMethodID;
         }
@@ -29,17 +38,20 @@ function Payment(props) {
             requestBody.customerStripeID = customerStripeID;
         }
 
+        console.log("Initializing Payment Intent for:", amountInCents, "cents");
+
+
         fetch(`${backendURL}stripe/config`).then(async (res) => {
             const { publishableKey } = await res.json();
             setStripePromise(loadStripe(publishableKey));
-        // Fetch client secret for the payment intent from the server
+            // Fetch client secret for the payment intent from the server
         }).then(() => {
             fetch(`${backendURL}stripe/create-payment-intent`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestBody),
             }).then(async (res) => {
-                const {clientSecret} = await res.json();
+                const { clientSecret } = await res.json();
                 setClientSecret(clientSecret);
             })
         }).catch((error) => {
@@ -53,21 +65,22 @@ function Payment(props) {
         clientSecret: clientSecret
     }
 
-  return (
-    <>
-      {stripePromise && clientSecret && (
-        <Elements stripe={stripePromise} options={options}>
-          <CheckoutForm
-            clientSecret={clientSecret}
-            bookThisCourse={props.bookThisCourse}
-            paymentMetadata={props.paymentMetadata}
-            paymentMethodID={paymentMethodID}
-          />
-        </Elements>
-      )}
-    </>
-  );
+    return (
+        <>
+            {stripePromise && clientSecret && (
+                <Elements stripe={stripePromise} options={options}>
+                    <CheckoutForm
+                        clientSecret={clientSecret}
+                        bookThisCourse={props.bookThisCourse}
+                        paymentMetadata={props.paymentMetadata}
+                        paymentMethodID={paymentMethodID}
+                        onBookingSuccess={props.onBookingSuccess}
+                    />
+                </Elements>
+            )}
+        </>
+    );
 }
 
+
 export default Payment;
-  

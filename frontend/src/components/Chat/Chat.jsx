@@ -1,23 +1,35 @@
-import React from 'react'
-import {Grid} from '@mui/material/';
+import React, { useState } from 'react'
+import { Grid, Box, Container, useTheme, useMediaQuery } from '@mui/material/';
 import MyChats from './MyChats';
 import ChatBox from './ChatBox';
+import TopNavBar from '../TopNavBar/TopNavBar';
+import useStore from '../../store';
 
 const Chat = () => {
+    const [fetchAgain, setFetchAgain] = useState(false);
+    const { selectedChat } = useStore();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
     return (
-        <div style={{overflowY:'hidden', height:'93vh'}}>
-            <Grid container direction='row' style={{height:"100%", display: 'flex' }} >
+        <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#FAFAFA' }}>
+            <TopNavBar />
+            <Container maxWidth="xl" sx={{ flexGrow: 1, py: 3, overflow: 'hidden' }}>
+                <Grid container spacing={3} sx={{ height: '100%' }}>
+                    {(!isMobile || !selectedChat) && (
+                        <Grid item xs={12} md={4} lg={3} sx={{ height: '100%' }}>
+                            <MyChats fetchAgain={fetchAgain} />
+                        </Grid>
+                    )}
 
-                <Grid item xs={5}>
-                    <MyChats/>
+                    {(!isMobile || selectedChat) && (
+                        <Grid item xs={12} md={8} lg={9} sx={{ height: '100%' }}>
+                            <ChatBox key={selectedChat?._id || 'empty'} fetchAgain={fetchAgain} setFetchAgain={setFetchAgain} />
+                        </Grid>
+                    )}
                 </Grid>
-
-                <Grid item xs={7}>
-                    <ChatBox />
-                </Grid>
-
-            </Grid>
-        </div>
+            </Container>
+        </Box>
     )
 }
 

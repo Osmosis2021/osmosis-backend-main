@@ -1,403 +1,282 @@
 import {
   Avatar,
-  AvatarGroup,
   Box,
-  Button,
-  Card,
   Container,
   Grid,
-  Rating,
-  TextField,
   Typography,
+  Stack,
+  Tabs,
+  Tab,
+  Chip,
+  Divider,
+  IconButton,
+  Button,
+  useTheme,
+  useMediaQuery
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import TopProfileBar from "../../TopNavBar/TopProfileBar";
-import SessionCard from "../../SessionCard/SessionCard";
-import React, { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import MessageIcon from '@mui/icons-material/Message';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import React, { useState, useEffect, useMemo } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import useStore from "../../../store";
-import UserInfo from "../UserInfo";
-import "./StudentProfile.css";
-import Prof from "../Prof";
 import useAxiosPrivate from "../../../hooks/useAxiosPrivate";
 import useLogout from "../../../hooks/useLogout";
-import CalendarViewButton from "../CalendarViewButton";
+import TERMS from "../../../constants/terms";
+import { PremiumCard } from "../../../ui/PremiumCard";
+import { PremiumButton } from "../../../ui/PremiumButton";
+import { PremiumSectionHeader } from "../../../ui/PremiumSectionHeader";
+import PremiumEmptyState from "../../../ui/PremiumEmptyState";
+import { PremiumBackButton } from "../../../ui/PremiumBackButton";
 
 const StudentProfile = () => {
   const logout = useLogout();
   const axiosPrivate = useAxiosPrivate();
-  const [classHappened, setClassHappened] = useState([]);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const navigate = useNavigate();
+
+  const [tabValue, setTabValue] = useState(0);
   const [userInfo, setUserInfo] = useState({});
   const [bookings, setBookings] = useState([]);
-  const [unratedAndUnreviewedBooking, setUnratedAndUnreviewedBooking] =
-    useState([]);
   const { backendURL, userID, userName } = useStore();
   const pageUserName = useParams()?.userName;
 
   useEffect(() => {
     axiosPrivate.get(`booking/bookings/${pageUserName}`).then((response) => {
-      console.log({
-        pageUserName,
-        "booking/bookings/userName response": response.data,
-      });
       setBookings(response.data);
-      const _today = new Date();
-      _today.setHours(0, 0, 0, 0);
-      const bookingHappenedAndNotReviewed = response.data.filter((booking) => {
-        const slotDate = new Date(booking.date);
-        return slotDate <= _today && !booking.ratedAndReviewed;
-      });
-      const classHappened = response.data.filter((booking) => {
-        const slotDate = new Date(booking.date);
-        return slotDate <= _today;
-      });
-      setUnratedAndUnreviewedBooking(bookingHappenedAndNotReviewed);
-      setClassHappened(classHappened);
     });
   }, [pageUserName]);
-
-  const handleWrittenReview = (event, booking) => {
-    const writtenReview = event.target.value;
-    setUnratedAndUnreviewedBooking((prevBookings) => {
-      const updatedBookings = prevBookings.map((prevBooking) => {
-        if (prevBooking._id === booking._id) {
-          return { ...prevBooking, writtenReview };
-        }
-        return prevBooking;
-      });
-      return updatedBookings;
-    });
-  };
-
-  const sendRating = (event, booking) => {
-    event.preventDefault();
-    const { rating, writtenReview } = booking;
-    if (rating && writtenReview) {
-      fetch(`${backendURL}course/sendReview/${booking._id}`, {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          feedback: { rating, writtenReview, userID },
-        }),
-      }).then(() => {
-        setUnratedAndUnreviewedBooking((prevBookings) =>
-          prevBookings.filter((prevBooking) => prevBooking._id !== booking._id)
-        );
-      });
-    } else {
-      alert("Please both rate and review your class");
-    }
-  };
-
-  const getUser = () => {
-    axiosPrivate
-      .get(`${backendURL}user/getUserInfo/${pageUserName}`)
-      .then((res) => {
-        const data = res.data;
-        setUserInfo(data);
-      })
-      .catch((err) => {
-        console.log("Error getting user info:\n", err);
-      });
-  };
 
   useEffect(() => {
-    getUser();
+    axiosPrivate.get(`${backendURL}user/getUserInfo/${pageUserName}`)
+      .then((res) => setUserInfo(res.data))
+      .catch((err) => console.log("Error getting user info:", err));
   }, [pageUserName]);
 
-  return (
-    <>
-      <TopProfileBar userName={userInfo.userName} />
-      <div className="m-4">
-        <Grid item xs={3} style={{ display: "flex", justifyContent: "center" }}>
-          <Prof
-            avatar={userInfo?.profileImage?.url}
-            name={`${userInfo.firstName} ${userInfo.lastName}`}
+  const sortedBookings = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const upcoming = bookings.filter(b => new Date(b.date) >= today)
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    const past = bookings.filter(b => new Date(b.date) < today)
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    return { upcoming, past };
+  }, [bookings]);
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
+
+  const getStatusChip = (booking) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const bookingDate = new Date(booking.date);
+
+    if (bookingDate < today) {
+      return <Chip label="Completed" size="small" sx={{ fontWeight: 700, bgcolor: 'rgba(0,0,0,0.05)', color: 'text.secondary' }} />;
+    }
+    return <Chip label="Upcoming" size="small" color="primary" sx={{ fontWeight: 700 }} />;
+  };
+
+  const ReservationItem = ({ booking }) => (
+    <PremiumCard sx={{ p: 0, mb: 2, overflow: 'hidden' }}>
+      <Grid container>
+        <Grid item xs={12} md={3}>
+          <Box
+            sx={{
+              height: { xs: 140, md: '100%' },
+              backgroundImage: `url(${booking?.courseID?.images?.[0]?.url})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}
           />
         </Grid>
+        <Grid item xs={12} md={9}>
+          <Box sx={{ p: 2.5 }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
+              <Box>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+                  {getStatusChip(booking)}
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                    ID: {booking._id.slice(-6).toUpperCase()}
+                  </Typography>
+                </Stack>
+                <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                  {booking?.courseID?.courseTitle}
+                </Typography>
+              </Box>
+              <IconButton size="small">
+                <MoreVertIcon />
+              </IconButton>
+            </Stack>
 
-        {userInfo?.description ? (
-          <Grid
-            item
-            xs={8}
-            textAlign="center"
-            fullWidth
-            style={{ padding: "2%" }}
-          >
-            {userInfo?.description}
-          </Grid>
-        ) : (
-          <Typography style={{ textAlign: "center" }}>
-            Bio goes here...
-          </Typography>
-        )}
-
-        {userInfo.userName === userName ? (
-          <Grid
-            item
-            xs={3}
-            style={{ display: "flex", justifyContent: "center" }}
-          >
-            <Link to="/edit" style={{ textDecoration: "none" }}>
-              <Button variant="contained" style={{ color: "white" }}>
-                <EditIcon />
-                <pre> </pre>Edit Profile
-              </Button>
-            </Link>
-          </Grid>
-        ) : null}
-
-        <Grid item xs={8}>
-          <UserInfo taken={bookings.length} />
-        </Grid>
-      </div>
-
-      <br />
-      <div className="w-full flex justify-center">
-        <hr style={{ color: "black", width: "90%", border: "solid .5px" }} />
-      </div>
-      <br />
-
-      {/* VVV SHOW RATING/REVIEW PROMPT FOR UNRATED AND UNREVIEWED BOOKINGS VVV */}
-
-      <Container>
-        {userID === userInfo?.id && unratedAndUnreviewedBooking.length > 0 ? (
-          <Typography variant="h4">Rate your session:</Typography>
-        ) : (
-          <></>
-        )}
-
-        {userID === userInfo?.id &&
-          unratedAndUnreviewedBooking.map((booking) => {
-            return (
-              <React.Fragment key={booking._id}>
-                <>
-                  <br />
-
-                  <Card style={{ padding: "2%" }}>
-                    <Typography variant="h4">
-                      {booking?.courseID?.courseTitle}
+            <Grid container spacing={2} sx={{ mb: 2 }}>
+              <Grid item xs={6} sm={4}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <CalendarTodayIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" display="block">Date & Time</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                      {new Date(booking.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} @ {booking.time}
                     </Typography>
+                  </Box>
+                </Stack>
+              </Grid>
+              <Grid item xs={6} sm={4}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <LocationOnIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" display="block">Location</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }} noWrap>
+                      {booking?.courseID?.address?.city || 'Remote'}
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Avatar src={booking?.teacherID?.profileImage?.url} sx={{ width: 24, height: 24 }} />
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" display="block">Artist</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                      {booking?.teacherID?.firstName} {booking?.teacherID?.lastName}
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Grid>
+            </Grid>
 
-                    <Grid fullWidth item alignItems="left">
-                      <Typography className="tags">
-                        <Grid container direction="row" alignItems="center">
-                          {booking?.courseID?.tags.map((tag, index) => (
-                            <Typography
-                              variant="body"
-                              align="left"
-                              key={index}
-                              id={index}
-                            >
-                              #{tag}&nbsp;
-                            </Typography>
-                          ))}
-                        </Grid>
-                      </Typography>
-                    </Grid>
+            <Divider sx={{ mb: 2, borderStyle: 'dashed' }} />
 
-                    <Grid container alignItems="center">
-                      <Grid item xs={6}>
-                        <AvatarGroup
-                          style={{ justifyContent: "center" }}
-                          total={booking?.numberOfGuests}
-                        >
-                          <Avatar src={booking?.teacherID?.profileImage?.url} />
-                        </AvatarGroup>
-                        <Typography variant="h6">
-                          {booking?.teacherID?.firstName}{" "}
-                          {booking?.teacherID?.lastName}
-                        </Typography>
-                      </Grid>
-
-                      <Grid item xs={6} textAlign="center">
-                        <Typography variant="h5">
-                          {booking?.time} at{" "}
-                        </Typography>
-                        <Typography variant="h6">
-                          {booking?.courseID?.address?.line1}
-                        </Typography>
-                      </Grid>
-                    </Grid>
-
-                    <Grid continer direction="row" align="center">
-                      <Grid item>
-                        <Rating
-                          size="large"
-                          name="simple-controlled"
-                          value={booking.rating}
-                          defaultValue={null}
-                          precision={0.5}
-                          onChange={(event, newValue) => {
-                            setUnratedAndUnreviewedBooking((prevBookings) => {
-                              const updatedBookings = prevBookings.map(
-                                (prevBooking) => {
-                                  if (prevBooking._id === booking._id) {
-                                    return { ...prevBooking, rating: newValue };
-                                  }
-                                  return prevBooking;
-                                }
-                              );
-                              return updatedBookings;
-                            });
-                          }}
-                        />
-                        {booking.rating !== null && (
-                          <Box sx={{ ml: 2 }}>
-                            <Typography variant="h6">
-                              {booking.rating}/5
-                            </Typography>
-                          </Box>
-                        )}
-                      </Grid>
-
-                      <TextField
-                        onChange={(event) =>
-                          handleWrittenReview(event, booking)
-                        }
-                        fullWidth
-                        multiline
-                        label="Written Review"
-                        placeholder="You MUST take this class if interested in learning more about..."
-                        name="Written Review"
-                        value={booking.writtenReview || ""}
-                      />
-
-                      <Grid>
-                        <br />
-                        <Button
-                          style={{ color: "white" }}
-                          variant="contained"
-                          onClick={(event) => sendRating(event, booking)}
-                        >
-                          Confirm Rating
-                        </Button>
-                      </Grid>
-                    </Grid>
-                  </Card>
-                </>
-              </React.Fragment>
-            );
-          })}
-
-        <br />
-
-        {(userID === userInfo?.id && bookings.length > 0) ||
-        unratedAndUnreviewedBooking.length > 0 ? (
-          <Typography variant="h4">Upcoming:</Typography>
-        ) : (
-          <Typography variant="h4">Start Learning Today</Typography>
-        )}
-
-        <div>
-          <h1>This is a placeholder for calendar view</h1>
-
-          <CalendarViewButton />
-        </div>
-
-        <br />
-
-        {bookings.length > 0 &&
-          userID === userInfo?.id &&
-          bookings
-            .filter(
-              (booking) =>
-                !classHappened.some(
-                  (classBooking) => classBooking._id === booking._id
-                )
-            )
-            .map((booking) => (
-              <React.Fragment key={booking._id}>
-                <Link
-                  to={`/student/bookings/${booking._id}`}
-                  style={{ textDecoration: "none" }}
-                >
-                  <SessionCard
-                    industry={booking?.courseID?.industry}
-                    capacity={booking?.numberOfGuests}
-                    price={booking?.total}
-                    courseTitle={booking?.courseID?.courseTitle}
-                    profileImage={booking?.teacherID?.profileImage.url}
-                    firstName={booking?.courseID?.userName}
-                    tags={booking?.courseID?.tags}
-                    icon={booking?.courseID?.industry}
-                    images={booking?.courseID?.images[0]?.url}
-                    date={booking?.date}
-                    time={booking?.time}
-                    address={booking?.courseID?.address?.line1}
-                    city={booking?.courseID?.address?.city}
-                    zipCode={booking?.courseID?.address?.zipCode}
-                  />
-                </Link>
-                <br />
-              </React.Fragment>
-            ))}
-      </Container>
-
-      <br />
-
-      {/* SHOW HISTORY OF COMPLETED CLASSES TAKEN */}
-
-      <Container>
-        {bookings.length > 0 ? (
-          <Typography variant="h4">History of Classes:</Typography>
-        ) : (
-          <></>
-        )}
-
-        <br />
-
-        {classHappened.length > 0 &&
-          userID === userInfo?.id &&
-          classHappened.map((booking) => (
-            <React.Fragment key={booking._id}>
-              <Link
-                to={`/student/bookings/${booking._id}`}
-                style={{ textDecoration: "none" }}
+            <Stack direction="row" spacing={2} justifyContent="flex-end">
+              <Button
+                size="small"
+                startIcon={<MessageIcon />}
+                sx={{ fontWeight: 700, textTransform: 'none' }}
+                onClick={() => navigate('/chat')}
               >
-                <SessionCard
-                  industry={booking?.courseID?.industry}
-                  capacity={booking?.numberOfGuests}
-                  price={booking?.total}
-                  courseTitle={booking?.courseID?.courseTitle}
-                  profileImage={booking?.teacherID?.profileImage.url}
-                  firstName={booking?.courseID?.userName}
-                  tags={booking?.courseID?.tags}
-                  icon={booking?.courseID?.industry}
-                  images={booking?.courseID?.images[0]?.url}
-                  date={booking?.date}
-                  time={booking?.time}
-                  address={booking?.courseID?.address?.line1}
-                  city={booking?.courseID?.address?.city}
-                  zipCode={booking?.courseID?.address?.zipCode}
-                />
-              </Link>
-              <br />
-            </React.Fragment>
-          ))}
-      </Container>
-      {userID && (
-        <Grid
-          item
-          xs={3}
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: "15px",
-          }}
-        >
-          <Button
-            onClick={() => logout("/")}
-            variant="contained"
-            style={{ color: "white" }}
-          >
-            Logout
-          </Button>
+                Message
+              </Button>
+              <PremiumButton
+                size="small"
+                variant="outlined"
+                component={Link}
+                to={`/student/bookings/${booking._id}`}
+                sx={{ px: 3 }}
+              >
+                View Details
+              </PremiumButton>
+            </Stack>
+          </Box>
         </Grid>
-      )}
-    </>
+      </Grid>
+    </PremiumCard>
+  );
+
+  return (
+    <Box sx={{ bgcolor: '#FAFAFA', minHeight: '100vh', pb: 10 }}>
+
+      <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <Grid container spacing={4}>
+          {/* Profile Sidebar */}
+          <Grid item xs={12} md={4}>
+            <PremiumCard sx={{ p: 4, textAlign: 'center', position: 'sticky', top: 100 }}>
+              <Avatar
+                src={userInfo?.profileImage?.url}
+                sx={{ width: 120, height: 120, mx: 'auto', mb: 2, border: '4px solid white', boxShadow: theme.shadows[3] }}
+              />
+              <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                {userInfo.firstName} {userInfo.lastName}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                @{userInfo.userName}
+              </Typography>
+
+              <Typography variant="body2" sx={{ mb: 4, color: 'text.secondary', fontStyle: userInfo?.description ? 'normal' : 'italic' }}>
+                {userInfo?.description || "No bio added yet."}
+              </Typography>
+
+              {userInfo.userName === userName && (
+                <Stack spacing={2}>
+                  <PremiumButton
+                    variant="contained"
+                    fullWidth
+                    startIcon={<EditIcon />}
+                    component={Link}
+                    to="/edit"
+                  >
+                    Edit Profile
+                  </PremiumButton>
+                  <Button
+                    variant="text"
+                    color="error"
+                    onClick={() => logout("/")}
+                    sx={{ fontWeight: 700 }}
+                  >
+                    Logout
+                  </Button>
+                </Stack>
+              )}
+            </PremiumCard>
+          </Grid>
+
+          {/* Reservations Content */}
+          <Grid item xs={12} md={8}>
+            <PremiumSectionHeader
+              title="My Reservations"
+              subtitle="Manage your upcoming and past studio sessions"
+            />
+
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
+              <Tabs value={tabValue} onChange={handleTabChange} aria-label="reservation tabs">
+                <Tab label={`Upcoming (${sortedBookings.upcoming.length})`} sx={{ fontWeight: 700, textTransform: 'none' }} />
+                <Tab label={`Past (${sortedBookings.past.length})`} sx={{ fontWeight: 700, textTransform: 'none' }} />
+              </Tabs>
+            </Box>
+
+            {tabValue === 0 && (
+              <Box>
+                {sortedBookings.upcoming.length > 0 ? (
+                  sortedBookings.upcoming.map(booking => (
+                    <ReservationItem key={booking._id} booking={booking} />
+                  ))
+                ) : (
+                  <PremiumEmptyState
+                    title="No upcoming sessions"
+                    subtitle="Explore the studio and book your first experience today."
+                    actionLabel="Explore Experiences"
+                    onAction={() => navigate('/explore')}
+                  />
+                )}
+              </Box>
+            )}
+
+            {tabValue === 1 && (
+              <Box>
+                {sortedBookings.past.length > 0 ? (
+                  sortedBookings.past.map(booking => (
+                    <ReservationItem key={booking._id} booking={booking} />
+                  ))
+                ) : (
+                  <PremiumEmptyState
+                    title="No past sessions"
+                    subtitle="Your completed experiences will appear here."
+                  />
+                )}
+              </Box>
+            )}
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
   );
 };
 
 export default StudentProfile;
+

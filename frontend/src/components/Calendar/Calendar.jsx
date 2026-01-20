@@ -6,6 +6,7 @@ import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import axios from "axios";
 import useStore from "../../store";
+import TERMS from "../../constants/terms";
 
 import styles from "./calendar.module.css";
 // import "./calendar.module.css";
@@ -182,8 +183,8 @@ const Calendar = () => {
                 backgroundColor: isCurrentDay(day)
                   ? "#808080"
                   : hasBookingsForDay(day)
-                  ? "#fff"
-                  : "#00aeef",
+                    ? "#fff"
+                    : "#000000",
                 color: hasBookingsForDay(day) ? "#000" : "",
               }}
             >
@@ -209,7 +210,7 @@ const Calendar = () => {
                             <Typography>Time: {selectedBooking.time}</Typography>
                             <Typography>Student: {selectedBooking.studentUserName}</Typography> */}
               <Typography variant="h6" sx={{ textAlign: "center" }}>
-                Booking Details
+                {TERMS.BOOKING} Details
               </Typography>
               <div className="flex justify-center items-center gap-12">
                 <p className="w-[48%] text-right inline-block">Date:</p>
@@ -224,7 +225,7 @@ const Calendar = () => {
                 </p>
               </div>
               <div className="flex justify-center items-center gap-12">
-                <p className="w-[48%] text-right inline-block">Student:</p>
+                <p className="w-[48%] text-right inline-block">{TERMS.STUDENT}:</p>
                 <p className="flex-1 text-left inline-block">
                   {selectedBooking.studentUserName}
                 </p>
@@ -247,17 +248,17 @@ const Calendar = () => {
 
               {/* Display course information */}
               <Typography variant="h6" sx={{ textAlign: "center" }}>
-                Course Details
+                {TERMS.COURSE} Details
               </Typography>
               <div className="flex justify-center items-center gap-12">
-                <p className="w-[48%] text-right inline-block">Course Title:</p>
+                <p className="w-[48%] text-right inline-block">{TERMS.COURSE} Title:</p>
                 <p className="flex-1 text-left inline-block">
                   {selectedBooking.courseID.courseTitle}
                 </p>
               </div>
               <div className="flex justify-center items-center gap-12">
                 <p className="w-[48%] text-right inline-block">
-                  Course Description:
+                  {TERMS.COURSE} Description:
                 </p>
                 <p className="flex-1 text-left inline-block">
                   {selectedBooking.courseID.courseDescription}
@@ -275,7 +276,7 @@ const Calendar = () => {
             </div>
           ) : (
             // Display a message when no booking is available
-            <Typography>No bookings for this day.</Typography>
+            <Typography>No {TERMS.BOOKINGS.toLowerCase()} for this day.</Typography>
           )}
         </div>
       </Drawer>

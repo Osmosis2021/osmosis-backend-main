@@ -1,79 +1,36 @@
 import * as React from 'react';
-import { AppBar, Box, IconButton, Toolbar } from '@mui/material';
-import { Link } from 'react-router-dom';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { AppBar, Box, Toolbar, Container } from '@mui/material';
+import { PremiumBackButton } from '../../ui/PremiumBackButton';
 import useStore from "../../store";
-import './TopNavBar.css'
 
 export default function TopNavBar(props) {
-  const {platform} = useStore()
-  
+  const { platform } = useStore();
+
   return (
-    <Box sx={{ flexGrow: 1}}>
-      <AppBar className={`AppBar-${platform}`} position="absolute" style={{background:'none', boxShadow:'none'}}>
-        <Toolbar style={{justifyContent: 'space-between'}}>
-          <IconButton
-          style={{ background:'#00aeef'}}
-            size="medium"
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            // sx={{ mr: 2 }}
-          >
-          <Link to={props.back} style={{textDecoration:'none'}}>
-            <ArrowBackIcon sx={{ flexGrow: 0 }} style={{fontSize:"25px", color:'white'}} />
-          </Link>
-          </IconButton>
+    <AppBar
+      position="absolute"
+      elevation={0}
+      sx={{
+        background: 'transparent',
+        pt: 2,
+        pointerEvents: 'none' // Allow clicking through the AppBar
+      }}
+    >
+      <Container maxWidth="xl">
+        <Toolbar
+          disableGutters
+          sx={{
+            justifyContent: 'space-between',
+            pointerEvents: 'auto' // Re-enable pointer events for the toolbar content
+          }}
+        >
+          {/* <PremiumBackButton fallback={props.back} /> */}
 
-          {/* <Box sx={{ flexGrow: .5 }} /> 
-            <Box rowSpacing={2}>
-              <IconButton
-              style={{ background:'#00aeef', marginRight:'10px'}}
-                size="medium"
-                edge="end"
-                color="inherit"
-                aria-label="menu"
-                // sx={{ mr: 2 }}
-              >
-              <Link to='' style={{textDecoration:'none'}}>
-                <IosShareIcon sx={{ flexGrow: 0 }} style={{fontSize:"25px", color:'white'}} />
-              </Link>
-              </IconButton> 
-              <IconButton
-              style={{ background:'#00aeef'}}
-                size="medium"
-                edge="end"
-                color="inherit"
-                aria-label="menu"
-                // sx={{ mr: 2 }}
-              >
-              <Link to='' style={{textDecoration:'none'}}>
-                <FavoriteBorderIcon sx={{ flexGrow: 0 }} style={{fontSize:"25px", color:'white'}} />
-              </Link>
-              </IconButton> 
-
-            </Box> */}
-          
-
-
-
-          {/* <Typography variant="h4" component="div" sx={{ flexGrow: 1, display: 'flex', color: 'white', justifyContent: 'center' }}>
-            Osmosis
-          </Typography> */}
-          
-          {/* <IconButton
-            // size="large"
-            edge="end"
-            color="inherit"
-            aria-label="menu"
-            // sx={{ mr: 2 }}
-          >
-          <Link to='/settings' style={{textDecoration:'none'}}>
-            <SettingsIcon sx={{ flexGrow: 0 }} style={{fontSize:"25px", color:'white'}} />
-          </Link>
-          </IconButton> */}
+          {/* Add other top-right actions here if needed */}
+          <Box />
         </Toolbar>
-      </AppBar>
-    </Box>
+      </Container>
+    </AppBar>
   );
 }
+

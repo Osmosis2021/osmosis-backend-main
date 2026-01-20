@@ -1,21 +1,12 @@
 import React from 'react';
 import OpeningMap from './openingMap';
-import { CssBaseline } from '@mui/material';
 import Box from '@mui/material/Box';
 
 function MapOpen() {
-
 	return (
-		<React.Fragment>
-			<CssBaseline />
-			<Box
-				sx={{
-					display: 'flex',
-					flexDirection: 'column',
-				}}>
-			</Box>
+		<Box sx={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }}>
 			<OpeningMap />
-		</React.Fragment>
+		</Box>
 	);
 }
 

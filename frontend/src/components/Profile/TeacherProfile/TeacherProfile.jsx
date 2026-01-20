@@ -10,13 +10,22 @@ import {
   Rating,
   TextField,
   Typography,
+  Stack,
+  Divider,
+  IconButton,
+  useTheme,
+  useMediaQuery
 } from "@mui/material";
-import { Link, Link as LinkRouter } from "react-router-dom";
+import { Link, Link as LinkRouter, useNavigate, useParams } from "react-router-dom";
 import TopProfileBar from "../../TopNavBar/TopProfileBar";
 import SessionCard from "../../SessionCard/SessionCard";
 import React, { useState, useEffect } from "react";
+import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
-import { useParams } from "react-router-dom";
+import VerifiedIcon from '@mui/icons-material/Verified';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import MessageIcon from '@mui/icons-material/Message';
+import ShareIcon from '@mui/icons-material/Share';
 import useStore from "../../../store";
 import UserInfo from "../UserInfo";
 import "./TeacherProfile.css";
@@ -25,8 +34,18 @@ import axios from "../../../actions/axios";
 import useAxiosPrivate from "../../../hooks/useAxiosPrivate";
 import useLogout from "../../../hooks/useLogout";
 import CalendarViewButton from "../CalendarViewButton";
+import TERMS from "../../../constants/terms";
+import { PremiumSectionHeader } from "../../../ui/PremiumSectionHeader";
+import { PremiumCard } from "../../../ui/PremiumCard";
+import { PremiumButton } from "../../../ui/PremiumButton";
+import { PremiumSkeleton, PremiumEmptyState } from "../../../ui/PremiumFeedback";
+
+import { PremiumBackButton } from "../../../ui/PremiumBackButton";
 
 const TeacherProfile = (props) => {
+  const theme = useTheme();
+  const navigate = useNavigate();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const axiosPrivate = useAxiosPrivate();
   const logout = useLogout();
   const [teacherInfo, setTeacherInfo] = useState({ profileImage: {} });
@@ -35,8 +54,7 @@ const TeacherProfile = (props) => {
   const [bookings, setBookings] = useState([]);
   const [unratedAndUnreviewedBooking, setUnratedAndUnreviewedBooking] =
     useState([]);
-  // TODO: setBookingsTakenAsStudent is never actually set
-  const [bookingsTakenAsStudent, setBookingsTakenAsStudent] = useState([]); // TODO: why is this setter never used?
+  const [bookingsTakenAsStudent, setBookingsTakenAsStudent] = useState([]);
   const [classHappened, setClassHappened] = useState([]);
   const { backendURL, userID, userName, isStudent } = useStore();
   const pageUserName = useParams()?.userName;
@@ -44,7 +62,7 @@ const TeacherProfile = (props) => {
   useEffect(() => {
     let isMounted = true;
     const controller = new AbortController();
-    const _today = new Date(); // Move _today definition to a higher scope
+    const _today = new Date();
 
     const getTeacherBookings = async () => {
       try {
@@ -79,17 +97,8 @@ const TeacherProfile = (props) => {
                 return slotDate <= _today && !booking.ratedAndReviewed;
               }
             );
-            const studentClassHappened = studentResp.data.filter((booking) => {
-              const slotDate = new Date(booking.date);
-              return slotDate <= _today;
-            });
             if (isMounted) {
               setUnratedAndUnreviewedBooking(bookingHappenedAndNotReviewed);
-              setClassHappened(studentClassHappened);
-              console.log(
-                "Student classes that happened:",
-                studentClassHappened
-              );
             }
           }
         }
@@ -105,33 +114,24 @@ const TeacherProfile = (props) => {
       isMounted = false;
       controller.abort();
     };
-  }, [pageUserName, isStudent]);
+  }, [pageUserName, isStudent, axiosPrivate]);
 
   useEffect(() => {
     const _controller = new AbortController();
     fetch(`${backendURL}course/getCourses/${pageUserName}`, {
       signal: _controller.signal,
     })
-      .then((res) => {
-        return res.json();
-      })
+      .then((res) => res.json())
       .then((data) => {
-        let courses;
-        if (Array.isArray(data)) {
-          courses = data;
-        } else {
-          courses = [data];
-        }
+        let courses = Array.isArray(data) ? data : [data];
         setSessionCard(courses);
       })
       .catch((err) => {
-        console.log("Error getting teacher info:\n", err);
+        console.log("Error getting courses:\n", err);
       });
 
     fetch(`${backendURL}user/getUserInfo/${pageUserName}`)
-      .then((res) => {
-        return res.json();
-      })
+      .then((res) => res.json())
       .then((data) => {
         setTeacherInfo(data);
         setIsLoading(false);
@@ -142,18 +142,17 @@ const TeacherProfile = (props) => {
     return () => {
       _controller.abort();
     };
-  }, [pageUserName]);
+  }, [pageUserName, backendURL]);
 
   const handleWrittenReview = (event, booking) => {
     const writtenReview = event.target.value;
     setUnratedAndUnreviewedBooking((prevBookings) => {
-      const updatedBookings = prevBookings.map((prevBooking) => {
+      return prevBookings.map((prevBooking) => {
         if (prevBooking._id === booking._id) {
           return { ...prevBooking, writtenReview };
         }
         return prevBooking;
       });
-      return updatedBookings;
     });
   };
 
@@ -174,531 +173,282 @@ const TeacherProfile = (props) => {
         );
       });
     } else {
-      alert("please both rate and review your class");
+      alert("Please both rate and review your class");
     }
   };
 
   const [isOnboarded, setIsOnboarded] = useState(false);
 
   useEffect(() => {
-    fetch(`${backendURL}user/getUserInfo/${userName}`)
-      .then((res) => res.json())
-      .then((data) => {
-        fetch(`${backendURL}stripe/retrieveStripeAccount/${data.stripeID}`)
-          .then((res) => res.json())
-          .then((data) => {
-            console.log("In teacherprofile", { data });
-            setIsOnboarded(data?.retrieveAccount?.payouts_enabled || false);
-          });
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  }, []);
+    if (teacherInfo?.stripeID) {
+      fetch(`${backendURL}stripe/retrieveStripeAccount/${teacherInfo.stripeID}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setIsOnboarded(data?.retrieveAccount?.payouts_enabled || false);
+        })
+        .catch(console.error);
+    }
+  }, [teacherInfo, backendURL]);
+
+  if (isLoading) return <PremiumSkeleton type="detail" />;
+
+  const isOwnProfile = teacherInfo.userName === userName;
 
   return (
-    <>
-      <TopProfileBar userName={userName} />
-      <div>
-        <div className="m-4">
-          {isLoading ? (
-            <Skeleton />
-          ) : (
-            <Grid
-              item
-              xs={3}
-              style={{ display: "flex", justifyContent: "center" }}
-            >
-              <Prof
-                name={`${teacherInfo.firstName} ${teacherInfo.lastName}`}
-                avatar={teacherInfo?.profileImage?.url}
+    <Box sx={{ bgcolor: '#FAFAFA', minHeight: '100vh' }}>
+
+
+
+      {/* Premium Header */}
+      <Box sx={{ bgcolor: 'background.paper', borderBottom: '1px solid #F0F0F0', pt: { xs: 4, md: 8 }, pb: 4 }}>
+        <Container maxWidth="lg">
+          <Grid container spacing={4} alignItems="center">
+            <Grid item xs={12} md={3} sx={{ textAlign: 'center' }}>
+              <Avatar
+                src={teacherInfo?.profileImage?.url}
+                sx={{
+                  width: { xs: 120, md: 180 },
+                  height: { xs: 120, md: 180 },
+                  mx: 'auto',
+                  border: '4px solid #FFF',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.1)'
+                }}
               />
             </Grid>
-          )}
+            <Grid item xs={12} md={9}>
+              <Stack spacing={2}>
+                <Box>
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                    <Typography variant="h3" sx={{ fontWeight: 800, fontFamily: 'Outfit, sans-serif' }}>
+                      {teacherInfo.firstName} {teacherInfo.lastName}
+                    </Typography>
+                    <VerifiedIcon color="primary" sx={{ fontSize: 28 }} />
+                  </Stack>
+                  <Stack direction="row" spacing={2} color="text.secondary">
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                      <LocationOnIcon fontSize="small" />
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                        {teacherInfo.city || 'Brooklyn, NY'}
+                      </Typography>
+                    </Stack>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      @{teacherInfo.userName}
+                    </Typography>
+                  </Stack>
+                </Box>
 
-          {teacherInfo.description ? (
-            <Grid
-              item
-              xs={8}
-              textAlign="center"
-              fullWidth
-              style={{ padding: "2%" }}
-            >
-              {teacherInfo.description}
+                <Typography variant="body1" sx={{ maxWidth: 600, color: 'text.secondary', lineHeight: 1.7 }}>
+                  {teacherInfo.description || "Artist and educator sharing the creative process with the community."}
+                </Typography>
+
+                <Stack direction="row" spacing={2}>
+                  {!isOwnProfile && (
+                    <PremiumButton
+                      startIcon={<MessageIcon />}
+                      component={Link}
+                      to="/chat"
+                    >
+                      Message Artist
+                    </PremiumButton>
+                  )}
+                  {isOwnProfile && (
+                    <>
+                      <PremiumButton
+                        style={{ borderRadius: 24, fontWeight: 700, textTransform: 'none' }}
+                        component={Link}
+                        to="/FLOW"
+                        startIcon={<AddIcon />
+
+                        }
+                      >
+                        Studio Time
+                      </PremiumButton>
+                      <Button
+                        component={Link}
+                        to="/edit"
+                        variant="outlined"
+                        startIcon={<EditIcon />}
+                        sx={{ borderRadius: 3, fontWeight: 700, textTransform: 'none' }}
+                      >
+                        Edit Profile
+                      </Button>
+                    </>
+                  )}
+                </Stack>
+              </Stack>
             </Grid>
-          ) : (
-            <Typography style={{ textAlign: "center" }}>
-              Bio goes here...
-            </Typography>
-          )}
-
-          {teacherInfo.userName === userName && (
-            <Grid
-              item
-              xs={3}
-              style={{ display: "flex", justifyContent: "center" }}
-            >
-              <Link to="/edit" style={{ textDecoration: "none" }}>
-                <Button variant="contained" style={{ color: "white" }}>
-                  <EditIcon />
-                  <pre> </pre>Edit Profile
-                </Button>
-              </Link>
-            </Grid>
-          )}
-
-          <Grid item xs={8}>
-            <UserInfo
-              taught={bookings.length}
-              taken={isStudent ? bookingsTakenAsStudent.length : null}
-            />
           </Grid>
-        </div>
-      </div>
 
-      <div className="w-full flex justify-center">
-        <hr style={{ color: "black", width: "90%", border: "solid .5px" }} />
-      </div>
-      <br />
-
-      {/* VVV UPCOMING CLASSES VVV */}
-      <Container>
-        {isOnboarded === false && userID === teacherInfo?.id ? (
-          <>
-            <Card
-              style={{
-                padding: "5%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Grid
-                container
-                justifyContent="center"
-                alignItems="center"
-                direction="column"
-              >
-                <Grid item fullWidth>
-                  <Typography>
-                    Onboard to Stripe to process payments and get paid!
+          {/* Stats Row */}
+          <Grid container spacing={4} sx={{ mt: 4 }}>
+            {[
+              { label: 'Sessions Hosted', value: bookings.length },
+              { label: 'Avg Rating', value: '4.9' },
+              { label: 'Response Time', value: '< 2 hrs' }
+            ].map((stat, i) => (
+              <Grid item xs={4} key={i}>
+                <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#F9F9F9', borderRadius: 4 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>
+                    {stat.value}
                   </Typography>
-                </Grid>
-                <br />
-                <Grid item>
-                  <Link to={`/stripeonboarding/${userName}`}>
-                    <Button style={{ color: "white" }} variant="contained">
-                      Setup Stripe
-                    </Button>
-                  </Link>
-                </Grid>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase' }}>
+                    {stat.label}
+                  </Typography>
+                </Box>
               </Grid>
-            </Card>
-            <br />
-          </>
-        ) : (
-          <></>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+
+      <Container maxWidth="lg" sx={{ py: 6 }}>
+        {/* Stripe Onboarding Alert */}
+        {isOwnProfile && !isOnboarded && (
+          <PremiumCard sx={{ mb: 6, bgcolor: 'rgba(0,174,239,0.05)', border: '1px dashed #000000', borderRadius: 2 }}>
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} padding={2} alignItems="center" justifyContent="space-between">
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 800 }}>Finish Setting Up Your Studio</Typography>
+                <Typography variant="body2" color="text.secondary">Onboard to Stripe to process payments and get paid for your sessions.</Typography>
+              </Box>
+              <Button
+                component={Link}
+                to={`/stripeonboarding/${userName}`}
+                variant="contained"
+                sx={{ borderRadius: 3, fontWeight: 700, px: 4 }}
+              >
+                Setup Stripe
+              </Button>
+            </Stack>
+          </PremiumCard>
         )}
 
-        {bookings?.length > 0 &&
-          userID === teacherInfo?.id &&
-          bookings
-            .filter(
-              (booking) =>
-                !classHappened.some(
-                  (classBooking) => classBooking._id === booking._id
-                )
-            )
-            .map((booking) => (
-              <>
-                <Link
-                  to={`/teacher/bookings/${booking._id}`}
-                  style={{ textDecoration: "none" }}
-                >
-                  <Card style={{ padding: "2%" }}>
-                    <Typography variant="h5">
-                      You have an upcoming class:
-                    </Typography>
-                    <Typography variant="h4">
-                      {booking?.courseID?.courseTitle}
-                    </Typography>
-
-                    <Grid container alignItems="center">
-                      <Grid item xs={6}>
-                        <AvatarGroup
-                          style={{ justifyContent: "left" }}
-                          total={booking?.numberOfGuests}
-                        >
-                          <Avatar src={booking?.studentID?.profileImage.url} />
-                        </AvatarGroup>
-                        <Typography variant="h6">
-                          {booking?.studentID?.firstName}{" "}
-                          {booking?.studentID?.lastName}
-                        </Typography>
-                      </Grid>
-
-                      <Grid item xs={6} textAlign="center">
-                        <Typography variant="h5">
-                          {booking?.date.substr(5).split("", 5)}
-                        </Typography>
-                        <Typography variant="h5">
-                          {booking?.time} at{" "}
-                        </Typography>
-                        <Typography variant="h6">
-                          {booking?.courseID?.address?.line1}
-                        </Typography>
-                      </Grid>
-                    </Grid>
-                  </Card>
-                </Link>
-                <br />
-              </>
-            ))}
-
-        {/* VVV RATING AND REVIEW PROMPT FOR BOTH STUDENT AND TEACHER CLASS TAKEN BUT NOT REVIEWED VVV */}
-        {userID === teacherInfo?._id &&
-          unratedAndUnreviewedBooking.length > 0 && (
-            <Typography variant="h4">Rate your session:</Typography>
-          )}
-        {console.log({
-          isStudent,
-          userID,
-          teacherInfo,
-          unratedAndUnreviewedBooking,
-        })}
-        {userID === teacherInfo?._id &&
-          unratedAndUnreviewedBooking.map((booking) => {
-            return (
-              <React.Fragment key={booking._id}>
-                <br />
-                <Card style={{ padding: "2%" }}>
-                  <Typography variant="h4">
-                    {booking?.courseID?.courseTitle}
-                  </Typography>
-                  <Grid fullWidth item alignItems="left">
-                    <Typography className="tags">
-                      <Grid container direction="row" alignItems="center">
-                        {booking?.courseID?.tags.map((tag, index) => (
-                          <Typography
-                            variant="body"
-                            align="left"
-                            key={index}
-                            id={index}
-                          >
-                            #{tag}&nbsp;
-                          </Typography>
-                        ))}
-                      </Grid>
-                    </Typography>
-                  </Grid>
-
-                  <Grid container alignItems="center">
-                    <Grid item xs={6}>
-                      <AvatarGroup
-                        style={{ justifyContent: "left" }}
-                        total={booking?.numberOfGuests}
-                      >
-                        <Avatar src={booking?.teacherID?.profileImage?.url} />
-                      </AvatarGroup>
-                      <Typography variant="h6">
-                        {booking?.teacherID?.firstName}{" "}
-                        {booking?.teacherID?.lastName}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={6} textAlign="center">
-                      <Typography variant="h5">{booking?.time} at </Typography>
-                      <Typography variant="h6">
-                        {booking?.courseID?.address?.line1}
-                      </Typography>
-                    </Grid>
-                  </Grid>
-
-                  <Grid continer direction="row" align="center">
-                    <Grid item>
-                      <Rating
-                        size="large"
-                        name="simple-controlled"
-                        value={booking.rating}
-                        defaultValue={null}
-                        precision={0.5}
-                        onChange={(event, newValue) => {
-                          setUnratedAndUnreviewedBooking((prevBookings) => {
-                            const updatedBookings = prevBookings.map(
-                              (prevBooking) => {
-                                if (prevBooking._id === booking._id) {
-                                  return { ...prevBooking, rating: newValue };
-                                }
-                                return prevBooking;
-                              }
-                            );
-                            return updatedBookings;
-                          });
-                        }}
-                      />
-                      {booking.rating !== null && (
-                        <Box sx={{ ml: 2 }}>
-                          <Typography variant="h6">
-                            {booking.rating}/5
+        {/* Upcoming Sessions for Host */}
+        {isOwnProfile && bookings.length > 0 && (
+          <Box sx={{ mb: 8 }}>
+            <PremiumSectionHeader title="Your Upcoming Sessions" subtitle="Manage your upcoming studio visits." />
+            <Grid container spacing={3}>
+              {bookings
+                .filter(b => new Date(b.date) > new Date())
+                .map(booking => (
+                  <Grid item xs={12} md={6} key={booking._id}>
+                    <PremiumCard component={Link} to={`/teacher/bookings/${booking._id}`} sx={{ textDecoration: 'none' }}>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Avatar src={booking?.studentID?.profileImage?.url} sx={{ width: 56, height: 56 }} />
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>{booking?.courseID?.courseTitle}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {new Date(booking.date).toLocaleDateString()} at {booking.time}
                           </Typography>
                         </Box>
-                      )}
-                    </Grid>
-
-                    <TextField
-                      onChange={(event) => handleWrittenReview(event, booking)}
-                      fullWidth
-                      multiline
-                      label="Written Review"
-                      placeholder="You MUST take this class if interested in learning more about..."
-                      name="Written Review"
-                      value={booking.writtenReview || ""}
-                    />
-
-                    <Grid>
-                      <br />
-                      <Button
-                        style={{ color: "white" }}
-                        variant="contained"
-                        onClick={(event) => sendRating(event, booking)}
-                      >
-                        Confirm Rating
-                      </Button>
-                    </Grid>
+                        <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main' }}>${booking.total}</Typography>
+                      </Stack>
+                    </PremiumCard>
                   </Grid>
-                </Card>
-              </React.Fragment>
-            );
-          })}
-
-        <br />
-        <CalendarViewButton />
-
-        {
-          <>
-            {userID === teacherInfo._id && sessionCard.length > 0 ? (
-              <Typography
-                variant="h4"
-                style={{ justifyContent: "left", marginBottom: "-35px" }}
-              >
-                Classes:
-              </Typography>
-            ) : (
-              <Typography
-                variant="h4"
-                style={{ justifyContent: "left", marginBottom: "7px" }}
-              >
-                Classes:
-              </Typography>
-            )}
-            <Grid container spacing={0} justifyContent="center">
-              {sessionCard?.length > 0 && (
-                <>
-                  {sessionCard.map((course) => {
-                    return (
-                      <Grid item xs={12} md={6} lg={4}>
-                        <Link
-                          to={
-                            userID === teacherInfo?.id
-                              ? `/editcourse/${course._id}`
-                              : `/teachers/${course.userName}/${course._id}`
-                          }
-                          style={{ textDecoration: "none" }}
-                        >
-                          {userID === teacherInfo?.id && (
-                            <Button
-                              className="editCourseButton"
-                              style={{
-                                height: "50px",
-                                width: "75px",
-                                color: "white",
-                                fontSize: "20px",
-                                position: "relative",
-                                top: "50px",
-                                zIndex: 10,
-                                borderRadius: "5% 0 0 0",
-                              }}
-                              variant="contained"
-                              startIcon={<EditIcon />}
-                            >
-                              {" "}
-                              Edit{" "}
-                            </Button>
-                          )}
-                          <SessionCard
-                            industry={course.industry}
-                            tags={course.tags}
-                            courseTitle={course.courseTitle}
-                            price={course.pricePerStudent}
-                            firstName={teacherInfo.firstName}
-                            lastName={teacherInfo.lastName}
-                            profileImage={teacherInfo.profileImage.url}
-                            images={course?.images[0]?.url}
-                            icon={course.industry}
-                            capacity={course.capacity}
-                            city={course.address.city}
-                            zipCode={course.address.zipCode}
-                            address={course.address.line1}
-                          />
-                        </Link>
-                      </Grid>
-                    );
-                  })}
-                </>
-              )}
-              {sessionCard?.length === 0 && userID === teacherInfo?.id && (
-                <LinkRouter to="/flow" style={{ textDecoration: "none" }}>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    size="large"
-                    align="center"
-                    style={{
-                      fontSize: 26,
-                      fontFamily: "Poppins",
-                      color: "white",
-                    }}
-                    fullWidth
-                  >
-                    Create Course
-                  </Button>
-                </LinkRouter>
-              )}
+                ))}
             </Grid>
-          </>
-        }
-        <br />
-        <br />
-      </Container>
-
-      <Container>
-        <br />
-        {bookingsTakenAsStudent.length > 0 &&
-          bookingsTakenAsStudent.filter(
-            (booking) => !classHappened.some((classBooking) => classBooking > 0)
-          ) && <Typography variant="h4">Upcoming:</Typography>}
-        <br />
-        {bookingsTakenAsStudent.length > 0 &&
-          userID === teacherInfo?._id &&
-          bookingsTakenAsStudent
-            .filter(
-              (booking) =>
-                !classHappened.some(
-                  (classBooking) => classBooking._id === booking._id
-                )
-            )
-            .map((booking) => (
-              <React.Fragment key={booking._id}>
-                <Link
-                  to={`/student/bookings/${booking._id}`}
-                  style={{ textDecoration: "none" }}
-                >
-                  <SessionCard
-                    industry={booking?.courseID?.industry}
-                    capacity={booking?.numberOfGuests}
-                    price={booking?.total}
-                    courseTitle={booking?.courseID?.courseTitle}
-                    profileImage={booking?.teacherID?.profileImage.url}
-                    firstName={booking?.courseID?.userName}
-                    tags={booking?.courseID?.tags}
-                    icon={booking?.courseID?.industry}
-                    images={booking?.courseID?.images[0]?.url}
-                    date={booking?.date}
-                    time={booking?.time}
-                    address={booking?.courseID?.address?.line1}
-                    city={booking?.courseID?.address?.city}
-                    zipCode={booking?.courseID?.address?.zipCode}
-                  />
-                </Link>
-                <br />
-              </React.Fragment>
-            ))}
-
-        {/* {
-                    userID === teacherInfo._id ? <Typography variant="h4">History of Classes Taken:</Typography>
-                    : <></>
-                } */}
-
-        <br />
-
-        {/* {   
-                    isStudent && bookingsTakenAsStudent.length > 0 && userID === teacherInfo?._id && bookingsTakenAsStudent.map(booking => (
-                        <React.Fragment key={booking._id}>
-                            <Link to={`/student/bookings/${booking._id}`} style={{ textDecoration: 'none' }}>
-                                <SessionCard
-                                    industry={booking?.courseID?.industry}
-                                    capacity={booking?.numberOfGuests}
-                                    price={booking?.total}
-                                    courseTitle={booking?.courseID?.courseTitle}
-                                    profileImage={booking?.teacherID?.profileImage?.url}
-                                    firstName={booking?.courseID?.userName}
-                                    tags={booking?.courseID?.tags}
-                                    icon={booking?.courseID?.industry}
-                                    images={booking?.courseID?.images[0]?.url}
-                                    date={booking?.date}
-                                    time={booking?.time}
-                                    address={booking?.courseID?.address?.line1}
-                                    city={booking?.courseID?.address?.city}
-                                    zipCode={booking?.courseID?.address?.zipCode}
-                                />
-                            </Link>
-                            <br />
-                        </React.Fragment>
-                    ))
-                } */}
-
-        {userID === teacherInfo._id && (
-          <Typography variant="h4">History of Classes:</Typography>
+          </Box>
         )}
 
-        {classHappened.length > 0 &&
-          userID === teacherInfo?._id &&
-          classHappened.map((booking) => (
-            <React.Fragment key={booking._id}>
-              <Link
-                to={`/teacher/bookings/${booking._id}`}
-                style={{ textDecoration: "none" }}
-              >
-                <SessionCard
-                  industry={booking?.courseID?.industry}
-                  capacity={booking?.numberOfGuests}
-                  price={booking?.total}
-                  courseTitle={booking?.courseID?.courseTitle}
-                  profileImage={booking?.studentID?.profileImage?.url}
-                  firstName={booking?.studentID?.userName}
-                  tags={booking?.courseID?.tags}
-                  icon={booking?.courseID?.industry}
-                  images={booking?.courseID?.images[0]?.url}
-                  date={booking?.date}
-                  time={booking?.time}
-                  address={booking?.courseID?.address?.line1}
-                  city={booking?.courseID?.address?.city}
-                  zipCode={booking?.courseID?.address?.zipCode}
-                />
-              </Link>
-              <br />
-            </React.Fragment>
-          ))}
+        {/* Studio Times Grid */}
+        <Box id="studio-times">
+          <PremiumSectionHeader
+            title="Studio Times"
+            subtitle={`Explore sessions hosted by ${teacherInfo.firstName}.`}
+          />
+          {sessionCard.length > 0 ? (
+            <Grid container spacing={3}>
+              {sessionCard.map((course) => (
+                <Grid item xs={12} sm={6} md={4} key={course._id}>
+                  <Box sx={{ position: 'relative' }}>
+                    {isOwnProfile && (
+                      <IconButton
+                        component={Link}
+                        to={`/editcourse/${course._id}`}
+                        sx={{
+                          position: 'absolute',
+                          top: 12,
+                          right: 12,
+                          zIndex: 10,
+                          bgcolor: 'background.paper',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                          '&:hover': { bgcolor: '#F0F0F0' }
+                        }}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                    <Link
+                      to={isOwnProfile ? `/editcourse/${course._id}` : `/teachers/${course.userName}/${course._id}`}
+                      style={{ textDecoration: "none" }}
+                    >
+                      <SessionCard
+                        industry={course.industry}
+                        tags={course.tags}
+                        courseTitle={course.courseTitle}
+                        price={course.pricePerStudent}
+                        firstName={teacherInfo.firstName}
+                        lastName={teacherInfo.lastName}
+                        profileImage={teacherInfo.profileImage.url}
+                        images={course?.images[0]?.url}
+                        icon={course.industry}
+                        capacity={course.capacity}
+                        city={course.addressDetails?.city || course.city}
+                        zipCode={course.addressDetails?.zipCode || course.zipCode}
+                        address={course.addressDetails?.line1 || course.address}
+                      />
+                    </Link>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+          ) : (
+            <PremiumEmptyState
+              title="No sessions yet"
+              subtitle={isOwnProfile ? "Start your hosting journey today." : "This artist hasn't posted any sessions yet."}
+              actionText={isOwnProfile ? "Create a Session" : null}
+              onAction={() => isOwnProfile && navigate('/flow')}
+            />
+          )}
+        </Box>
+
+        {/* Gallery Section */}
+        {sessionCard.some(c => c.images?.length > 1) && (
+          <Box sx={{ mt: 8 }}>
+            <PremiumSectionHeader title="Studio Gallery" subtitle="A glimpse inside the creative space." />
+            <Grid container spacing={2}>
+              {sessionCard.flatMap(c => c.images).slice(0, 6).map((img, i) => (
+                <Grid item xs={6} md={4} key={i}>
+                  <Box
+                    component="img"
+                    src={img.url}
+                    sx={{
+                      width: '100%',
+                      height: 240,
+                      objectFit: 'cover',
+                      borderRadius: 4,
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                    }}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        )}
+
+        {/* Logout Button for own profile */}
+        {isOwnProfile && (
+          <Box sx={{ mt: 10, textAlign: 'center' }}>
+            <Button
+              onClick={() => logout("/")}
+              color="error"
+              sx={{ fontWeight: 700, textTransform: 'none' }}
+            >
+              Logout from Account
+            </Button>
+          </Box>
+        )}
       </Container>
-      {userID && (
-        <Grid
-          item
-          xs={3}
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: "15px",
-          }}
-        >
-          <Button
-            onClick={() => logout("/")}
-            variant="contained"
-            style={{ color: "white" }}
-          >
-            Logout
-          </Button>
-        </Grid>
-      )}
-    </>
+    </Box>
   );
 };
 

@@ -1,4 +1,4 @@
-import {create} from "zustand"
+import { create } from "zustand"
 import { Capacitor } from '@capacitor/core'
 
 const useStore = create(set => ({
@@ -31,14 +31,14 @@ const useStore = create(set => ({
     setIsStudent: isStudent => set({ isStudent }),
 
     roles: [],
-    setRoles: roles => set({roles}),
+    setRoles: roles => set({ roles }),
 
     isRegistered: false,
     setIsRegistered: isRegistered => set({ isRegistered }),
 
     industry: '',
     setIndustry: industry => set({ industry }),
-    
+
     icon: '',
     setIcon: icon => set({ icon }),
 
@@ -54,6 +54,12 @@ const useStore = create(set => ({
     courseDescription: '',
     setCourseDescription: courseDescription => set({ courseDescription }),
 
+    studioVibe: '',
+    setStudioVibe: studioVibe => set({ studioVibe }),
+
+    whatToBring: '',
+    setWhatToBring: whatToBring => set({ whatToBring }),
+
     images: [],
     setImages: images => set({ images }),
 
@@ -64,7 +70,7 @@ const useStore = create(set => ({
     setClassDays: classDays => set({ classDays }),
 
     newCourseID: '',
-    setNewCourseID: newCourseID => set({newCourseID}),
+    setNewCourseID: newCourseID => set({ newCourseID }),
 
     newCourseIndustry: '',
     setNewCourseIndustry: newCourseIndustry => set({ newCourseIndustry }),
@@ -86,7 +92,7 @@ const useStore = create(set => ({
 
     newCourseAddressCountry: '',
     setNewCourseAddressCountry: newCourseAddressCountry => set({ newCourseAddressCountry }),
-    
+
     newCourseLongitude: -73.9569994,
     setNewCourseLongitude: newCourseLongitude => set({ newCourseLongitude }),
 
@@ -110,22 +116,25 @@ const useStore = create(set => ({
     increaseCapacity: () => set(state => ({ capacity: state.capacity + 1 })),
     decreaseCapacity: () => set(state => ({ capacity: Math.max(1, state.capacity - 1) })),
 
-    selectedChat: [], 
+    selectedChat: [],
     setSelectedChat: selectedChat => set({ selectedChat }),
+
+    socket: null,
+    setSocket: socket => set({ socket }),
 
     chats: [],
     setChats: chats => set({ chats }),
 
-    notification: [], 
+    notification: [],
     setNotification: notification => set({ notification }),
 
-    paymentMethodID: [], 
+    paymentMethodID: [],
     setPaymentMethodID: paymentMethodID => set({ paymentMethodID }),
 
-    customerStripeID: [], 
+    customerStripeID: [],
     setCustomerStripeID: customerStripeID => set({ customerStripeID }),
 
-    
+
 
 }));
 

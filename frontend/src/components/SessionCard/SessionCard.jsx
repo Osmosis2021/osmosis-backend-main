@@ -1,128 +1,162 @@
 import React from 'react';
-import { Avatar, Card, Divider, Grid, Skeleton, Stack, Typography } from '@mui/material';
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import "./SessionCard.css";
+import { Avatar, Box, CardContent, CardMedia, Stack, Typography } from '@mui/material';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import PeopleIcon from '@mui/icons-material/People';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import { PremiumCard } from '../../ui/PremiumCard';
+import { PremiumChip } from '../../ui/PremiumChip';
+import TERMS from '../../constants/terms';
 
-function SessionCard (props) {
-  
-  // PROPS INCLUDE: date / images / courseTitle / industry / tags / price / capacity / icon / firstName / lastName / address / zipCode / profileImage / city 
+function SessionCard(props) {
+    const {
+        images,
+        courseTitle,
+        industry,
+        tags,
+        price,
+        capacity,
+        firstName,
+        lastName,
+        city,
+        profileImage,
+        duration
+    } = props;
 
-    const settings = {
-        dots: true,
-        infinite: false,
-        speed: 500,
-        slidesToShow: 1,
-        slidesToScroll: 1,
+    const renderImage = () => {
+        if (images) {
+            return (
+                <CardMedia
+                    component="img"
+                    height="200"
+                    image={images}
+                    alt={courseTitle}
+                    sx={{
+                        objectFit: 'cover',
+                        transition: 'transform 0.5s ease',
+                        '&:hover': { transform: 'scale(1.05)' }
+                    }}
+                />
+            );
+        }
+
+        return (
+            <Box
+                sx={{
+                    height: 200,
+                    background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    p: 2,
+                    textAlign: 'center'
+                }}
+            >
+                <img
+                    src={require(`../../assets/icons/${industry || 'Sharing'}.png`)}
+                    alt={industry}
+                    style={{ width: '48px', height: '48px', opacity: 0.5, marginBottom: '12px' }}
+                />
+                <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    {courseTitle}
+                </Typography>
+            </Box>
+        );
     };
-  
+
     return (
-        
-        <Card>
+        <PremiumCard sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ position: 'relative', overflow: 'hidden' }}>
+                {renderImage()}
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        top: 12,
+                        right: 12,
+                        bgcolor: 'rgba(255, 255, 255, 0.9)',
+                        backdropFilter: 'blur(4px)',
+                        px: 1.5,
+                        py: 0.5,
+                        borderRadius: '8px',
+                        fontWeight: 700,
+                        color: 'primary.main',
+                        fontSize: '0.9rem',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                    }}
+                >
+                    ${price}
+                </Box>
+            </Box>
 
-            <Slider {...settings}>
-                <div>
-                    { props.icon === '0' ? <Typography>Loading...</Typography> : 
-                      Boolean(props.images) ? <img src={props.images} alt='Course' className="carousel-image"/> :
-                      <h3 style={{alignText:'center'}}>No image provided</h3>
-                    }
-                </div>
-            </Slider>
-
-            <Grid container>
-          
-                <Grid item xs={8}>
-                    <div className="card-title">
-                        <Stack direction='column' alignItems='left' spacing={1}>
-                            <Typography variant='h4' className="industry" style={{textAlign:'left'}}>{props.courseTitle}</Typography>
-                        
-                            <Grid fullWidth item alignItems='left'>
-                                <Typography className='tags'>
-                                    <Grid container direction='row' alignItems='center'>
-                                        {/* WHEN NEWLY CREATED USER, THERE IS NO TAGS TO MAP THROUGH */}
-                                        { props.tags?.map((tag, index) => {
-                                            return (
-                                                <Typography 
-                                                    variant='h5' 
-                                                    align='left'
-                                                    key={index} 
-                                                    id={index}
-                                                >
-                                                    #{tag}&nbsp;
-                                                </Typography>
-                                                )
-                                            })
-                                        }
-                                    </Grid>
-                                </Typography>
-                            </Grid>
-                        
-                            <Stack direction='row' alignItems='center'>
-                                {/* WHEN NEWLY CREATED USER THERE IS NO ICON TO DISPLAY */}
-                                <img src={require(`../../assets/icons/${props?.icon || 'Sharing'}.png`)} alt={props.icon} style={{ marginLeft:'3%', width:'22px', height:'22px'}}/>
-                                <Typography variant='h4' className="industry">{props.industry}</Typography>
-                            </Stack>
-                            
+            <CardContent sx={{ flexGrow: 1, p: 2.5 }}>
+                <Stack spacing={1.5}>
+                    <Box>
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                fontWeight: 700,
+                                lineHeight: 1.3,
+                                mb: 0.5,
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                height: '2.6em'
+                            }}
+                        >
+                            {courseTitle}
+                        </Typography>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                            <Avatar
+                                src={profileImage}
+                                sx={{ width: 20, height: 20 }}
+                            />
+                            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                {firstName} {lastName}
+                            </Typography>
                         </Stack>
-                    </div>
-                </Grid>
+                    </Box>
 
-                <Grid item xs align='center' style={{paddingTop:'4%' }}>
-                    
-                    <Grid item>
-                        { props.icon === '0' ? <Typography>Loading...</Typography> : 
-                            <Avatar src={props.profileImage} />
-                        }
-                        <p className='name'> {props.firstName} {props.lastName}</p>
-                        <p className='tags'>{props.capacity} capacity</p>
-                        <p className='tags'>${props.price}/guest</p>
-                    </Grid>
-
-                </Grid>
-
-            </Grid>
-
-            {/* <Divider sx={{borderColor:'#00aeef'}}/> */}
-
-            <Grid container className="more-info" align="center" alignItems='center'>
-            
-                <Grid item xs={6}>
-                    <Stack>
-
-                        <Stack item>
-                            <Typography variant='h5'>{props?.date?.substr(5).split('',5)}</Typography>
+                    <Stack
+                        direction="row"
+                        spacing={1}
+                        alignItems="center"
+                        sx={{
+                            color: 'text.secondary',
+                            fontSize: '0.85rem',
+                            fontWeight: 500
+                        }}
+                    >
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                            <AccessTimeIcon sx={{ fontSize: 16 }} />
+                            <Typography variant="inherit">{duration || 60}m</Typography>
                         </Stack>
-
-                        {/* <Stack item>
-                            <Typography variant='h6'>{props?.date?.split('', 4)}</Typography>
-                        </Stack> */}
-
-                        <Stack item>
-                            <Typography variant='h6'>{props?.time}</Typography>
+                        <Typography variant="inherit">•</Typography>
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                            <PeopleIcon sx={{ fontSize: 16 }} />
+                            <Typography variant="inherit">{capacity}</Typography>
                         </Stack>
-                        
+                        <Typography variant="inherit">•</Typography>
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                            <LocationOnIcon sx={{ fontSize: 16 }} />
+                            <Typography variant="inherit">{city || 'Local'}</Typography>
+                        </Stack>
                     </Stack>
-                </Grid>
 
-                <Grid item xs={6}>
-                    <Stack spacing={-3} >
-
-                        <Stack item>
-                        <p>{props.address}</p>
-                        </Stack>
-                    
-                        <Stack item>
-                        <p>{props.city}, {props.zipCode}</p>
-                        </Stack>
-
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                        {tags?.slice(0, 3).map((tag, index) => (
+                            <PremiumChip key={index} label={tag} />
+                        ))}
+                        {tags?.length > 3 && (
+                            <Typography variant="caption" sx={{ alignSelf: 'center', color: 'text.secondary', fontWeight: 600 }}>
+                                +{tags.length - 3}
+                            </Typography>
+                        )}
                     </Stack>
-                </Grid>
-
-            </Grid>
-
-        </Card>
-    )
+                </Stack>
+            </CardContent>
+        </PremiumCard>
+    );
 }
 
 export default SessionCard;

@@ -9,7 +9,7 @@ const Major = () => {
     return (
         <Container className='container-major'>
             <Typography className='heading' variant='h4' gutterBottom padding='24px' alignItem='center'>
-                The following is a list of various services offered on Osmosis
+                The following is a list of various services offered on Studio Time
             </Typography>
             <GetClasses />
         </Container>
