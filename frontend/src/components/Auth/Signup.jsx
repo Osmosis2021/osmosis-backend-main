@@ -143,7 +143,7 @@ const Signup = props => {
     <>
         <TopNavBar back='/'/>
         
-        {/* <Backdrop onClick={handleClose} open={open} sx={{ color: '#00aeef', zIndex:100}} >
+        {/* <Backdrop onClick={handleClose} open={open} sx={{ color: '#000000', zIndex:100}} >
             <Alert>
                 <Typography>
                     Successfully Registered: You may now login to your account.
@@ -265,7 +265,7 @@ const Signup = props => {
 
                 <Grid container py={2} justifyContent='center' alignItems='center'>
                     <Grid item fullWidth>
-                        <Typography>By signing up you agree to our <span><a style={{color:'#00aeef'}} href='/termsofservice'>Terms of Service</a></span></Typography>
+                        <Typography>By signing up you agree to our <span><a style={{color:'#000000'}} href='/termsofservice'>Terms of Service</a></span></Typography>
                     </Grid>
                 </Grid>
             </Container>

@@ -1,45 +1,21 @@
 import React from 'react';
 import ScrollableFeed from 'react-scrollable-feed';
 import useStore from '../../store';
-import { Avatar } from '@mui/material';
+import { Avatar, Box, Typography, Stack } from '@mui/material';
 
-const ScrollableChat = ({messages}) => {
-
+const ScrollableChat = ({ messages }) => {
     const { userID } = useStore();
 
     const isSameSender = (messages, m, i, userID) => {
         return (
             i < messages?.length - 1 && (
-                messages[i+1]?.sender?._id !== m?.sender?._id ||
-                messages[i+1]?.sender?._id === undefined &&
-                messages[i+1]?.sender?._id !== userID
+                messages[i + 1]?.sender?._id !== m?.sender?._id ||
+                messages[i + 1]?.sender?._id === undefined &&
+                messages[i + 1]?.sender?._id !== userID
             )
         )
     }
 
-    const isSameSenderMargin = (messages, m, i, userID) => {
-        if ( i < messages?.length - 1 && 
-                messages[i + 1]?.sender?._id === m?.sender?._id && 
-                messages[i]?.sender?._id !== userID 
-            ) return 33;
-                else if ( 
-                    (
-                        i < messages?.length - 1 && 
-                        messages[i + 1]?.sender?._id !== m?.sender?._id && 
-                        messages[i]?.sender?._id !== userID
-                    ) || 
-                    (
-                        i === messages?.length - 1 && 
-                        messages[i]?.sender?._id !== userID
-                    )
-                ) return 0;
-        else return "auto";
-    }
-
-    const isSameUser = (messages, m, i) => {
-        return i > 0 && messages[i - 1]?.sender?._id === m?.sender?._id;
-    };
-      
     const isLastMessage = (messages, i, userID) => {
         return (
             i === messages?.length - 1 &&
@@ -48,44 +24,79 @@ const ScrollableChat = ({messages}) => {
         )
     }
 
+    const isSameUser = (messages, m, i) => {
+        return i > 0 && messages[i - 1]?.sender?._id === m?.sender?._id;
+    };
+
+    const formatTime = (timestamp) => {
+        if (!timestamp) return '';
+        return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+
     return (
         <ScrollableFeed>
-            { 
-                messages && messages?.map((m, i) => {
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                {messages && messages?.map((m, i) => {
+                    const isMe = m?.sender?._id === userID;
+                    const showAvatar = !isMe && (isSameSender(messages, m, i, userID) || isLastMessage(messages, i, userID));
+                    const nextIsSame = i < messages.length - 1 && messages[i + 1]?.sender?._id === m?.sender?._id;
+
                     return (
-                        <div style={{ display: 'flex' }} key={m?._id}>
+                        <Box
+                            key={m?._id}
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: isMe ? 'flex-end' : 'flex-start',
+                                mb: nextIsSame ? 0.2 : 1.5,
+                                px: 1
+                            }}
+                        >
+                            <Stack direction="row" spacing={1} alignItems="flex-end" sx={{ maxWidth: '80%' }}>
+                                {showAvatar && (
+                                    <Avatar
+                                        src={m?.sender?.profileImage?.url}
+                                        sx={{ width: 28, height: 28, mb: 0.5 }}
+                                    />
+                                )}
+                                {!isMe && !showAvatar && <Box sx={{ width: 36 }} />}
 
-                            {
-                                (isSameSender(messages, m, i, userID) || isLastMessage(messages, i, userID))
-                                && m?.sender?._id !== userID && (
-                                    <Avatar src={m?.sender?.profileImage?.url} />
-                                )
-                            }
+                                <Box
+                                    sx={{
+                                        bgcolor: isMe ? 'primary.main' : 'white',
+                                        color: isMe ? 'white' : 'text.primary',
+                                        p: '10px 16px',
+                                        borderRadius: isMe
+                                            ? '20px 20px 4px 20px'
+                                            : '20px 20px 20px 4px',
+                                        boxShadow: 'none',
+                                        border: isMe ? 'none' : '1px solid #EDEDED'
+                                    }}
+                                >
+                                    <Typography variant="body2" sx={{ fontWeight: 500, lineHeight: 1.5 }}>
+                                        {m.content}
+                                    </Typography>
+                                </Box>
+                            </Stack>
 
-                            <span 
-                                style={{
-                                    backgroundColor: `${m?.sender?._id === userID ? '#00aeef' : '#7286D3'}`,
-                                    color: 'white',
-                                    borderRadius: '20px',
-                                    padding: '5px 15px',
-                                    maxWidth: '75%',
-                                    marginLeft: isSameSenderMargin(messages, m, i, userID),
-                                    marginTop: isSameUser(messages, m, i, userID) ? 3 : 10,
-                                }} >
-                                {m.content}
-                            </span>
-
-                            {
-                                isSameSender(messages, m, i, userID) && m?.sender?._id === userID && (
-                                    <Avatar src={m?.sender?.profileImage?.url} />
-                                )
-                            }
-
-                        </div>
+                            {!nextIsSame && (
+                                <Typography
+                                    variant="caption"
+                                    sx={{
+                                        mt: 0.5,
+                                        mx: isMe ? 1 : 6,
+                                        color: 'text.secondary',
+                                        fontSize: '0.65rem',
+                                        fontWeight: 600
+                                    }}
+                                >
+                                    {formatTime(m.createdAt)}
+                                </Typography>
+                            )}
+                        </Box>
                     )
-
-                })
-            }
+                })}
+            </Box>
         </ScrollableFeed>
     )
 }

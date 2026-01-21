@@ -1,430 +1,290 @@
-import Carousel from '../SessionCreation/PhotoHandling/Carousel/Carousel';
-import { Avatar, ButtonGroup, Button, Card, Container, Grid, Skeleton, Stack, Typography, Rating } from '@mui/material';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import PersonIcon from '@mui/icons-material/Person';
 import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import DateDrawer, { timeConverter } from '../DateDrawer/DateDrawer';
+import { Container, Grid, Stack, Typography, Rating, Box, Divider, Skeleton, Avatar } from '@mui/material';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import GavelIcon from '@mui/icons-material/Gavel';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import { useParams } from 'react-router-dom';
 import ReactMapGL, { Marker } from 'react-map-gl';
 import TopNavBar from '../TopNavBar/TopNavBar';
-import Prof from '../Profile/Prof';
-import theme from '../../theme.js';
 import useStore from '../../store';
-import PayPopUp from './PayPopUp';
+import TERMS from '../../constants/terms';
+import { PremiumHero } from '../../ui/PremiumHero';
+import { ArtistModule } from '../../ui/ArtistModule';
+import { ReserveModule } from '../../ui/ReserveModule';
+import { PremiumSectionHeader } from '../../ui/PremiumSectionHeader';
+import { PremiumChip } from '../../ui/PremiumChip';
+import { PremiumSkeleton } from '../../ui/PremiumFeedback';
 
 import mapboxgl from 'mapbox-gl'
-// The following is required to stop "npm build" from transpiling mapbox code.
-// notice the exclamation point in the import.
-// @ts-ignore
-// eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
+// eslint-disable-next-line import/no-webpack-loader-syntax
 mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker').default;
 
-
-// TO DO:
-// - Figure out Gallery Resizing for larger screens
-// - Mapbox functionality, error regarding unmounted components
-// - Modal functionality to populate number of guests in payment field
-// - Payment functionality
-
-const Course = (props) => {
+const Course = () => {
 	const [courseData, setCourseData] = useState({})
 	const [selectedDateAndTime, setSelectedDateAndTime] = useState({})
 	const [selectedTimeslotID, setSelectedTimeslotID] = useState('')
-	// const [selectedCapacity, setSelectedCapacity] = useState(1)
 	const [selectedEnrolledStudents, setSelectedEnrolledStudents] = useState([])
 	const [selectedEnrollment, setSelectedEnrollment] = useState(0)
 	const [isLoading, setIsLoading] = useState(true);
 	const [teacherInfo, setTeacherInfo] = useState();
 	const [guestsEntered, setGuestsEntered] = useState(1);
 	const paramsCourse = useParams();
-	const {backendURL, userName} = useStore();
+	const { backendURL, userName } = useStore();
 	const MAPBOX_TOKEN = 'pk.eyJ1IjoicmFkZXItamFrZSIsImEiOiJjbDU4dXdnMXcyNDZ2M2pvY2k2OW1yajY5In0.VoWote3L5R1CdSF1RPKaZg';
 
 	const increaseGuests = () => {
 		const proposedTotal = guestsEntered + 1 + selectedEnrollment
-		if(Boolean(courseData.capacity) && (proposedTotal <= courseData.capacity)) {
+		if (Boolean(courseData.capacity) && (proposedTotal <= courseData.capacity)) {
 			setGuestsEntered(Math.min(guestsEntered + 1, courseData.capacity));
 		}
-    };
-	
-    const decreaseGuests = () => {
-		if (guestsEntered > 1) {
-            setGuestsEntered(guestsEntered - 1);
-        }
-    };
+	};
 
+	const decreaseGuests = () => {
+		if (guestsEntered > 1) {
+			setGuestsEntered(guestsEntered - 1);
+		}
+	};
 
 	useEffect(() => {
-		fetch(`${backendURL}course/getCourse/${paramsCourse.course}`)
-		.then((res) => {
-			return res.json();
-		}).then((data) => {
-			setCourseData(data)
+		setIsLoading(true);
+		Promise.all([
+			fetch(`${backendURL}course/getCourse/${paramsCourse.course}`).then(res => res.json()),
+			fetch(`${backendURL}user/getUserInfo/${paramsCourse.userName}`).then(res => res.json())
+		]).then(([course, teacher]) => {
+			setCourseData(course);
+			setTeacherInfo(teacher);
+			setIsLoading(false);
 		}).catch((err) => {
-			console.log('Error getting course info:\n', err);
+			console.log('Error loading data:', err);
+			setIsLoading(false);
 		});
-	
-		fetch (`${backendURL}user/getUserInfo/${paramsCourse.userName}`)
-        .then((res) => {
-            return res.json();
-        }).then((data) => {
-            setTeacherInfo(data)
-            setIsLoading(false)
-        }).catch((err) => {
-            console.log('Error getting teacher info:\n', err)
-        })
-    }, [paramsCourse]);
-
-	function getAverage (array) {
-		const average = (array?.reduce((a, b) => a + b, 0) / array?.length).toFixed(2);
-		return average;
-	}
+	}, [paramsCourse, backendURL]);
 
 	const [rating, setRating] = useState(0);
 	useEffect(() => {
 		if (courseData?.feedback?.length > 0) {
-
-			const arrayOfReviews = courseData?.feedback?.map(ratAndRev=>(ratAndRev?.rating))
-			console.log(arrayOfReviews)
-			const averageRating = getAverage(arrayOfReviews);
-			setRating(averageRating);
-		} else return;
+			const arrayOfReviews = courseData?.feedback?.map(ratAndRev => (ratAndRev?.rating))
+			const average = (arrayOfReviews.reduce((a, b) => a + b, 0) / arrayOfReviews.length).toFixed(1);
+			setRating(average);
+		}
 	}, [courseData?.feedback]);
 
-	function formatDate (inputDate) {
-		const options = { weekday: 'short', month: 'short', day: 'numeric' };
-		const date = new Date(inputDate);
-		return date.toLocaleDateString(undefined, options);
+	if (isLoading) {
+		return (
+			<Box>
+				<TopNavBar back='/MapOpen' next='empty' activeStep='empty' />
+				<PremiumSkeleton height={400} />
+				<Container sx={{ mt: 4 }}>
+					<Grid container spacing={4}>
+						<Grid item xs={12} md={8}>
+							<Skeleton variant="text" width="60%" height={60} />
+							<Skeleton variant="text" width="40%" height={30} />
+							<Box sx={{ mt: 4 }}>
+								<Skeleton variant="rectangular" height={200} sx={{ borderRadius: 4 }} />
+							</Box>
+						</Grid>
+						<Grid item xs={12} md={4}>
+							<Skeleton variant="rectangular" height={400} sx={{ borderRadius: 4 }} />
+						</Grid>
+					</Grid>
+				</Container>
+			</Box>
+		);
 	}
-	
+
 	return (
-		<div>
-			<TopNavBar back='/MapOpen' next='empty' activeStep='empty'/>
-			<Carousel courseData={courseData}/>
-			
-			<br />
+		<Box sx={{ pb: { xs: 10, md: 6 }, bgcolor: 'background.default', minHeight: '100vh' }}>
+			<TopNavBar back='/MapOpen' next='empty' activeStep='empty' />
 
-			<Grid container direction='column' style={{alignItems:'flex-start', justifyContent:'left', padding: '4%' }}>
-				<Typography variant='h3'>
-					{courseData.courseTitle}
-				</Typography>
-					
-				<br />
+			<PremiumHero
+				images={courseData.images}
+				title={courseData.courseTitle}
+				industry={courseData.industry}
+			/>
 
-				<Grid fullWidth item alignItems='left'>
-					<Grid container direction='row' alignItems='center'>
-						{ 
-							isLoading ? <Skeleton/> :
-							courseData?.tags?.map((tag, index) => {
-								return (
-									<Typography 
-										variant='h5' 
-										align='left'
-										key={index} 
-										id={index}
-									>
-										#{tag}&nbsp;
-									</Typography>
-								)
-							})
-						}
-					</Grid>
-				</Grid>
-
-				<Grid item mt={2}>
-					<Grid container direction='row' alignItems='center' columnSpacing={1}>
-
-						{
-							isLoading ? <Skeleton/> : 
-							<>
-								<Grid item >
-									<img src={require(`../../assets/icons/${courseData.industry || 'sports'}.png`)} style={{height:25, width:25}} alt={courseData.industry}/> 
-								</Grid>
-
-								<Grid item >
-									<Typography variant='h4'>{courseData.industry}</Typography>
-								</Grid>
-							</>
-						}
-
-					</Grid>
-				</Grid>
-
-			</Grid>
-
-			{/* <br /> */}
-			<hr style={{ color: theme.palette.mode === 'light' ? 'black' : 'white', width: '90%', border: 'solid .5px' }} />
-			<br />
-
-			<Container>
-				<Link style={{textDecoration: 'none', color: theme.palette.mode === 'dark' ? 'white' : 'black'}} to={`/teachers/${paramsCourse.userName}`}>
-					<Grid container spacing={2} alignItems='center'>
-						
-						<Grid item align='center' style={{ alignItems: 'flexEnd' }}>
-							<Prof
-								avatar={teacherInfo?.profileImage.url}
-								name={paramsCourse.userName}
-							/>
-						</Grid>
-						
-						<Grid item xs>
-							<Typography>
-								{teacherInfo?.description}
+			<Container sx={{ mt: 4 }}>
+				<Grid container spacing={6}>
+					{/* Left Column: Content */}
+					<Grid item xs={12} md={8}>
+						<Box sx={{ mb: 4 }}>
+							<Typography variant="h3" sx={{ fontWeight: 700, mb: 1.5 }}>
+								{courseData.courseTitle}
 							</Typography>
-						</Grid>
+							<Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
+								{courseData?.tags?.map((tag, index) => (
+									<PremiumChip key={index} label={tag} />
+								))}
+							</Stack>
+							<Stack direction="row" spacing={1} alignItems="center" color="text.secondary">
+								<img
+									src={require(`../../assets/icons/${courseData.industry || 'sports'}.png`)}
+									style={{ height: 20, width: 20, opacity: 0.7 }}
+									alt={courseData.industry}
+								/>
+								<Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+									{courseData.industry}
+								</Typography>
+								<Typography variant="subtitle2">•</Typography>
+								<Typography variant="subtitle2">{courseData.duration || 60} mins</Typography>
+								<Typography variant="subtitle2">•</Typography>
+								<Typography variant="subtitle2">Up to {courseData.capacity} guests</Typography>
+							</Stack>
+						</Box>
 
-					</Grid>
-				</Link>
-			</Container>
+						<Divider sx={{ mb: 4 }} />
 
-			<br />
-			<hr style={{ color: theme.palette.mode === 'light' ? 'black' : 'white', width: '90%', border: 'solid .5px' }} />
-			<br />
+						<Box sx={{ mb: 6 }}>
+							<PremiumSectionHeader title="What you'll do" />
+							<Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', color: 'text.primary' }}>
+								{courseData?.courseDescription}
+							</Typography>
+						</Box>
 
-			<Container>
-				<Grid container spacing={2} alignItems='center'>
-					<Grid item style={{ alignItems: 'flexEnd' }}>
-						<Typography variant='h5'>Course Description:</Typography>
-						<br/>
-						<Typography>{courseData?.courseDescription}</Typography>
-					</Grid>
-				</Grid>
-			</Container>
+						<Box sx={{ mb: 6 }}>
+							<PremiumSectionHeader title="Studio Vibe" />
+							<Typography variant="body1" color="text.secondary">
+								{courseData.studioVibe || `Experience the creative energy of a professional ${courseData.industry} studio.`}
+							</Typography>
+						</Box>
 
-			<br />
-			<hr style={{ color: theme.palette.mode === 'light' ? 'black' : 'white', width: '90%', border: 'solid .5px' }} />
-			<br />
+						{courseData.whatToBring && (
+							<Box sx={{ mb: 6 }}>
+								<PremiumSectionHeader title="What to bring" />
+								<Typography variant="body1" color="text.secondary">
+									{courseData.whatToBring}
+								</Typography>
+							</Box>
+						)}
 
-			<Container>
-				<Grid container spacing={2} alignItems='center'>
-					<Grid item style={{ alignItems: 'flexEnd' }}>
-						<Typography variant='h5'>Rating / Reviews:</Typography>
-						<br/>
-						<Stack direction='row' justifyContent='center' alignItems='flex-end'>
-							<Rating size='large' precision={0.5} name="read-only" value={rating} readOnly />
-							&nbsp;
-							<Typography>{rating}</Typography>
-							&nbsp;
-							<Typography>({courseData?.feedback?.length})</Typography>
-						</Stack>
-						<br/>
-						<Grid container justifyContent='center'>
-							<Grid container direction='row' spacing={2}>
-								{courseData?.feedback?.length > 0 &&
-								courseData?.feedback?.map((ratAndRev) => {
-									console.log(ratAndRev.rating);
-									return (
-									<Grid item key={ratAndRev._id} xs={12} md={6} lg={4}>
-										<Card
-										sx={{
-											width: '100%',
-											padding: '3%', // Adjust the padding as needed
-											marginBottom: '1%', // Add space between the Card elements
-										}}
-										>
-										<Grid container alignItems='center' spacing={1}>
-											<Grid item>
-											<Avatar
-												src={ratAndRev?.studentID?.profileImage?.url}
-												alt={ratAndRev?.studentID?.userName}
-												sx={{ width: 48, height: 48, marginRight: '16px' }} // Adjust the size of the Avatar and add right margin
-											/>
-											<Typography variant='body1' align='center'>
-												{ratAndRev?.studentID?.userName}
+						<Box sx={{ mb: 6 }}>
+							<ArtistModule
+								teacherInfo={teacherInfo}
+								userName={paramsCourse.userName}
+								city={courseData.addressDetails?.city || courseData.city}
+							/>
+						</Box>
+
+						<Box sx={{ mb: 6, display: { xs: 'block', md: 'none' } }} id="booking-section">
+							<PremiumSectionHeader title="Reserve Your Spot" />
+							<ReserveModule
+								sx={{ borderRadius: 3 }}
+								courseData={courseData}
+								teacherInfo={teacherInfo}
+								selectedDateAndTime={selectedDateAndTime}
+								setSelectedDateAndTime={setSelectedDateAndTime}
+								setSelectedTimeslotID={setSelectedTimeslotID}
+								setSelectedEnrolledStudents={setSelectedEnrolledStudents}
+								setSelectedEnrollment={setSelectedEnrollment}
+								guestsEntered={guestsEntered}
+								increaseGuests={increaseGuests}
+								decreaseGuests={decreaseGuests}
+								selectedTimeslotID={selectedTimeslotID}
+								selectedEnrollment={selectedEnrollment}
+								userName={userName}
+								forceInline={true}
+							/>
+						</Box>
+
+						<Box sx={{ mb: 6 }}>
+							<PremiumSectionHeader title="Location" />
+							<Box sx={{ borderRadius: 4, overflow: 'hidden', border: '1px solid #F0F0F0', height: 300 }}>
+								{Boolean(courseData.latitude) && Boolean(courseData.longitude) && !isNaN(Number(courseData.latitude)) && !isNaN(Number(courseData.longitude)) ? (
+									<ReactMapGL
+										zoom={11}
+										latitude={Number(courseData.latitude)}
+										longitude={Number(courseData.longitude)}
+										style={{ width: '100%', height: '100%' }}
+										mapStyle={`mapbox://styles/mapbox/light-v11`}
+										mapboxAccessToken={MAPBOX_TOKEN}
+									>
+										<Marker latitude={Number(courseData.latitude)} longitude={Number(courseData.longitude)} />
+									</ReactMapGL>
+								) : (
+									<Box sx={{ width: '100%', height: '100%', bgcolor: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+										<Stack alignItems="center" spacing={1}>
+											<LocationOnIcon fontSize="large" color="disabled" />
+											<Typography variant="body2" color="text.secondary">
+												{courseData.city || 'Location available upon booking'}
 											</Typography>
-											</Grid>
-											<Grid item xs>
-											<Stack direction='row' alignItems='center' spacing={1}>
-												<Rating
-												precision={0.5}
-												value={ratAndRev.rating}
-												readOnly
-												/>
-												<Typography>{ratAndRev.rating}</Typography>
-											</Stack>
-											<Typography>{ratAndRev.reviews}</Typography>
-											</Grid>
+										</Stack>
+									</Box>
+								)}
+							</Box>
+						</Box>
+
+						<Box sx={{ mb: 6 }}>
+							<PremiumSectionHeader
+								title="Reviews"
+								subtitle={courseData?.feedback?.length > 0 ? `${rating} average rating from ${courseData?.feedback?.length} reviews` : "No reviews yet"}
+							/>
+							{courseData?.feedback?.length > 0 && (
+								<Grid container spacing={2}>
+									{courseData.feedback.map((rev) => (
+										<Grid item xs={12} key={rev._id}>
+											<Box sx={{ p: 2, borderRadius: 3, border: '1px solid #F0F0F0' }}>
+												<Stack direction="row" spacing={2}>
+													<Avatar src={rev?.studentID?.profileImage?.url} />
+													<Box>
+														<Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{rev?.studentID?.userName}</Typography>
+														<Rating value={rev.rating} readOnly size="small" sx={{ mb: 1 }} />
+														<Typography variant="body2">{rev.reviews}</Typography>
+													</Box>
+												</Stack>
+											</Box>
 										</Grid>
-										</Card>
-									</Grid>
-									)
-								})}
-							</Grid>
-						</Grid>
+									))}
+								</Grid>
+							)}
+						</Box>
+
+						<Box>
+							<PremiumSectionHeader
+								title="Cancellation Policy"
+								subtitle="Full refund for cancellations made at least 24 hours before the session start time."
+							/>
+						</Box>
 					</Grid>
-				</Grid>
-			</Container>
 
-			<br />
-			<hr style={{ color: theme.palette.mode === 'light' ? 'black' : 'white', width: '90%', border: 'solid .5px' }} />
-			<br />
-
-			<Grid container mt={2} style={{ alignItems: 'center' }}>
-				
-				<Grid item xs={4} style={{ alignItems: 'center' }}>
-					<Typography style={{textAlign: 'center'}}>
-						<CalendarTodayIcon style={{fontSize:'50'}}/>
-					</Typography>
-				</Grid>
-
-				<Grid item xs={4}>
-					<Typography variant='h6' style={{ textAlign: 'center'}}>
-						{(courseData.schedule === undefined) ? <></> : <DateDrawer schedule={courseData.schedule} 
-						    selectedDateAndTime={selectedDateAndTime}
+					{/* Right Column: Sticky Reserve Card */}
+					<Grid item xs={12} md={4} sx={{ borderRadius: 3, display: { xs: 'none', md: 'block' } }}>
+						<ReserveModule
+							courseData={courseData}
+							teacherInfo={teacherInfo}
+							selectedDateAndTime={selectedDateAndTime}
 							setSelectedDateAndTime={setSelectedDateAndTime}
 							setSelectedTimeslotID={setSelectedTimeslotID}
-							// setSelectedCapacity={setSelectedCapacity}
 							setSelectedEnrolledStudents={setSelectedEnrolledStudents}
 							setSelectedEnrollment={setSelectedEnrollment}
-						/>}
-					</Typography>
-				</Grid>
-				{(selectedDateAndTime.hasOwnProperty('startDate')) &&
-				<div style={{textAlign:'center'}}>
-					<Typography>{formatDate(selectedDateAndTime.startDate)}</Typography>
-					<Typography>{timeConverter(selectedDateAndTime.startTime)}</Typography>
-				</div>}
-			</Grid>
-
-			<br/>
-
-			<Grid container style={{ alignItems: 'center'}}>
-
-				<Grid item xs={4} style={{ alignItems: 'center' }}>
-					<Typography style={{ textAlign: 'center'}}>
-						<PersonIcon style={{fontSize:'50'}}/>
-					</Typography>
-				</Grid>
-
-				<Grid item xs={4} style={{justifyContent:'center', display:'flex'}}>
-						{/* <br/> */}
-								{(selectedDateAndTime.hasOwnProperty('startDate')) &&
-							<ButtonGroup variant='contained'>
-								<Button onClick={decreaseGuests}>
-									<Typography variant='h6' fontWeight='bold' color='white'>
-										—
-									</Typography>
-								</Button>
-								<Button>
-									<Typography variant='h5' fontWeight='medium' color='white'>
-										{guestsEntered}
-									</Typography>
-								</Button>
-								<Button onClick={increaseGuests}>
-									<Typography variant='h6' fontWeight='small' color='white'>
-										+
-									</Typography>
-								</Button>
-							</ButtonGroup>
-								}
-				</Grid>
-
-				<Grid item xs={4} style={{justifyContent:'center', display:'flex'}}>
-				{(selectedDateAndTime.hasOwnProperty('startDate')) &&
-				<Stack justifyContent='center'>
-					<Typography variant='h6'> Remaining Spots: </Typography>
-					<Typography variant='body'> {courseData.capacity - selectedEnrollment} left </Typography>
-				</Stack>
-				}
-				</Grid>
-
-			</Grid>
-
-			<br/>
-			
-			<Grid container style={{ alignItems: 'center' }}>
-
-				<Grid item xs={4} style={{ alignItems: 'center'}}>
-					<Typography style={{ textAlign: 'center'}}>
-						<AttachMoneyIcon style={{fontSize:'35'}}/>
-					</Typography>
-				</Grid>
-
-				<Grid item xs={4}>
-					<Typography variant='h4' style={{ textAlign: 'center' }}>
-						{courseData.pricePerStudent} / guest
-					</Typography>
-				</Grid>
-
-			</Grid>
-			<br/>
-			<br/>
-			<Grid container style={{ alignItems: 'center' }}>
-
-				<Grid item xs={4} style={{ alignItems: 'center' }}>
-					<Typography variant='h2' style={{ textAlign: 'center'}}>
-						Total
-					</Typography>
-				</Grid>
-
-				<Grid item xs={4}>
-					<Typography variant='h2' style={{ textAlign: 'center' }}>
-					{`$${courseData.pricePerStudent * guestsEntered}`}
-					</Typography>
-				</Grid>
-
-				<div style={{textAlign:'right'}}>
-				<PayPopUp 
-					selectedDateAndTime={selectedDateAndTime}
-					courseTitle={courseData.courseTitle}
-					courseID={courseData._id}
-					selectedTimeslotID={selectedTimeslotID}
-					pricePerStudent={courseData.pricePerStudent}
-					guests={guestsEntered}
-					profileImage={teacherInfo?.profileImage?.url}
-					total={courseData.pricePerStudent * guestsEntered}
-					teacherFullName={`${teacherInfo?.firstName} ${teacherInfo?.lastName}`}
-					teacherID={courseData.teacherID}
-					teacherUserName={courseData.userName}
-					studentUserName={userName}
-					stripeID={teacherInfo?.stripeID}
-				/>
-			</div>
-
-
-
-			</Grid>
-
-			<hr style={{ color: theme.palette.mode === 'light' ? 'black' : 'white', width: '90%', border: 'solid .5px' }} />
-
-			{/* <div style={{textAlign:'right'}}>
-				<PayPopUp 
-					selectedDateAndTime={selectedDateAndTime}
-					courseTitle={courseData.courseTitle}
-					courseID={courseData._id}
-					selectedTimeslotID={selectedTimeslotID}
-					pricePerStudent={courseData.pricePerStudent}
-					guests={guestsEntered}
-					profileImage={teacherInfo?.profileImage?.url}
-					total={courseData.pricePerStudent * guestsEntered}
-					teacherFullName={`${teacherInfo?.firstName} ${teacherInfo?.lastName}`}
-					teacherUserName={courseData.userName}
-				/>
-			</div> */}
-
-			<Card style={{ margin: '5%' }}>
-				{!Boolean(courseData.longitude) ? <Skeleton style={{margin: '5%', height:'100px', width:'100%'}} /> :
-				<ReactMapGL
-					zoom='11'
-					latitude={courseData.latitude}
-					longitude={courseData.longitude}
-					style={{ width: '100%', height: 300, textAlign: 'center' }}
-					mapStyle={`mapbox://styles/mapbox/${theme.palette.mode}-v11`}
-					mapboxAccessToken={MAPBOX_TOKEN}>
-						<Marker 
-							latitude={courseData.latitude}
-							longitude={courseData.longitude}
+							guestsEntered={guestsEntered}
+							increaseGuests={increaseGuests}
+							decreaseGuests={decreaseGuests}
+							selectedTimeslotID={selectedTimeslotID}
+							selectedEnrollment={selectedEnrollment}
+							userName={userName}
 						/>
-						<div>
-							{/* <img alt={teacherInfo.industry}src={require(`../../../assets/icons/${teacherInfo.industry}.png`)} style={{width: "25px"}}/> */}
-						</div>
-				</ReactMapGL>}
-			</Card>
+					</Grid>
+				</Grid>
+			</Container>
 
-			
-		</div>
+			{/* Mobile Sticky Bar */}
+			{/* <ReserveModule
+				courseData={courseData}
+				teacherInfo={teacherInfo}
+				selectedDateAndTime={selectedDateAndTime}
+				setSelectedDateAndTime={setSelectedDateAndTime}
+				setSelectedTimeslotID={setSelectedTimeslotID}
+				setSelectedEnrolledStudents={setSelectedEnrolledStudents}
+				setSelectedEnrollment={setSelectedEnrollment}
+				guestsEntered={guestsEntered}
+				increaseGuests={increaseGuests}
+				decreaseGuests={decreaseGuests}
+				selectedTimeslotID={selectedTimeslotID}
+				selectedEnrollment={selectedEnrollment}
+				userName={userName}
+			/> */}
+		</Box>
 	);
 };
 
 export default Course;
+

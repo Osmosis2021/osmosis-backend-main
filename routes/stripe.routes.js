@@ -1,28 +1,22 @@
 const router = require('express').Router()
-const Stripe = require('stripe');
 const User = require('../models/user');
-let stripeKey = ''
-if (process.env.NODE_ENV === 'production') {
-    stripeKey = process.env.STRIPE_LIVE_KEY
-} else {
-    stripeKey =  process.env.STRIPE_TEST_KEY
-}
-let stripePublishableKey = ''
-if (process.env.NODE_ENV === 'production') {
-    stripePublishableKey = process.env.STRIPE_PUBLISHABLE_KEY
-} else {
-    stripePublishableKey =  process.env.STRIPE_PUBLISHABLE_TEST_KEY
-}
+const env = require('../config/env');
+const stripe = require('../services/stripeClient');
 
-const stripe = Stripe(stripeKey);
+let stripePublishableKey = ''
+if (env.NODE_ENV === 'production') {
+    stripePublishableKey = env.STRIPE_PUBLISHABLE_KEY
+} else {
+    stripePublishableKey = env.STRIPE_PUBLISHABLE_TEST_KEY
+}
 
 router.get('/config', (req, res) => {
-    res.send({publishableKey: stripePublishableKey,});
+    res.send({ publishableKey: stripePublishableKey, });
 });
 
 // ACCOUNT LINK
 router.get('/accountLink/:stripeID', async (req, res) => {
-    const {stripeID} = req.params;
+    const { stripeID } = req.params;
     const accountLink = await stripe.accountLinks.create({
         account: stripeID,
         refresh_url: 'https://getosmosis.io/reauth',
@@ -35,12 +29,12 @@ router.get('/accountLink/:stripeID', async (req, res) => {
 
 // RETRIEVING STRIPE ACCOUNT 
 router.get('/retrieveStripeAccount/:stripeID', async (req, res) => {
-    const {stripeID} = req.params;
+    const { stripeID } = req.params;
     console.log('inside retrieveStripeAccount with this ID:', stripeID)
     try {
         const retrieveAccount = await stripe.accounts.retrieve(stripeID);
         // const balance = await stripe.balance.retrieve({});
-            
+
         const stripeObj = {
             retrieveAccount: retrieveAccount,
             // balanace: balance            
@@ -55,7 +49,7 @@ router.get('/retrieveStripeAccount/:stripeID', async (req, res) => {
 
 // Stripe Customer Account 
 router.get('/retrieveStripeCustomerAccount/:customerStripeID', async (req, res) => {
-    const {customerStripeID} = req.params; 
+    const { customerStripeID } = req.params;
     console.log('inside retrieve StripeCustomer with this id:', customerStripeID)
     try {
 
@@ -77,7 +71,7 @@ router.get('/retrieveStripeCustomerAccount/:customerStripeID', async (req, res) 
 // Saving Customer Payment Method
 router.post('/save-payment-method/:customerStripeID', async (req, res) => {
 
-    console.log('stripeKey', stripeKey)                                           
+    console.log('stripeKey', stripeKey)
     const { customerStripeID } = req.params;
     const { paymentMethodID } = req.body;
 
@@ -89,37 +83,37 @@ router.post('/save-payment-method/:customerStripeID', async (req, res) => {
 
         // Save paymentMethodID in User schema 
 
-            const user = await User.findOneAndUpdate(
-                {customerStripeID}, 
-                { $set: { paymentMethod: paymentMethodID } }, 
-                { new: true }
-            )
+        const user = await User.findOneAndUpdate(
+            { customerStripeID },
+            { $set: { paymentMethod: paymentMethodID } },
+            { new: true }
+        )
 
-            res.json({ attachedPaymentMethod });
+        res.json({ attachedPaymentMethod });
 
-            // const setupIntent = await stripe.setupIntents.create({
-            //     payment_method_types: ['card'],
-            // });
-            
-            // const retrievePaymentMethod = await stripe.paymentMethods.retrieve(
-            //     paymentMethodID
-            // );
+        // const setupIntent = await stripe.setupIntents.create({
+        //     payment_method_types: ['card'],
+        // });
 
-            // await stripe.customers.update(
-            //     customerStripeID, { card: { default_payment_method: paymentMethodID } }
-            // )
-            
+        // const retrievePaymentMethod = await stripe.paymentMethods.retrieve(
+        //     paymentMethodID
+        // );
 
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: 'Failed to save payment method' });
-        }
+        // await stripe.customers.update(
+        //     customerStripeID, { card: { default_payment_method: paymentMethodID } }
+        // )
+
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to save payment method' });
     }
+}
 );
 
 // STUDENT PAYING FOR COURSE vvvvvv
-router.post('/create-payment-intent', async(req, res) => {
-    const { amount, capacity, metadata, stripeID, customerStripeID, paymentMethodID, email} = req.body
+router.post('/create-payment-intent', async (req, res) => {
+    const { amount, capacity, metadata, stripeID, customerStripeID, paymentMethodID, email } = req.body
     console.log('this is the email address we got.........................................', email)
     console.log('in create-payment-intent route with this request:', amount * capacity, metadata, stripeID)
     console.log('this is the paymentMethodID:', paymentMethodID)
@@ -140,12 +134,12 @@ router.post('/create-payment-intent', async(req, res) => {
             application_fee_amount: Math.round(amount * capacity * 9.9) + 30,
             transfer_data: {
                 destination: destinationAccount,
-                },
+            },
             // payment_method: paymentMethodID,
             // customer: customerStripeID,
             receipt_email: email,
         }
-         // Include paymentMethodID only if it exists
+        // Include paymentMethodID only if it exists
         if (paymentMethodID) {
             paymentIntentOptions.payment_method = paymentMethodID;
         }

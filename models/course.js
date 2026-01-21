@@ -5,17 +5,13 @@ const Booking = require('./booking');
 
 
 const CourseSchema = new mongoose.Schema({
-    address: {
-        line1: String,
-        line2: String,
-        city: String,
-        zipCode: Number,
-        state: String,
-        country: String,
-    },
+    address: String,
+    addressDetails: mongoose.Schema.Types.Mixed,
     duration: Number,
     courseTitle: String,
-	courseDescription: String,
+    courseDescription: String,
+    studioVibe: String,
+    whatToBring: String,
     industry: String,
     userName: String,
     capacity: Number,
@@ -32,7 +28,7 @@ const CourseSchema = new mongoose.Schema({
     longitude: Number,
     latitude: Number,
     schedule: [],
-	images: [{
+    images: [{
         public_id: {
             type: String,
             required: true
@@ -42,14 +38,19 @@ const CourseSchema = new mongoose.Schema({
             required: true
         }
     }],
-	online: Boolean,
-	// students: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
+    online: Boolean,
+    // students: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
     teacherID: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: 'User',
     }
 });
+
+CourseSchema.index({ teacherID: 1 });
+CourseSchema.index({ userName: 1 });
+CourseSchema.index({ industry: 1 });
+CourseSchema.index({ latitude: 1, longitude: 1 });
 
 const Course = mongoose.model('Course', CourseSchema);
 module.exports = Course;

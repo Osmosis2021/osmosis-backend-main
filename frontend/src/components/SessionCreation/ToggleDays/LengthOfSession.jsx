@@ -4,25 +4,36 @@ import { withStyles } from '@mui/styles';
 import useStore from '../../../store';
 
 
+import TERMS from '../../../constants/terms';
+
+
 const StyledToggle = withStyles({
     root: {
-    color: '#00aeef',
-    '&$selected': {
-        color: 'white',
-        background: '#00aeef',
-    },
-    '&:hover': {
-        borderColor: '#00aeef',
-        color: 'white',
-        background: '#00aeef',
-    },
-    '&:hover$selected': {
-        borderColor: '#00aeef',
-        background: '#00aeef',
-    },
-    borderRadius: '20%',
-    height: '50px',
-    width: '50px',
+        color: '#000000',
+        '&$selected': {
+            color: 'white',
+            background: '#000000',
+        },
+        '&:hover': {
+            borderColor: '#000000',
+            color: 'white',
+            background: '#000000',
+        },
+        '&:hover$selected': {
+            borderColor: '#000000',
+            background: '#000000',
+        },
+        borderRadius: '50px',
+        height: '44px',
+        minWidth: '80px',
+        padding: '0 20px',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        border: '1px solid #EDEDED',
+        textTransform: 'none',
+        fontWeight: 600,
+        fontSize: '0.875rem',
     },
     selected: {},
 })(ToggleButton);
@@ -39,37 +50,33 @@ function LengthOfSession() {
     }, [])
 
     const handleClick = (event) => {
-		setNewCourseDuration(Number(event.target.value));
+        setNewCourseDuration(Number(event.target.value));
         setIsClicked(!isClicked);
-	}
+    }
 
 
-  return (
-    <div>
-          <Typography variant='h4' mb={2} mt={8} align='center'>
-            Choose length of your session:
-          </Typography>
+    return (
+        <div>
+            <Typography variant='h4' mb={2} mt={8} align='center'>
+                Choose length of your {TERMS.CLASS.toLowerCase()}:
+            </Typography>
 
-          <Grid container mt={2} mb={2} justifyContent='space-around' alignItems='center'>
-          {
-            Length.map((length) => {
-                return (
+            <Grid container spacing={2} justifyContent='center'>
+                {Length.map((length) => (
                     <Grid item key={length}>
-                        <ToggleButtonGroup>
+                        <ToggleButtonGroup exclusive value={newCourseDuration} onChange={(e, val) => { if (val) setNewCourseDuration(val) }}>
                             <StyledToggle
                                 value={length}
-                                selected={length === newCourseDuration}
-                                onClick={handleClick}
-                            >{`${length} minutes`}
+                                aria-label={`${length} minutes`}
+                            >
+                                {length === 60 ? '1 hr' : length === 90 ? '1.5 hr' : `${length} min`}
                             </StyledToggle>
                         </ToggleButtonGroup>
                     </Grid>
-                )
-            })
-          }
-          </Grid>
-    </div>
-  )
+                ))}
+            </Grid>
+        </div>
+    )
 }
 
 export default LengthOfSession

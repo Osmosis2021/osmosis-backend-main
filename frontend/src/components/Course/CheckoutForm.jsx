@@ -1,115 +1,121 @@
-import { useStripe, useElements, PaymentElement, CardElement } from "@stripe/react-stripe-js";
-import { useState } from "react";
+import { useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
+import { useState, useEffect } from "react";
 import useStore from "../../store";
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
-import { CircularProgress } from "@mui/material";
+import {
+  Box,
+  Typography,
+  CircularProgress,
+  Button,
+  Stack,
+  Alert,
+  Fade
+} from "@mui/material";
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { PremiumButton } from "../../ui/PremiumButton";
 
-
-export default function CheckoutForm(props) {
+export default function CheckoutForm({ clientSecret, bookThisCourse, onBookingSuccess }) {
   const stripe = useStripe();
   const elements = useElements();
-  const clientSecret = props.clientSecret
-  const paymentMethodID = props.paymentMethodID
-  console.log('CheckoutForm props =>', props)
   const [message, setMessage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [cardInfo, setCardInfo] = useState()
-  const {userName, isTeacher, customerStripeID, backendURL} = useStore();
-  const navigate = useNavigate();
-  // const elements = stripe.elements({ clientSecret: props.clientSecret})
-  // const paymentElement = elements.create('payment')
-  // paymentElement.mount('#payment-element')
+  const [isSuccess, setIsSuccess] = useState(false);
+  const { backendURL, customerStripeID } = useStore();
 
-    useEffect(() => {
-        fetch(`${backendURL}stripe/retrieveStripeCustomerAccount/${customerStripeID}`).then(async (res) => {
-            const stripeCustomerData = await res.json();
-            setCardInfo(stripeCustomerData.card)
-            console.log('stripeCustomerData', stripeCustomerData)
-        })
-
-    }, [])
-
-  
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!stripe || !elements) {
-      // Stripe.js has not yet loaded.
-      // Make sure to disable form submission until Stripe.js has loaded.
-      return;
-    }
+    if (!stripe || !elements) return;
 
     setIsProcessing(true);
+    setMessage(null);
 
-    const response = await stripe.confirmPayment({
-     elements,
-     confirmParams: {
-      },
-     redirect: 'if_required'
-    });
+    try {
+      const response = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          // No return_url needed for 'if_required'
+        },
+        redirect: 'if_required'
+      });
 
-    // const {teacherUserName, date, time} = props.paymentMetadata
-    // const paymentMetadataString = new URLSearchParams({teacherUserName, date, time, bookingID: bookingResponse.data._id}).toString()
-    
-    if (response.error) {
-      setMessage(response.error.message);
-    } else {
-      setMessage(`Payment Succeeded: ${response.paymentIntent.id}`);
-      const bookingResponse = await props.bookThisCourse()
-      console.log('bookThisCourse function RAN', bookingResponse)
-      navigate(`/${isTeacher ? 'teachers' : 'students'}/${userName}`)
+      if (response.error) {
+        setMessage(response.error.message);
+        setIsProcessing(false);
+      } else if (response.paymentIntent.status === "succeeded") {
+        console.log("Payment succeeded, creating booking...");
+        try {
+          const bookingResponse = await bookThisCourse();
+          // Check for valid response (either success flag or just a valid object)
+          if (bookingResponse.status === 200 || bookingResponse.data?.success || bookingResponse.data?._id) {
+            console.log("Booking created successfully");
+            setIsSuccess(true);
+            if (onBookingSuccess) {
+              onBookingSuccess(bookingResponse.data.bookingID || bookingResponse.data._id);
+            }
+          } else {
+            console.error("Booking creation failed response:", bookingResponse);
+            setMessage("Payment processed, but booking creation had an issue. Please contact support.");
+            // We do NOT stop processing here, we might want to show a contact link
+            // But generally, if we got here, money is taken. 
+            setIsProcessing(false);
+          }
+        } catch (bookingErr) {
+          console.error("Booking API error:", bookingErr);
+          setMessage("Payment processed, but booking confirmation failed. Please save your receipt.");
+          setIsProcessing(false);
+        }
+      }
+    } catch (err) {
+      console.error("Payment error:", err);
+      setMessage("An unexpected error occurred during payment.");
+      setIsProcessing(false);
     }
-    setIsProcessing(false);
+  }
 
-    // const elements = stripe.elements({props.clientSecret})
-    // const {teacherUserName, date, time} = props.paymentMetadata
-    // const bookingResponse = await props.bookThisCourse()
-    // console.log('bookThisCourse function RAN', bookingResponse)
-    // const paymentMetadataString = new URLSearchParams({teacherUserName, date, time, bookingID: bookingResponse.data._id}).toString()
-  //   const { error, paymentIntent } = await stripe.confirmPayment({
-  //     elements,
-  //     confirmParams: {
-  //       return_url: `${window.location.origin}/confirm/?${paymentMetadataString}`,
-  //     },
-  //     redirect: 'if_required'
-  //   });
-    
-  //   setIsProcessing(false);
-    
-  //   if (error.type === "card_error" || error.type === "validation_error") {
-  //     setMessage(error.message);
-  //     return
-  //   } 
-  
-  };
+  if (isSuccess) {
+    return (
+      <Fade in={true}>
+        <Box sx={{ textAlign: 'center', py: 4 }}>
+          <CheckCircleOutlineIcon sx={{ fontSize: 80, color: 'success.main', mb: 2 }} />
+          <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>Payment Successful!</Typography>
+          <Typography variant="body2" color="text.secondary">Your booking is being finalized...</Typography>
+        </Box>
+      </Fade>
+    );
+  }
 
   return (
-    <>
-            <PaymentElement />
-    {
-        isProcessing ? (
-            <CircularProgress
-                size="xl"
-                w={20}
-                h={20}
-                style={{display:'flex', justifyContent:"center", alignItems:'center', height:'70vh'}}
-                margin="auto"
-            />
-        ) :
-        <form id="payment-form" onSubmit={handleSubmit}>
-            <button style={{display: 'flex', flexDirection: 'column', margin: 'auto', justifyContent: 'center', alignItems: 'center',
-                background: 'transparent', border: 'none'}} disabled={isProcessing || !stripe || !elements} id="submit">
-                <CheckCircleIcon style={{fontSize:'105px', color:'#00aeef'}}/>
-                <span id="button-text">
-                Pay now
-                </span>
-            </button>
-            {/* Show any error or success messages */}
-            {message && <div style={{color: 'red', fontSize: '20px'}} id="payment-message">{message}</div>}
-  
-        </form>
-    }
-</>
+    <form id="payment-form" onSubmit={handleSubmit}>
+      <Stack spacing={3}>
+        <PaymentElement options={{ layout: 'tabs' }} />
+
+        {message && (
+          <Alert severity="error" icon={<ErrorOutlineIcon />} sx={{ borderRadius: 2 }}>
+            {message}
+          </Alert>
+        )}
+
+        <PremiumButton
+          type="submit"
+          variant="contained"
+          fullWidth
+          disabled={isProcessing || !stripe || !elements}
+          sx={{ py: 2, fontSize: '1.1rem' }}
+        >
+          {isProcessing ? (
+            <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+              <CircularProgress size={20} color="inherit" />
+              <span>Processing...</span>
+            </Stack>
+          ) : (
+            "Confirm & Pay"
+          )}
+        </PremiumButton>
+
+        <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', display: 'block' }}>
+          Secure payment powered by Stripe
+        </Typography>
+      </Stack>
+    </form>
   );
 }

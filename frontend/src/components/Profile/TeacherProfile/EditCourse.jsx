@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { Button, ButtonGroup, Container, Grid, Input, IconButton, Skeleton, TextField, Typography, Box } from '@mui/material';
+import { Button, ButtonGroup, Container, Grid, Input, IconButton, Skeleton, TextField, Typography, Box, Stack, Divider } from '@mui/material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import TopNavBar from '../../TopNavBar/TopNavBar';
@@ -7,6 +7,8 @@ import useStore from '../../../store';
 import EditPhotos from './EditPhotos';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PeopleAltRounded } from '@mui/icons-material';
+import TERMS from '../../../constants/terms';
+import { PremiumCard } from '../../../ui/PremiumCard';
 
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 
@@ -20,7 +22,7 @@ mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worke
 const ToggleDays = lazy(() => import('../../SessionCreation/ToggleDays/ToggleDays'))
 
 
-  // images / courseTitle / industry / tags / pricePerStudent / capacity / icon / firstName / lastName / address / zipCode / profileImage / city 
+// images / courseTitle / industry / tags / pricePerStudent / capacity / icon / firstName / lastName / address / zipCode / profileImage / city 
 
 
 // TO DO:
@@ -31,8 +33,8 @@ const ToggleDays = lazy(() => import('../../SessionCreation/ToggleDays/ToggleDay
 // - Payment functionality
 
 const EditCourse = (props) => {
-	const {userName, isTeacher, setClassDays, capacity, newCourseTimeslots, setNewCourseTimeslots, 
-		backendURL, timeslotsToRemove, setTimeslotsToRemove} = useStore();
+	const { userName, isTeacher, setClassDays, capacity, newCourseTimeslots, setNewCourseTimeslots,
+		backendURL, timeslotsToRemove, setTimeslotsToRemove } = useStore();
 	const [isLoading, setIsLoading] = useState(true)
 	const [isAvailabilityVisible, setIsAvailabilityVisible] = useState(false)
 	const [courseInfo, setCourseInfo] = useState({})
@@ -41,78 +43,78 @@ const EditCourse = (props) => {
 
 	useEffect(() => {
 		fetch(`${backendURL}course/getCourse/${courseID}`)
-		.then((res) => {
-			return res.json();
-		}).then((data) => {
-			setCourseInfo(data)
-			setNewCourseTimeslots(data.schedule)
-			setIsLoading(false)
-		}).catch((err) => {
-			console.log('Error getting teacher info:\n', err);
-		});
+			.then((res) => {
+				return res.json();
+			}).then((data) => {
+				setCourseInfo(data)
+				setNewCourseTimeslots(data.schedule)
+				setIsLoading(false)
+			}).catch((err) => {
+				console.log('Error getting teacher info:\n', err);
+			});
 	}, [])
 
 	const updateCourse = async (e) => {
-        e.preventDefault();
+		e.preventDefault();
 
-        const timeslotsToAdd = []
+		const timeslotsToAdd = []
 		newCourseTimeslots.forEach(slot => {
-			if(Boolean(slot?._id)) {
-				if(timeslotsToRemove.indexOf(slot._id) >= 0) {  // delete this timeslot from db
+			if (Boolean(slot?._id)) {
+				if (timeslotsToRemove.indexOf(slot._id) >= 0) {  // delete this timeslot from db
 					setTimeslotsToRemove([...timeslotsToRemove, slot._id])
 				}
 			}
-			else if(timeslotsToRemove.indexOf(slot.tempID) < 0) {
+			else if (timeslotsToRemove.indexOf(slot.tempID) < 0) {
 				timeslotsToAdd.push(slot)
 			}
 		})
 		const _toRemove = timeslotsToRemove.filter(el => typeof el === 'string')
-		const updatedCourseInfo = {...courseInfo, timeslotsToAdd, timeslotsToRemove: _toRemove}
+		const updatedCourseInfo = { ...courseInfo, timeslotsToAdd, timeslotsToRemove: _toRemove }
 		setCourseInfo(updatedCourseInfo)
-        try {
-            await fetch (`${backendURL}course/updateCourse/${courseInfo._id}`, {
-                body: JSON.stringify(updatedCourseInfo),
-                method: 'PUT',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
+		try {
+			await fetch(`${backendURL}course/updateCourse/${courseInfo._id}`, {
+				body: JSON.stringify(updatedCourseInfo),
+				method: 'PUT',
+				credentials: 'include',
+				headers: { 'Content-Type': 'application/json' },
 			}).then(() => {
 				setIsLoading(false)
 				setTimeslotsToRemove([])
-                alert('Successfully updated your course')
-                navigate(`/${isTeacher ? 'teachers' : 'students'}/${userName}`)
-            })
-        } catch (err) {
-            alert('Update failed, please try again later')
-            console.log('Error updating user:\n', err);
-        };
-    }
+				alert(`Successfully updated your ${TERMS.COURSE.toLowerCase()}`)
+				navigate(`/${isTeacher ? 'teachers' : 'students'}/${userName}`)
+			})
+		} catch (err) {
+			alert('Update failed, please try again later')
+			console.log('Error updating user:\n', err);
+		};
+	}
 
 	const removeTag = (tag) => {
-		let filteredTags = courseInfo.tags.filter((selectedTag) =>  selectedTag !== tag )
-		setCourseInfo({...courseInfo, tags: filteredTags})
+		let filteredTags = courseInfo.tags.filter((selectedTag) => selectedTag !== tag)
+		setCourseInfo({ ...courseInfo, tags: filteredTags })
 	}
 
 	function handleTags() {
-    	const tag = document.getElementById('outlined-basic').value;
+		const tag = document.getElementById('outlined-basic').value;
 		const newTags = [...courseInfo.tags, tag]
-		setCourseInfo({...courseInfo, tags: newTags})
+		setCourseInfo({ ...courseInfo, tags: newTags })
 	}
 
-	const increaseCapacity = () => setCourseInfo({...courseInfo, capacity: parseInt(courseInfo.capacity) + 1})
+	const increaseCapacity = () => setCourseInfo({ ...courseInfo, capacity: parseInt(courseInfo.capacity) + 1 })
 
-    const decreaseCapacity = () => {
-        if (parseInt(courseInfo.capacity) > 1) {
-            setCourseInfo({...courseInfo, capacity: parseInt(courseInfo.capacity) - 1})
-        };
-    };
+	const decreaseCapacity = () => {
+		if (parseInt(courseInfo.capacity) > 1) {
+			setCourseInfo({ ...courseInfo, capacity: parseInt(courseInfo.capacity) - 1 })
+		};
+	};
 
 	const deleteCourse = async (e) => {
-        e.preventDefault();
+		e.preventDefault();
 		try {
-			await fetch (`${backendURL}course/deleteCourse/${courseInfo._id}`, {
+			await fetch(`${backendURL}course/deleteCourse/${courseInfo._id}`, {
 				method: 'DELETE'
 			}).then(() => {
-				alert('Successfully DELETED your course')
+				alert(`Successfully DELETED your ${TERMS.COURSE.toLowerCase()}`)
 				navigate(`/teachers/${userName}`)
 			})
 		} catch (err) {
@@ -122,10 +124,10 @@ const EditCourse = (props) => {
 	}
 
 	return (
-		<Container maxWidth='sm' style={{marginTop:16}}>
+		<Container maxWidth='sm' style={{ marginTop: 16 }}>
 			<TopNavBar back={`/teachers/${userName}`} />
-			<Typography variant='h4' style={{textAlign:'center'}}> 
-				Edit your course offering:
+			<Typography variant='h4' style={{ textAlign: 'center' }}>
+				Edit your {TERMS.COURSE.toLowerCase()} offering:
 			</Typography>
 
 			<br />
@@ -133,190 +135,189 @@ const EditCourse = (props) => {
 			<br />
 
 			<form>
-				<Input type='text' 
-					onChange={event => setCourseInfo(prev => ({...prev, courseTitle: event.target.value}))} 
-					value={courseInfo.courseTitle} 
-					fullWidth 
-					multiline 
-					style={{fontSize:'32px'}}
-				/>
-				
-				<br />
-				<hr style={{ color: 'black', width: '100%', border: 'solid .5px' }} />
-				<br />
+				<PremiumCard sx={{ mb: 4, p: 3 }}>
+					<Typography variant="overline" color="text.secondary" sx={{ fontWeight: 800, mb: 1, display: 'block' }}>
+						Experience Title
+					</Typography>
+					<TextField
+						variant="outlined"
+						fullWidth
+						multiline
+						defaultValue={courseInfo.courseTitle}
+						onBlur={event => setCourseInfo(prev => ({ ...prev, courseTitle: event.target.value }))}
+						InputProps={{
+							sx: { fontSize: '1.5rem', fontWeight: 700 }
+						}}
+					/>
+				</PremiumCard>
 
-				<Grid container direction='row' alignItems='center' columnSpacing={1}>
+				<Grid container direction='row' alignItems='center' columnSpacing={1} sx={{ mb: 4, px: 2 }}>
 					<Grid item>
 						{isLoading ? <Skeleton /> :
-							<img src={require(`../../../assets/icons/${courseInfo?.industry}.png`)} style={{height:25, width:25}} alt={courseInfo.industry}/>
+							<img src={require(`../../../assets/icons/${courseInfo?.industry}.png`)} style={{ height: 32, width: 32 }} alt={courseInfo.industry} />
 						}
 					</Grid>
-					<Grid item style={{textAlign:'left'}}>
-						<Typography variant='h4'>{courseInfo.industry}</Typography>
-					</Grid>
-				</Grid>
-			
-				<Grid container style={{alignItems:'center', justifyContent:'center', padding: '0 5%', margin: '2%' }}>
-					<Grid container direction='row' alignItems='center'>
-						{isLoading ? <Skeleton style={{width:'100%', height:'100px'}}/> :
-						courseInfo.tags?.map((tag, index) => {
-							return (
-								<Grid container alignItems='center'>
-									<Grid item>
-										<Typography 
-											variant='h5' 
-											align='left'
-											key={index} 
-											id={index}
-										>
-											#{tag}
-										</Typography>
-									</Grid>
-
-									<Grid item>
-										<IconButton variant='contained' onClick={() => removeTag(tag)}>
-											<HighlightOffIcon style={{color:'red'}}/>
-										</IconButton>
-									</Grid>
-								</Grid>
-							)
-						})}
+					<Grid item style={{ textAlign: 'left' }}>
+						<Typography variant='h5' sx={{ fontWeight: 800 }}>{courseInfo.industry}</Typography>
 					</Grid>
 				</Grid>
 
-				<Box style={{ textAlign: 'center', marginTop:'5%' }}>
-					<form id="formForTags">
+				<PremiumCard sx={{ mb: 4, p: 3 }}>
+					<Typography variant="overline" color="text.secondary" sx={{ fontWeight: 800, mb: 1, display: 'block' }}>
+						Tags
+					</Typography>
+					<Grid container direction='row' alignItems='center' spacing={1} sx={{ mb: 2 }}>
+						{isLoading ? <Skeleton style={{ width: '100%', height: '100px' }} /> :
+							courseInfo.tags?.map((tag, index) => {
+								return (
+									<Grid item key={index}>
+										<Box sx={{
+											display: 'flex',
+											alignItems: 'center',
+											bgcolor: 'rgba(0,174,239,0.1)',
+											borderRadius: 2,
+											px: 1.5,
+											py: 0.5
+										}}>
+											<Typography variant='body2' sx={{ fontWeight: 600, color: 'primary.main', mr: 1 }}>
+												#{tag}
+											</Typography>
+											<IconButton size="small" onClick={() => removeTag(tag)}>
+												<HighlightOffIcon fontSize="small" color='error' />
+											</IconButton>
+										</Box>
+									</Grid>
+								)
+							})}
+					</Grid>
+
+					<Box sx={{ display: 'flex', gap: 1 }}>
 						<TextField
 							fullWidth
+							size="small"
 							id='outlined-basic'
-							label='General Tags'
-							placeholder='#baseball, #basketball, #soccer, #football'
-							// onChange={handleChange}
+							label='Add Tag'
+							placeholder='e.g. #jazz'
 							name='generalTags'
-							// value={generalTags}
-						>
-						</TextField>
-						<Button onClick={handleTags} > Add Tag ^^ </Button>
-					</form>
-				</Box>
-
-				<EditPhotos/>
-
-				<br />
-				<hr style={{ color: 'black', width: '90%', border: 'solid .5px' }} />
-				<br />
-
-				<Grid container style={{ alignItems: 'center', justifyContent: 'space-between' }}>
-					<Grid item xs={2} style={{ alignItems: 'center' }}>
-						<Typography style={{ textAlign: 'left'}}>
-							<CalendarTodayIcon style={{width:80, height:75}}/>
-						</Typography>
-					</Grid>
-
-					<Grid item xs={4}>
-						<Typography variant='h6' style={{ textAlign: 'center' }}>
-							Availability:
-							<br/>
-							{`${newCourseTimeslots.length || 0} upcoming`}
-							<br/>
-							course timeslots
-						</Typography>
-					</Grid>
-
-					<Grid xs={4} align='right'>
-						<Button xs={4} variant="contained" size="small" align='center' style={{fontSize: 18, fontFamily:'Poppins', color:'white'}}
-							onClick={() => setIsAvailabilityVisible(!isAvailabilityVisible)}>
-							Edit<br/>Availability
-						</Button>
-					</Grid>
-				</Grid>
-
-				<br/>
-
-				{isAvailabilityVisible && <Suspense fallback='Loading...'>
-					<ToggleDays isExistingCourse={true}/>
-				</Suspense>}
-
-				<br/>
-
-				<Grid container style={{ alignItems: 'center', justifyContent: 'space-between' }}>
-					<Grid item xs={2} style={{ alignItems: 'center' }}>
-						<PeopleAltRounded style={{width:80, height:75}}/>
-					</Grid>
-
-					<Grid item xs={4}>
-						<Typography variant='h6' style={{ textAlign: 'center' }}>
-							{courseInfo.capacity || 1} capacity
-						</Typography>
-					</Grid>
-
-					<Grid item xs={4} style={{fontSize: 18, fontFamily:'Poppins', color:'white', textAlign: 'right'}}>
-						<ButtonGroup variant='contained'>
-							<Button onClick={decreaseCapacity}>
-								<Typography variant='h5' fontWeight='bold' color='white'>
-									—
-								</Typography>
-							</Button>
-							
-							<Button>
-								<Typography variant='h5' fontWeight='medium' color='white'>
-									{courseInfo.capacity || 1}
-								</Typography>
-							</Button>
-						
-							<Button onClick={increaseCapacity}>
-								<Typography variant='h5' fontWeight='small' color='white'>
-									+
-								</Typography>
-							</Button>
-						</ButtonGroup>
-					</Grid>
-				</Grid>
-
-				<br/>
-
-				<Grid container style={{ alignItems: 'center' }}>
-
-					<Grid item xs={4} style={{ alignItems: 'center'}}>
-						<Typography style={{ textAlign: 'center'}}>
-							<AttachMoneyIcon style={{fontSize:'35'}}/>
-						</Typography>
-					</Grid>
-
-					<Grid item xs={4}>
-						<input 
-							type='number' 
-							min='0'
-							onChange={event => setCourseInfo(prev => ({...prev, pricePerStudent: event.target.value}))} 
-							value={courseInfo.pricePerStudent}
-							fullWidth 
-							multiline 
-							style={{width:'75%', fontSize:'24px', fontFamily:'Poppins'}}
 						/>
-					</Grid>
-					<Grid item xs={2}>
-						<Typography variant='h4'>
-							/guest
-						</Typography>
-					</Grid>
+						<Button variant="contained" onClick={handleTags} sx={{ fontWeight: 700 }}>
+							Add
+						</Button>
+					</Box>
+				</PremiumCard>
 
-				</Grid>
+				<EditPhotos />
 
-				<br/>
-				<br/>
-				<br/>
+				<br />
+
+				<PremiumCard sx={{ mt: 4, p: 3 }}>
+					<Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Settings</Typography>
+
+					<Stack spacing={4}>
+						<Grid container alignItems='center' justifyContent='space-between'>
+							<Grid item xs={2}>
+								<CalendarTodayIcon color="action" fontSize="large" />
+							</Grid>
+
+							<Grid item xs={6}>
+								<Typography variant='subtitle1' sx={{ fontWeight: 700 }}>
+									Availability
+								</Typography>
+								<Typography variant="body2" color="text.secondary">
+									{newCourseTimeslots.length || 0} upcoming timeslots
+								</Typography>
+							</Grid>
+
+							<Grid item xs={4} align='right'>
+								<Button
+									variant="outlined"
+									size="small"
+									onClick={() => setIsAvailabilityVisible(!isAvailabilityVisible)}
+									sx={{ borderRadius: 3, fontWeight: 700 }}
+								>
+									Edit
+								</Button>
+							</Grid>
+						</Grid>
+
+						{isAvailabilityVisible && <Suspense fallback='Loading...'>
+							<ToggleDays isExistingCourse={true} />
+						</Suspense>}
+
+						<Divider />
+
+						<Grid container alignItems='center' justifyContent='space-between'>
+							<Grid item xs={2}>
+								<PeopleAltRounded color="action" fontSize="large" />
+							</Grid>
+
+							<Grid item xs={6}>
+								<Typography variant='subtitle1' sx={{ fontWeight: 700 }}>
+									Capacity
+								</Typography>
+								<Typography variant="body2" color="text.secondary">
+									Max guests per session
+								</Typography>
+							</Grid>
+
+							<Grid item xs={4} align='right'>
+								<ButtonGroup variant='outlined' size="small">
+									<Button onClick={decreaseCapacity}>-</Button>
+									<Button disabled sx={{ color: 'text.primary !important', fontWeight: 700 }}>
+										{courseInfo.capacity || 1}
+									</Button>
+									<Button onClick={increaseCapacity}>+</Button>
+								</ButtonGroup>
+							</Grid>
+						</Grid>
+
+						<Divider />
+
+						<Grid container alignItems='center' justifyContent='space-between'>
+							<Grid item xs={2}>
+								<AttachMoneyIcon color="action" fontSize="large" />
+							</Grid>
+
+							<Grid item xs={6}>
+								<Typography variant='subtitle1' sx={{ fontWeight: 700 }}>
+									Price
+								</Typography>
+								<Typography variant="body2" color="text.secondary">
+									Per student
+								</Typography>
+							</Grid>
+
+							<Grid item xs={4} align='right'>
+								<TextField
+									type='number'
+									size="small"
+									onChange={event => setCourseInfo(prev => ({ ...prev, pricePerStudent: Math.max(0, parseInt(event.target.value) || 0) }))}
+									value={courseInfo.pricePerStudent}
+									InputProps={{
+										startAdornment: <Typography sx={{ mr: 0.5 }}>$</Typography>,
+									}}
+									sx={{ width: 100 }}
+								/>
+							</Grid>
+						</Grid>
+					</Stack>
+				</PremiumCard>
+
+				<br />
+				<br />
+				<br />
 				<hr style={{ color: 'black', width: '90%', border: 'solid .5px' }} />
-				<br/>
-	
-				<Button type='submit' onClick={updateCourse} variant="contained" size="large" align='center' style={{fontSize: 26, fontFamily:'Poppins', color:'white', marginBottom:'24px'}} fullWidth>
-					Update Course
+				<br />
+
+				<Button type='submit' onClick={updateCourse} variant="contained" size="large" align='center' style={{ fontSize: 26, fontFamily: 'Poppins', color: 'white', marginBottom: '24px' }} fullWidth>
+					Update {TERMS.COURSE}
 				</Button>
 
-				<Button type='submit' onClick={deleteCourse} color='error' variant="contained" size="large" align='center' style={{fontSize: 26, fontFamily:'Poppins', color:'white', marginBottom:'36px'}} fullWidth>
-					Delete Course
+				<Button type='submit' onClick={deleteCourse} color='error' variant="contained" size="large" align='center' style={{ fontSize: 26, fontFamily: 'Poppins', color: 'white', marginBottom: '36px' }} fullWidth>
+					Delete {TERMS.COURSE}
 				</Button>
 
-			</form>	
+			</form>
 		</Container>
 	);
 };

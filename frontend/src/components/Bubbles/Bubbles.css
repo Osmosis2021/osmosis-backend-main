@@ -11,7 +11,7 @@
     .particle {
       position: absolute;
       opacity: 0.1;
-      background: #00aeef;
+      background: #000000;
       -webkit-animation-iteration-count: infinite !important;
       animation-iteration-count: infinite !important;
     }

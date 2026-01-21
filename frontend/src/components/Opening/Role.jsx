@@ -15,7 +15,7 @@ const Role = () => {
 
       <Container maxWidth="sm" align='center'>
       <Stack mb={4} mt={6} style={{alignItems:'center'}}>
-          <Typography variant='h3'>Select your <span style={{color:'#00aeef'}}>role:</span></Typography>
+          <Typography variant='h3'>Select your <span style={{color:'#000000'}}>role:</span></Typography>
       </Stack>
 
       <br/>

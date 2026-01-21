@@ -1,184 +1,242 @@
-import { Card, Stack, Typography, Grid, Avatar, AvatarGroup, Container, Rating } from '@mui/material'
+import {
+    Box,
+    Container,
+    Typography,
+    Stack,
+    Grid,
+    Avatar,
+    Divider,
+    IconButton,
+    Button,
+    Chip,
+    Paper
+} from '@mui/material'
 import React, { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import TopNavBar from '../TopNavBar/TopNavBar';
-import axios from 'axios';
+import MessageIcon from '@mui/icons-material/Message';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import useStore from '../../store';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
-
+import TERMS from '../../constants/terms';
+import { PremiumCard } from '../../ui/PremiumCard';
+import { PremiumButton } from '../../ui/PremiumButton';
+import { PremiumSectionHeader } from '../../ui/PremiumSectionHeader';
+import { PremiumBackButton } from '../../ui/PremiumBackButton';
 
 function SingleBookingPage() {
     const axiosPrivate = useAxiosPrivate();
-    const {id} = useParams()
-    const {backendURL, userName} = useStore();
-    const [booking, setBooking] = useState([]);
-
-    const formatCurrency = (value) => {
-        const formattedValue = new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 2,
-        }).format(value);
-        return formattedValue;
-    };
-
+    const { id } = useParams()
+    const { backendURL, userName, chats, setChats, setSelectedChat, userID } = useStore();
+    const [booking, setBooking] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
-      axiosPrivate.get(`${backendURL}booking/teacherBookingInfo/${id}`).then(response => {
-        const data = response.data;
-        setBooking(...data);
-        console.log(id)
-        console.log(data)
-      })
+        setIsLoading(true);
+        axiosPrivate.get(`${backendURL}booking/teacherBookingInfo/${id}`).then(response => {
+            setBooking(response.data[0]);
+            setIsLoading(false);
+        }).catch(err => {
+            console.error(err);
+            setIsLoading(false);
+        })
+    }, [id]);
 
-    }, [])
+    const handleMessageHost = async () => {
+        if (!booking?.teacherID?._id) return;
+        try {
+            const { data } = await axiosPrivate.get(`${backendURL}chat/accessChats/${booking.teacherID._id}?userID=${userID}`);
+            if (!chats.find((c) => c._id === data._id)) {
+                setChats([data, ...chats]);
+            }
+            setSelectedChat(data);
+            navigate('/chat');
+        } catch (err) {
+            console.error("Error accessing chat:", err);
+            navigate('/chat');
+        }
+    };
 
-    function convertTimestampToDate (timestamp) {
-      const date = new Date (timestamp)
-      const suffix = date.getHours() >= 12 ? "PM" : "AM"; 
-      const dateFormat = date.getHours() + ":" + date.getMinutes() + suffix + ", " + "on " + date.toDateString();
-      return (dateFormat);
-    }
-    
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        return new Date(dateStr).toLocaleDateString(undefined, {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+    };
+
+    if (isLoading) return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#FAFAFA' }}>
+            <Typography>Loading booking details...</Typography>
+        </Box>
+    );
+
+    if (!booking) return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#FAFAFA' }}>
+            <Typography>Booking not found.</Typography>
+        </Box>
+    );
+
     return (
-        <Container maxWidth='80%' style={{marginTop:'5%'}}>
+        <Box sx={{ bgcolor: '#FAFAFA', minHeight: '100vh', pb: 10 }}>
+            <TopNavBar />
 
-        <TopNavBar back={`/teachers/${userName}`} />
-            
-            <Typography variant='h4' mt={8} mb={2}>
-                Booking Number:&nbsp;
-                    <span style={{color:'#00aeef', fontSize:'12px'}}>
-                        {id}
-                    </span>
-            </Typography>
+            <Container maxWidth="md" sx={{ mt: { xs: 4, md: 8 } }}>
+                <Box sx={{ mb: 4 }}>
+                    <PremiumBackButton fallback="/bookings" />
+                </Box>
 
-            <Card style={{padding:'2%'}}>
-                
-            
-                <Typography variant='h4'>{booking?.courseID?.courseTitle}</Typography>
-
-                <Grid fullWidth item alignItems='left'>
-                                <Typography className='tags'>
-                                    <Grid container direction='row' alignItems='center'>
-                                        {/* WHEN NEWLY CREATED USER, THERE IS NO TAGS TO MAP THROUGH */}
-                                        { booking?.courseID?.tags.map((tag, index) => {
-                                            return (
-                                                <Typography 
-                                                    variant='body' 
-                                                    align='left'
-                                                    key={index} 
-                                                    id={index}
-                                                >
-                                                    #{tag}&nbsp;
-                                                </Typography>
-                                                )
-                                            })
-                                        }
-                                    </Grid>
-                                </Typography>
-                            </Grid>
-
-                
-                <Grid container alignItems='center'>
-                    <Grid item xs={6}>
-                    <AvatarGroup style={{justifyContent: 'left'}} total={booking?.numberOfGuests}>
-                        <Avatar src={booking?.studentID?.profileImage?.url}/>
-                    </AvatarGroup>
-                    
-                    {/* <Avatar src={booking?.teacherID?.profileImage?.url}/> */}
-                    
-                    <Typography variant='h6'>{booking?.studentID?.firstName} {booking?.studentID?.lastName}</Typography> 
-                    </Grid>
-                    
-                    <Grid item xs={6} textAlign='center'>
-                        {/* <Typography variant='h5'>{booking.date.substr(5).split('', 5)}</Typography> */}
-                        <Typography variant='h5'>{booking?.time} at </Typography>
-                        <Typography variant='h6'>{booking?.courseID?.address?.line1}</Typography>
-                    </Grid>
-                </Grid>
-
-            </Card>
-                    <br/>
-
-                    <Typography variant='h5'>Purchased at {convertTimestampToDate(booking.timestamp)} </Typography>
-                    
-
-                    <Grid container pt={1} pr={4} justifyContent='right' direction='row' columnSpacing={2}>
-                  
-                        <Stack direction='row' columnGap={2} rowGap={1} alignItems='flex-end'>
-                            <Typography variant='h5'>
-                                Cost per guest:
-                            </Typography>
-
-                            <Typography variant='h4'>
-                            {formatCurrency(booking?.courseID?.pricePerStudent)}
-                            </Typography>
-                        </Stack>
-
-
-                        <Grid container pt={2} justifyContent='right' alignItems='flex-end' columnSpacing={2}>
-                            <Stack direction='row' >
-                                <Typography variant='h5'>
-                                    No. of guests:
+                <Grid container spacing={4}>
+                    <Grid item xs={12} md={8}>
+                        <PremiumCard sx={{ p: 4, mb: 4 }}>
+                            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+                                <Chip
+                                    label="Confirmed"
+                                    color="success"
+                                    sx={{ fontWeight: 800, borderRadius: 2 }}
+                                />
+                                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                                    Booking ID: {id.toUpperCase()}
                                 </Typography>
                             </Stack>
-                    
-                            <Grid item>
-                                <Typography variant='h4'>
-                                    {booking?.numberOfGuests} x
-                                </Typography>
-                            </Grid>
-                    
-                            <Grid container pt={2} justifyContent='right' columnSpacing={2}>
 
-                                <Grid item>
-                                    <Typography variant='h3' style={{color:'#00aeef'}}>
-                                        {formatCurrency(booking?.total)}
-                                    </Typography>
-                                </Grid>
-
-                            </Grid>
-                        </Grid>
-
-
-                    <Grid>
-                        <Stack direction='row' >
-                            <Typography variant='h4' style={{color:'#00aeef'}}>
-                                - {formatCurrency((booking?.total)*.099 +.3)}
+                            <Typography variant="h3" sx={{ fontWeight: 900, mb: 2 }}>
+                                {booking?.courseID?.courseTitle}
                             </Typography>
-                        </Stack>
-                        <Stack>
-                            <Typography>Total: {formatCurrency((booking?.total)-((booking?.total)*.099 +.3))}</Typography>
-                        </Stack>
-                    </Grid>
 
-                    </Grid>
+                            <Stack direction="row" spacing={1} sx={{ mb: 4 }}>
+                                {booking?.courseID?.tags?.map((tag, index) => (
+                                    <Chip key={index} label={`#${tag}`} size="small" variant="outlined" sx={{ fontWeight: 600 }} />
+                                ))}
+                            </Stack>
 
-                    <br/>
-                        { booking?.ratedAndReviewed ? 
-                            <Container alignItems='center'>
-                                <Grid container spacing={2} alignItems='center'>
-                                    <Grid item>
-                                        <Typography variant='h5'>{booking?.studentID?.firstName}'s rating and review:</Typography>
-                                        <br/>
-                                        <Stack direction='row'>
-                                            <Rating name="read-only" value={booking?.rating} readOnly />
-                                            &nbsp;<Typography>{booking?.rating}</Typography>
-                                        </Stack>
-                                        <br/>
-                                        <Typography>{booking?.review}</Typography>
-                                    </Grid>
+                            <Divider sx={{ mb: 4 }} />
+
+                            <Grid container spacing={4}>
+                                <Grid item xs={12} sm={6}>
+                                    <Stack spacing={3}>
+                                        <Box>
+                                            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1, display: 'block', mb: 1 }}>
+                                                Date & Time
+                                            </Typography>
+                                            <Stack direction="row" spacing={1.5} alignItems="center">
+                                                <CalendarTodayIcon color="primary" />
+                                                <Box>
+                                                    <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                                                        {formatDate(booking.date)}
+                                                    </Typography>
+                                                    <Typography variant="body2" color="text.secondary">
+                                                        at {booking.time}
+                                                    </Typography>
+                                                </Box>
+                                            </Stack>
+                                        </Box>
+
+                                        <Box>
+                                            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1, display: 'block', mb: 1 }}>
+                                                Location
+                                            </Typography>
+                                            <Stack direction="row" spacing={1.5} alignItems="center">
+                                                <LocationOnIcon color="primary" />
+                                                <Box>
+                                                    <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                                                        {booking?.courseID?.address?.line1 || booking?.courseID?.address || booking?.courseID?.city || "Location details provided"}
+                                                    </Typography>
+                                                    <Typography variant="body2" color="text.secondary">
+                                                        {booking?.courseID?.address?.city || booking?.courseID?.city}, {booking?.courseID?.address?.state || booking?.courseID?.state} {booking?.courseID?.address?.zipCode || booking?.courseID?.zipCode}
+                                                    </Typography>
+                                                </Box>
+                                            </Stack>
+                                        </Box>
+                                    </Stack>
                                 </Grid>
-                            </Container>
-                            : <></>
-                        }
 
-                </Container>
+                                <Grid item xs={12} sm={6}>
+                                    <Box>
+                                        <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1, display: 'block', mb: 1 }}>
+                                            Host Info
+                                        </Typography>
+                                        <Stack direction="row" spacing={2} alignItems="center">
+                                            <Avatar
+                                                src={booking?.teacherID?.profileImage?.url}
+                                                sx={{ width: 56, height: 56, border: '2px solid white', boxShadow: 1 }}
+                                            />
+                                            <Box>
+                                                <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                                                    {booking?.teacherID?.firstName} {booking?.teacherID?.lastName}
+                                                </Typography>
+                                                <Button
+                                                    size="small"
+                                                    startIcon={<MessageIcon />}
+                                                    sx={{ fontWeight: 700, p: 0, textTransform: 'none' }}
+                                                    onClick={handleMessageHost}
+                                                >
+                                                    Message Host
+                                                </Button>
+                                            </Box>
+                                        </Stack>
+                                    </Box>
+                                </Grid>
+                            </Grid>
+                        </PremiumCard>
 
+                        <PremiumSectionHeader title="What to bring" />
+                        <PremiumCard sx={{ p: 3, mb: 4 }}>
+                            <Typography variant="body1" color="text.secondary">
+                                {booking?.courseID?.whatToBring || "The host hasn't specified anything special to bring. Just yourself and a creative spirit!"}
+                            </Typography>
+                        </PremiumCard>
+                    </Grid>
 
+                    <Grid item xs={12} md={4}>
+                        <Stack spacing={3} sx={{ position: 'sticky', top: 100 }}>
+                            <PremiumCard sx={{ p: 3 }}>
+                                <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>Payment Summary</Typography>
+                                <Stack spacing={2}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <Typography color="text.secondary">Price per guest</Typography>
+                                        <Typography sx={{ fontWeight: 700 }}>${booking?.courseID?.pricePerStudent}</Typography>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <Typography color="text.secondary">Guests</Typography>
+                                        <Typography sx={{ fontWeight: 700 }}>{booking?.numberOfGuests}</Typography>
+                                    </Box>
+                                    <Divider />
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>Total Paid</Typography>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 900, color: 'primary.main' }}>
+                                            ${booking?.total}
+                                        </Typography>
+                                    </Box>
+                                </Stack>
+                            </PremiumCard>
 
-
-  )
+                            <PremiumCard sx={{ p: 3, bgcolor: 'primary.main', color: 'white' }}>
+                                <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>Need help?</Typography>
+                                <Typography variant="body2" sx={{ mb: 2, opacity: 0.9 }}>
+                                    If you have questions about your booking, message the host directly.
+                                </Typography>
+                                <Button
+                                    variant="contained"
+                                    fullWidth
+                                    sx={{ bgcolor: 'white', color: 'primary.main', fontWeight: 800, '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' } }}
+                                    onClick={() => navigate('/chat')}
+                                >
+                                    Contact Host
+                                </Button>
+                            </PremiumCard>
+                        </Stack>
+                    </Grid>
+                </Grid>
+            </Container>
+        </Box>
+    )
 }
 
 export default SingleBookingPage

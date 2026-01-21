@@ -1,40 +1,68 @@
-import React, {useState} from 'react';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
+import React, { useState } from 'react';
+import {
+  Button,
+  Dialog,
+  AppBar,
+  Toolbar,
+  IconButton,
+  Typography,
+  Container,
+  Stack,
+  Box,
+  Divider,
+  Slide,
+  Fade,
+  Paper
+} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import Container from '@mui/material/Container';
-import Stack from '@mui/material/Stack';
-
-
-import Slide from '@mui/material/Slide';
-import { Grid } from '@mui/material';
-import axios from 'axios';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import MessageIcon from '@mui/icons-material/Message';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { Link, useNavigate } from 'react-router-dom';
 import useStore from '../../store';
 import Payment from './Payment';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
-
+import { PremiumButton } from '../../ui/PremiumButton';
+import { PremiumCard } from '../../ui/PremiumCard';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
 export default function PayPopUp(props) {
-  const [open, setOpen] = React.useState(false);
-  const {userID, backendURL} = useStore();
+  const [open, setOpen] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [bookingID, setBookingID] = useState(null);
+  const { userID, backendURL, userName, chats, setChats, setSelectedChat } = useStore();
   const axiosPrivate = useAxiosPrivate();
+  const navigate = useNavigate();
+
   const paymentMetadata = {
     teacherUserName: props.teacherUserName,
-    time: props.selectedDateAndTime.startTime,
-    date: String(props.selectedDateAndTime.startDate)?.split('T')[0]
+    time: props.selectedDateAndTime?.startTime,
+    date: props.selectedDateAndTime?.startDate ? String(props.selectedDateAndTime.startDate).split('T')[0] : null
   }
-  const stripeID = props.stripeID
-  console.log(stripeID)
-  async function bookThisCourse() {
 
+  const handleMessageHost = async () => {
+    if (!props.teacherID) {
+      navigate('/chat');
+      return;
+    }
+    try {
+      const { data } = await axiosPrivate.get(`${backendURL}chat/accessChats/${props.teacherID}?userID=${userID}`);
+      if (!chats.find((c) => c._id === data._id)) {
+        setChats([data, ...chats]);
+      }
+      setSelectedChat(data);
+      navigate('/chat');
+    } catch (err) {
+      console.error("Error accessing chat:", err);
+      navigate('/chat'); // Fallback
+    }
+  };
+
+  async function bookThisCourse() {
     const bookingObj = {
       timestamp: Date.now(),
       numberOfGuests: props.guests,
@@ -48,174 +76,212 @@ export default function PayPopUp(props) {
       date: props.selectedDateAndTime.startDate
     }
 
-
     const bookingResponse = await axiosPrivate.post(`${backendURL}booking/createBooking`, bookingObj);
-    console.log({bookingResponse});
     return bookingResponse;
-    // navigate(`/${isTeacher ? 'teachers' : 'students'}/${userName}`)
   }
+
+  const handleBookingSuccess = (id) => {
+    setBookingID(id);
+    setIsSuccess(true);
+  };
 
   const handleClickOpen = () => {
     setOpen(true);
   };
 
   const handleClose = () => {
+    if (isSuccess) {
+      navigate(`/students/${userName}`);
+    }
     setOpen(false);
+    setIsSuccess(false);
   };
 
-  // async function convertTime (time) {
-  //   console.log('time', time)
-  //   const hours = time?.split(':')
-  //   const suffix = hours[0] >= 12 ? "PM" : "AM"; 
-  //   return(time + suffix)
-  // }
-
-  // async function convertDate (date) {
-  //   const _date = await new Date (date)
-  //   const dateFormat = _date.toDateString();
-  //   return (dateFormat);
-  // }
-
   const timeConverter = (rawTime) => {
-    const array = rawTime?.split(':');
-    const parsedInput = parseInt(array?.[0])
-    const suffix = parsedInput >= 12 ? "PM" : "AM"; 
+    if (!rawTime) return '';
+    const array = rawTime.split(':');
+    const parsedInput = parseInt(array[0])
+    const suffix = parsedInput >= 12 ? "PM" : "AM";
     const newTime = ((parsedInput + 11) % 12 + 1);
-    return(newTime + ':' + array?.[1] + suffix);
-}
+    return (newTime + ':' + array[1] + suffix);
+  }
 
-  function formatDate (inputDate) {
-		const options = { weekday: 'long', month: 'long', day: 'numeric' };
-		const date = new Date(inputDate);
-		return date.toLocaleDateString(undefined, options);
-	}
+  function formatDate(inputDate) {
+    if (!inputDate) return '';
+    const options = { weekday: 'long', month: 'long', day: 'numeric' };
+    const date = new Date(inputDate);
+    return date.toLocaleDateString(undefined, options);
+  }
+
+  const isDisabled = !props.selectedDateAndTime?.startDate || !userID || !props.stripeID;
 
   return (
-    <Container>
-        {/* {!(props.isRegistered) &&
-        <Link to='/student-sign-up' style={{textDecoration: 'none'}}>
-          <Button variant="outlined">Register to sign up</Button>
-        </Link>} */}
-        <Button 
-          // disabled={!(props.isRegistered)} 
-          variant="contained" 
-          style={{color:'white'}}
-          onClick={handleClickOpen}
-          // require timeslot to be selected and user to be signed in to be able to pay
-          disabled={((!props.selectedDateAndTime.hasOwnProperty('startDate')) || (!userID))}>
-
-          {
-            !props.selectedDateAndTime.hasOwnProperty('startDate') ? <Typography>Select Availability</Typography> :
-            
-            !userID ? <Typography>Must be a user to Pay</Typography> :
-            
-            !userID || !props.selectedDateAndTime.hasOwnProperty('startDate') ? <></> : <Typography>Pay</Typography>
+    <Box sx={{ width: props.fullWidth ? '100%' : 'auto' }}>
+      <Button
+        variant="contained"
+        fullWidth={props.fullWidth}
+        onClick={handleClickOpen}
+        disabled={isDisabled}
+        sx={{
+          borderRadius: 3,
+          py: 2,
+          fontWeight: 800,
+          fontSize: '1.1rem',
+          textTransform: 'none',
+          boxShadow: '0 8px 24px rgba(0,174,239,0.25)',
+          '&:hover': {
+            boxShadow: '0 12px 32px rgba(0,174,239,0.35)',
+          },
+          '&.Mui-disabled': {
+            bgcolor: !props.stripeID ? 'action.disabledBackground' : undefined
           }
+        }}
+      >
+        {!props.selectedDateAndTime?.startDate ? "Select Date First" :
+          !userID ? "Sign in to Reserve" :
+            !props.stripeID ? "Payments Unavailable" : "Reserve Now"}
+      </Button>
+      {!props.stripeID && userID && props.selectedDateAndTime?.startDate && (
+        <Typography variant="caption" color="error" sx={{ display: 'block', mt: 1, textAlign: 'center', fontWeight: 600 }}>
+          This artist hasn't enabled payments yet.
+        </Typography>
+      )}
 
-        </Button>
-        <Dialog
-          fullScreen
-          open={open}
-          onClose={handleClose}
-          TransitionComponent={Transition}
-        >
-          <AppBar sx={{ position: 'relative' }}>
-            <Toolbar>
-              <Typography sx={{ ml: 2, flex: 1, color:'white'}} variant="h5" component="div">
-                Price Breakdown
+      <Dialog
+        fullScreen
+        open={open}
+        onClose={handleClose}
+        TransitionComponent={Transition}
+        PaperProps={{
+          sx: { bgcolor: isSuccess ? 'background.paper' : '#FAFAFA' }
+        }}
+      >
+        <AppBar sx={{ position: 'relative', bgcolor: 'background.paper', color: 'text.primary', boxShadow: 'none', borderBottom: '1px solid #F0F0F0' }}>
+          <Toolbar>
+            <Typography sx={{ ml: 2, flex: 1, fontWeight: 800 }} variant="h6">
+              {isSuccess ? 'Reservation Confirmed' : 'Confirm Reservation'}
+            </Typography>
+            <IconButton edge="start" onClick={handleClose}>
+              <CloseIcon />
+            </IconButton>
+          </Toolbar>
+        </AppBar>
+
+        <Container maxWidth="sm" sx={{ py: 6 }}>
+          {isSuccess ? (
+            <Fade in={true} timeout={800}>
+              <Box sx={{ textAlign: 'center' }}>
+                <CheckCircleIcon sx={{ fontSize: 100, color: 'success.main', mb: 3 }} />
+                <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>You're booked!</Typography>
+                <Typography variant="h6" color="text.secondary" sx={{ mb: 4 }}>
+                  Pack your bags, you're going to {props.courseTitle}.
+                </Typography>
+
+                <PremiumCard sx={{ p: 3, textAlign: 'left', mb: 4 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 2, textTransform: 'uppercase', letterSpacing: 1 }}>
+                    Reservation Details
+                  </Typography>
+                  <Stack spacing={2}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography color="text.secondary">Artist</Typography>
+                      <Typography sx={{ fontWeight: 700 }}>{props.teacherFullName}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography color="text.secondary">Date</Typography>
+                      <Typography sx={{ fontWeight: 700 }}>{formatDate(props.selectedDateAndTime.startDate)}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography color="text.secondary">Time</Typography>
+                      <Typography sx={{ fontWeight: 700 }}>{timeConverter(props.selectedDateAndTime.startTime)}</Typography>
+                    </Box>
+                  </Stack>
+                </PremiumCard>
+
+                <Stack spacing={2}>
+                  <PremiumButton
+                    variant="contained"
+                    fullWidth
+                    startIcon={<MessageIcon />}
+                    onClick={handleMessageHost}
+                    sx={{ py: 2 }}
+                  >
+                    Message Artist
+                  </PremiumButton>
+                  <Stack direction="row" spacing={2}>
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      startIcon={<VisibilityIcon />}
+                      component={Link}
+                      to={`/student/bookings/${bookingID}`}
+                      sx={{ py: 1.5, borderRadius: 3, fontWeight: 700 }}
+                    >
+                      View Booking
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      startIcon={<CalendarTodayIcon />}
+                      sx={{ py: 1.5, borderRadius: 3, fontWeight: 700 }}
+                    >
+                      Add to Calendar
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Box>
+            </Fade>
+          ) : (
+            <Stack spacing={4}>
+              <Box>
+                <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
+                  {props.courseTitle}
+                </Typography>
+                <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 600 }}>
+                  with {props.teacherFullName}
+                </Typography>
+              </Box>
+
+              <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid #E0E0E0', bgcolor: 'white' }}>
+                <Stack spacing={2.5}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography color="text.secondary" sx={{ fontWeight: 600 }}>Date</Typography>
+                    <Typography sx={{ fontWeight: 800 }}>{formatDate(props.selectedDateAndTime.startDate)}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography color="text.secondary" sx={{ fontWeight: 600 }}>Time</Typography>
+                    <Typography sx={{ fontWeight: 800 }}>{timeConverter(props.selectedDateAndTime.startTime)}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography color="text.secondary" sx={{ fontWeight: 600 }}>Guests</Typography>
+                    <Typography sx={{ fontWeight: 800 }}>{props.guests}</Typography>
+                  </Box>
+                  <Divider />
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 800 }}>Total</Typography>
+                    <Typography variant="h5" sx={{ fontWeight: 900, color: 'primary.main' }}>${props.total}</Typography>
+                  </Box>
+                </Stack>
+              </Paper>
+
+              <Box>
+                <Payment
+                  item={props}
+                  paymentMetadata={paymentMetadata}
+                  stripeID={props.stripeID}
+                  bookThisCourse={bookThisCourse}
+                  onBookingSuccess={handleBookingSuccess}
+                />
+              </Box>
+
+              <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', px: 4 }}>
+                By confirming, you agree to the Studio Time Guest Policy and Cancellation Policy.
               </Typography>
-              <IconButton
-                edge="start"
-                style={{color:"white"}}
-                onClick={handleClose}
-                aria-label="close"
-              >
-                <CloseIcon />
-              </IconButton>
-            </Toolbar>
-          </AppBar>
-                
-                <Grid container p={2} justifyContent='left' direction='column'>
-                    
-                    <Grid item>
-                        <Typography variant='h3' style={{color:'#00aeef'}}>
-                        {props.courseTitle}
-                        </Typography>
-                    </Grid>
-
-                    <br/>
-
-                    <Grid item>
-                        <Typography variant='h4'>
-                        {`By: ${props.teacherFullName}`}
-                        </Typography>
-                    </Grid>
-
-                    <br/>
-                  
-                    <Grid item>
-                        <Typography variant='h5'>
-                        {formatDate(props.selectedDateAndTime.startDate)}
-                        </Typography>
-                    </Grid>
-
-                    <Grid item>
-                        <Typography variant='h6'>
-                        {timeConverter(props.selectedDateAndTime.startTime)}
-                        </Typography>
-                    </Grid>
-
-                </Grid>
-
-                <hr style={{width:'90%', color:'black', border: 'solid .5px'}} />
-
-                <Grid container pt={1} pr={4} justifyContent='right' direction='row' columnSpacing={2}>
-                  
-                    <Stack direction='row' columnGap={2} rowGap={1} alignItems='flex-end'>
-                        <Typography variant='h5'>
-                            Cost per guest:
-                        </Typography>
-
-                        <Typography variant='h4'>
-                        ${props.pricePerStudent}
-                        </Typography>
-                    </Stack>
-
-
-                    <Grid container pt={2} justifyContent='right' alignItems='flex-end' columnSpacing={2}>
-                        <Stack direction='row' >
-                            <Typography variant='h5'>
-                                No. of guests:
-                            </Typography>
-                        </Stack>
-                    
-                        <Grid item>
-                            <Typography variant='h4'>
-                                x {props.guests}
-                            </Typography>
-                        </Grid>
-                    
-                        <Grid container pt={2} justifyContent='right' columnSpacing={2}>
-
-                            <Grid item>
-                                <Typography variant='h3' style={{color:'#00aeef'}}>
-                                    ${props.total}
-                                </Typography>
-                            </Grid>
-
-                        </Grid>
-                    </Grid>
-
-                </Grid>
-
-                <hr style={{width:'90%', color:'black', border: 'solid .5px'}} />
-
-                <Grid container p={2} justifyContent='center'>
-                    <Payment item={props} paymentMetadata={paymentMetadata} stripeID={stripeID} bookThisCourse={bookThisCourse} />
-                </Grid>
-
-            </Dialog>
-
+            </Stack>
+          )}
         </Container>
-    );
+      </Dialog>
+    </Box>
+  );
 }
+
+

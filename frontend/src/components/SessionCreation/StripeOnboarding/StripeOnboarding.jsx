@@ -1,5 +1,5 @@
 import { Button, Container, Stack, Typography } from '@mui/material';
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useStore from '../../../store';
 
@@ -27,27 +27,27 @@ const StripeOnboarding = () => {
                 console.log(stripeID)
 
                 // USE STRIPE ID TO ONBOARD USER 
-                fetch (`${backendURL}stripe/accountLink/${stripeID}`)
-                .then(res => res.json())
-                .then(data => {
-                    setAccountLink(data.url)
-                    setIsLoading(false)
-
-                    // GET USER INFO WITH STRIPE ID
-                    fetch(`${backendURL}stripe/retrieveStripeAccount/${stripeID}`)
+                fetch(`${backendURL}stripe/accountLink/${stripeID}`)
                     .then(res => res.json())
                     .then(data => {
-                        setStripeInfo(data)
-                        console.log(data)
+                        setAccountLink(data.url)
+                        setIsLoading(false)
+
+                        // GET USER INFO WITH STRIPE ID
+                        fetch(`${backendURL}stripe/retrieveStripeAccount/${stripeID}`)
+                            .then(res => res.json())
+                            .then(data => {
+                                setStripeInfo(data)
+                                console.log(data)
+                            })
+                            .catch(err => {
+                                console.log('Error getting stripeInfo:\n', err);
+                            });
                     })
-                    .catch(err => {
-                        console.log('Error getting stripeInfo:\n', err);
-                    });
-                })
             })
     }, [])
 
-    function stripeOnboarding () {
+    function stripeOnboarding() {
         navigate(window.location.assign(accountLink))
     }
 
@@ -55,33 +55,33 @@ const StripeOnboarding = () => {
     console.log(accountLink)
 
 
-  return (
-    <Container maxWidth='sm' align='center'>
+    return (
+        <Container maxWidth='sm' align='center'>
 
-        <Stack mb={2} mt={8} style={{ alignItems: 'center' }}>
-            <Typography variant='h4'>
-                Stripe Onboarding
-            </Typography>
-            <br/>
-            <Typography>
-                Osmosis uses Stripe to get you paid quickly and keep your personal and payment 
-                information secure. Thousands of companies around the world trust Stripe to process payments 
-                for their users. Set up a Stripe account to get paid with Osmosis. 
-                Your stripe ID is: <span style={{color:'#00aeef'}}>{userInfo?.stripeID}</span>
-            </Typography>
-            <br/>
-            <Button
-                style={{textAlign:'left', color:'white'}}
-                onClick={stripeOnboarding}
-                variant='contained'
-            >
-                Setup Payments
-            </Button>
-        </Stack>
+            <Stack mb={2} mt={8} style={{ alignItems: 'center' }}>
+                <Typography variant='h4'>
+                    Stripe Onboarding
+                </Typography>
+                <br />
+                <Typography>
+                    Studio Time uses Stripe to get you paid quickly and keep your personal and payment
+                    information secure. Thousands of companies around the world trust Stripe to process payments
+                    for their users. Set up a Stripe account to get paid with Studio Time.
+                    Your stripe ID is: <span style={{ color: '#000000' }}>{userInfo?.stripeID}</span>
+                </Typography>
+                <br />
+                <Button
+                    style={{ textAlign: 'left', color: 'white' }}
+                    onClick={stripeOnboarding}
+                    variant='contained'
+                >
+                    Setup Payments
+                </Button>
+            </Stack>
 
-    </Container>
+        </Container>
 
-  )
+    )
 }
 
 export default StripeOnboarding

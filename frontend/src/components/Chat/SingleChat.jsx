@@ -1,165 +1,208 @@
-import { Box, FormControl, CircularProgress, Typography, TextField } from '@mui/material'
-import React, {useState, useEffect} from 'react'
-import axios from 'axios';
+import {
+    Box,
+    FormControl,
+    CircularProgress,
+    Typography,
+    TextField,
+    Stack,
+    Avatar,
+    IconButton,
+    InputBase,
+    Paper,
+    useTheme,
+    useMediaQuery
+} from '@mui/material'
+import React, { useState, useEffect, useRef } from 'react'
 import useStore from '../../store';
 import ScrollableChat from './ScrollableChat';
 import io from 'socket.io-client';
-import { axiosPrivate } from '../../actions/axios';
+import useAxiosPrivate from '../../hooks/useAxiosPrivate'; // Task 1
+import SendIcon from '@mui/icons-material/Send';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import MessageIcon from '@mui/icons-material/Message';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PremiumEmptyState from '../../ui/PremiumEmptyState';
 
-
-var socket, selectedChatCompare;
+// var socket; // Removed
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
-
     const [messages, setMessages] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [newMessage, setNewMessage] = useState();
-    // const [isTyping, setIsTyping] = useState(false);
-    // const [typing, setTyping] = useState(false);
+    const [newMessage, setNewMessage] = useState('');
     const [isSocketConnected, setIsSocketConnected] = useState(false);
-    const {backendURL, userID, selectedChat, chat, notification, setNotification} = useStore();
+    const { backendURL, userID, selectedChat, setSelectedChat, notification, setNotification, socket } = useStore(); // Get socket from store
+    const scrollRef = useRef();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    const axiosPrivate = useAxiosPrivate(); // Task 1: Use hook
+
+    // Ref to track selected chat for socket listener without re-binding
+    const selectedChatRef = useRef(selectedChat);
 
     const getSender = (userID, users) => {
-        return (users?.[0]?._id === userID ? users?.[1]?.userName : users?.[0]?.userName)
+        return (users?.[0]?._id === userID ? users?.[1] : users?.[0])
     }
 
-    const fetchMessages = async (e) => {
-        if (!selectedChat || selectedChat._id === undefined) return;
+    const fetchMessages = async () => {
+        if (!selectedChat?._id) return;
+
+        const chatId = selectedChat._id;
+        console.log(`[MobileDebug] Fetching messages for ${chatId}`); // Task 4: Debug log
+
         try {
-            setIsLoading(true)
-            const {data} = await axiosPrivate.get(`${backendURL}message/allMessages/${selectedChat?._id}`);
-            setMessages(data)
-            setIsLoading(false)
-            socket.emit('joinChat', selectedChat._id);
+            const { data } = await axiosPrivate.get(`message/allMessages/${chatId}`); // Task 1: Relative path
+
+            console.log(`[MobileDebug] Fetched ${data.length} messages for ${chatId}`); // Task 4
+
+            // Race-safe check
+            if (selectedChatRef.current?._id === chatId) {
+                setMessages(data);
+                setIsLoading(false);
+                if (socket) {
+                    socket.emit('joinChat', chatId);
+                }
+            } else {
+                console.log(`[MobileDebug] Discarding stale response for ${chatId}`);
+            }
         } catch (error) {
-            console.log('Error', error)
+            console.log('Error fetching messages', error)
+            if (selectedChatRef.current?._id === chatId) {
+                setIsLoading(false);
+            }
         }
     }
 
     const sendMessage = async (e) => {
-        if(e.key === 'Enter' && newMessage) {
-            // socket.emit('stopTyping', selectedChat._id);
-            try {
-                setNewMessage('');
-                const {data} = await axiosPrivate.post('message/sendMessage', {
-                    content: newMessage,
-                    chatId: selectedChat,
-                    _id: userID
-                });
-                socket.emit('newMessage', data);
-                setMessages([...messages, data]);
-            } catch (error) {
-                console.log('Error....', error)
+        if (e.type === 'click' || (e.key === 'Enter' && !e.shiftKey)) {
+            e.preventDefault();
+            if (newMessage.trim()) {
+                try {
+                    const messageToSend = newMessage;
+                    setNewMessage(''); // Clear input immediately
+                    const { data } = await axiosPrivate.post('message/sendMessage', { // Task 1: Relative path
+                        content: messageToSend,
+                        chatId: selectedChat._id,
+                        _id: userID
+                    });
+
+                    if (socket) {
+                        socket.emit('newMessage', data);
+                    }
+                    setMessages(prev => [...prev, data]);
+                } catch (error) {
+                    console.log('Error sending message', error)
+                }
             }
         }
     }
 
-    useEffect(() => {
-        socket = io(backendURL);
-        socket.emit("setup", userID);
-        socket.on('connected', () => setIsSocketConnected(true));
-        // socket.on('typing', () => setIsTyping(true));
-        // socket.on('stopTyping', () => setIsTyping(false));
-        return () => {
-            socket.disconnect();            
-        };
-    }, [])
+    // ... socket effect ...
 
     useEffect(() => {
-        fetchMessages();
-        selectedChatCompare = selectedChat;
-    }, [selectedChat])
+        // Task 3: Key effect strictly to ID and move reset logic here
+        const chatId = selectedChat?._id;
+        if (chatId) {
+            console.log(`[MobileDebug] Chat changed to ${chatId}`);
+            selectedChatRef.current = selectedChat;
+            setMessages([]);
+            setIsLoading(true);
+            fetchMessages();
+        }
+    }, [selectedChat?._id]); // Task 3: Dependency only ID
 
-    useEffect(() => {
-        socket.on('messageReceived', (newMessageReceived) => {
-            if ( !selectedChatCompare || selectedChatCompare._id !== newMessageReceived.chat._id ) {
-                if ( !notification.includes(newMessageReceived) ) {
-                    setNotification([newMessageReceived, ...notification]);
-                    setFetchAgain(!fetchAgain);
-                }
-            } else {
-                setMessages([...messages, newMessageReceived]);
-            }
-            return () => {
-                socket.off('messageReceived');
-            };
-        })
-    }, [selectedChatCompare, notification])
+    // Removed the separate socket.on('messageReceived') effect block to avoid re-binding loops
 
     const typingHandler = (e) => {
         setNewMessage(e.target.value);
-    //     if (!isSocketConnected) return;
-    //     if (!typing) {
-    //         setTyping(true)
-    //         socket.emit('typing', selectedChat._id);
-    //     }
-    //     let lastTypingTime = new Date().getTime()
-    //     var timerLength = 3000;
-    //     setTimeout(() => {
-    //         var timeNow = new Date().getTime()
-    //         var timeDiff = timeNow - lastTypingTime;
-    //         if (timeDiff >= timerLength && typing) {
-    //             socket.emit("stopTyping", selectedChat._id);
-    //             setTyping(false);
-    //         }
-    //     }, timerLength);
     }
-    
-    return (
-        <>
-            {
-                selectedChat ? (
-                    <>
-                        <Typography
-                            variant='h6'
-                            style={{paddingTop:'23px', paddingLeft:'23px', justifyContent:'space-between', alignItems:"center"}}
-                            fullWidth
-                            >
-                            {getSender(userID, selectedChat?.users)}
-                        </Typography>
 
-                        <Box
-                            justifyContent="flex-end"
-                            p={1}
-                            sx={{width:"100%", height:"100%", overflowY:"hidden"}}
-                            >
-                            {
-                                isLoading ? (
-                                    <CircularProgress 
-                                        size="xl"
-                                        w={20}
-                                        h={20}
-                                        style={{display:'flex', justifyContent:"center", alignItems:'center', height:'70vh'}}
-                                        margin="auto"
-                                    />
-                                    ) : (
-                                    <div style={{ height:'90%', padding:'5%', border: '#00aeef 1px solid', borderRadius:'7px', display: 'flex',flexDirection: 'column', overflowY: 'scroll', scrollbarWidth: 'none' }}>
-                                        <ScrollableChat messages={messages} />
-                                        <FormControl mt={3}>
-                                            <TextField
-                                                style={{paddingTop:'2%'}}
-                                                variant="outlined"
-                                                required
-                                                placeholder="Enter a message.."
-                                                value={newMessage}
-                                                onChange={typingHandler}
-                                                onKeyDown={sendMessage}
-                                            />
-                                        </FormControl>
-                                    </div>
-                                )
-                            }
-                        </Box>
-                    </>
-                ) : (
-                    <Box style={{backgroundColor:'#00aeef'}} alignItems="center" justifyContent="center">
-                        <Typography fontSize="3xl" pb={3} pt={7} fontFamily="Work sans">
-                            Click on a user to start chatting
-                        </Typography>
+    const sender = selectedChat ? getSender(userID, selectedChat.users) : null;
+
+    return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
+            {selectedChat ? (
+                <>
+                    {/* Chat Header */}
+                    <Box sx={{ p: 2, borderBottom: '1px solid #F0F0F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: 'white' }}>
+                        <Stack direction="row" spacing={2} alignItems="center">
+                            {isMobile && (
+                                <IconButton onClick={() => setSelectedChat(null)} size="small">
+                                    <ArrowBackIcon />
+                                </IconButton>
+                            )}
+                            <Avatar src={sender?.profileImage?.url} sx={{ width: 40, height: 40 }} />
+                            <Box>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                                    {sender?.firstName} {sender?.lastName}
+                                </Typography>
+                                <Typography variant="caption" color="success.main" sx={{ fontWeight: 700 }}>
+                                    Online
+                                </Typography>
+                            </Box>
+                        </Stack>
+                        <IconButton size="small">
+                            <MoreVertIcon />
+                        </IconButton>
                     </Box>
-                )
-            }
-        </>
+
+                    {/* Messages Area */}
+                    {/* Messages Area */}
+                    <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 2, bgcolor: '#F8F9FA', display: 'flex', flexDirection: 'column' }}>
+                        {isLoading ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                                <CircularProgress size={40} />
+                            </Box>
+                        ) : (
+                            <Box sx={{ flex: 1, minHeight: 0 }}>
+                                <ScrollableChat messages={messages} />
+                            </Box>
+                        )}
+                    </Box>
+
+                    {/* Chat Input */}
+                    <Box sx={{ p: 2, bgcolor: 'white', borderTop: '1px solid #F0F0F0' }}>
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                p: '4px 8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                borderRadius: 4,
+                                border: '1px solid #E0E0E0',
+                                bgcolor: '#F8F9FA',
+                                '&:focus-within': { borderColor: 'primary.main', bgcolor: 'white' }
+                            }}
+                        >
+                            <InputBase
+                                sx={{ ml: 1, flex: 1, fontSize: '0.95rem' }}
+                                placeholder="Type a message..."
+                                value={newMessage}
+                                onChange={typingHandler}
+                                onKeyDown={sendMessage}
+                                multiline
+                                maxRows={4}
+                            />
+                            <IconButton
+                                color="primary"
+                                sx={{ p: '10px' }}
+                                onClick={sendMessage}
+                                disabled={!newMessage.trim()}
+                            >
+                                <SendIcon />
+                            </IconButton>
+                        </Paper>
+                    </Box>
+                </>
+            ) : (
+                <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4 }}>
+                    <PremiumEmptyState
+                        title="Your Inbox"
+                        subtitle="Select a conversation from the list to start messaging."
+                        icon={<MessageIcon sx={{ fontSize: 60, color: 'primary.light', opacity: 0.5 }} />}
+                    />
+                </Box>
+            )}
+        </Box>
     )
 }
 

@@ -66,18 +66,18 @@ const SearchUsers = () => {
             <Box style={{ justifyContent:'center', alignItems:'center'}} sx={{ display: 'flex'}}>
                 <Button
                     variant='contained'
-                    style={{color:'#00aeef', backgroundColor:'white'}}
+                    style={{color:'#000000', backgroundColor:'white'}}
                     aria-label="open drawer"
                     onClick={handleModalOpen}
                     edge="start"
-                    endIcon={<AddIcon style={{color:'#00aeef'}} />}
+                    endIcon={<AddIcon style={{color:'#000000'}} />}
                     sx={{ ...(open && { display: 'none' }) }}>
                     Create
                 </Button>
       
                 <Modal open={open} onClose={handleModalClose}>
 
-                    <Box sx={{ backgroundColor:'#00aeef', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop:'20%', height: '100%' }}>
+                    <Box sx={{ backgroundColor:'#000000', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop:'20%', height: '100%' }}>
                         
                         <div style={{position:'absolute', top:'10px', right:'10px', color:'white'}} onClick={handleModalClose}><CloseIcon style={{fontSize:'36px'}}/></div>
 

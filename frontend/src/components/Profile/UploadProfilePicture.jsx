@@ -65,7 +65,7 @@ export default function UploadProfilePicture() {
 					style={{display: 'flex', flexDirection: 'column'}}>
 
 						<IconButton
-							// style={{ height: 100, width: 100, border:'#00aeef solid 1px' }}
+							// style={{ height: 100, width: 100, border:'#000000 solid 1px' }}
 							color='primary'
 							variant='outlined'
 							aria-label='upload picture'

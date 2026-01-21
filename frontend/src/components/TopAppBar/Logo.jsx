@@ -1,24 +1,13 @@
 import React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import logo from '../../assets/Osmosis_Logo.png';
+import logo from '../../assets/studio_time_logo.png';
 import { flexCenter } from '../../commonStyles';
 
 const Logo = () => {
   return (
     <Box sx={flexCenter}>
-      <img src={logo} alt='logo' style={{width:'55px'}} />
-      <Typography
-        sx={{
-          ml: 1,
-          color: '#00aeef',
-          fontFamily: 'futura',
-          fontSize: '20px',
-        }}
-        component="h3"
-      >
-        Osmosis
-      </Typography>
+      <img src={logo} alt='Studio Time' style={{ height: '35px', width: 'auto' }} />
     </Box>
   );
 };

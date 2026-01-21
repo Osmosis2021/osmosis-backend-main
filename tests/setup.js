@@ -1,0 +1,12 @@
+process.env.MONGOOSE_CONNECTION_STRING = 'mongodb://localhost:27017/test';
+process.env.ACCESS_TOKEN_SECRET = 'test_access_secret';
+process.env.REFRESH_TOKEN_SECRET = 'test_refresh_secret';
+process.env.STRIPE_SECRET_LIVE_KEY = 'sk_test_123';
+process.env.STRIPE_PUBLISHABLE_LIVE_KEY = 'pk_test_123';
+process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+process.env.EMAIL_HOST = 'smtp.test.com';
+process.env.EMAIL_PORT = '587';
+process.env.EMAIL_USER = 'test@test.com';
+process.env.EMAIL_PASS = 'testpass';
+process.env.PORT = '5000';
+process.env.NODE_ENV = 'test';

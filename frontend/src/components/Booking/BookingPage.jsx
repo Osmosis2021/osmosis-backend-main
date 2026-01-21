@@ -1,5 +1,6 @@
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
+import TERMS from '../../constants/terms.js'
 
 function BookingPage() {
 
@@ -15,7 +16,7 @@ function BookingPage() {
 
   return (
     <>
-      <h1>BookingPage</h1>
+      <h1>{TERMS.BOOKING} Page</h1>
       {
         bookings?.length > 0 && bookings.map(booking => (
           <>

@@ -10,7 +10,7 @@ export default function ProgressBar(props) {
   return (
     <MobileStepper
         
-      style={{backgroundColor:'#00aeef', position:'absolute', left:'25px'}}
+      style={{backgroundColor:'#000000', position:'absolute', left:'25px'}}
       variant="progress"
       steps={9}
     //   position="absolute"
