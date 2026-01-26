@@ -11,6 +11,7 @@ const reservationSchema = z.object({
     teacherID: z.string(),
     teacherUserName: z.string().optional(),
     studentUserName: z.string().optional(),
+    studentID: z.string().optional(),
     time: z.string().optional(),
     date: z.string().optional(),
 });
@@ -74,6 +75,7 @@ const createReservation = async (rawData) => {
             teacherID: data.teacherID,
             teacherUserName: data.teacherUserName,
             studentUserName: data.studentUserName,
+            studentID: data.studentID,
             time: data.time,
             date: data.date,
             status: 'pending payment' // Adding a default status if it makes sense, but original didn't set it in create.

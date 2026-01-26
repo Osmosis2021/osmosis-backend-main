@@ -1,10 +1,25 @@
-import React, { useEffect } from 'react';
-import { Button, Container, Input, Typography, Grid, TextField, Box, IconButton } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import {
+	Button,
+	Container,
+	Typography,
+	Grid,
+	TextField,
+	Box,
+	IconButton,
+	Stack,
+	Chip,
+	InputAdornment
+} from '@mui/material';
 import useStore from "../../../store"
 import TERMS from "../../../constants/terms"
 import './SessionTag.css';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import AddIcon from '@mui/icons-material/Add';
+import { PremiumCard } from '../../../ui/PremiumCard';
+import { PremiumChip } from '../../../ui/PremiumChip';
+
+const SUGGESTED_VIBES = ['Quiet', 'Focused', 'High-energy', 'Experimental', 'Chill', 'Social', 'Collaborative', 'Industrial'];
 
 export default function SessionTag(props) {
 	const {
@@ -14,190 +29,189 @@ export default function SessionTag(props) {
 		studioVibe, setStudioVibe,
 		whatToBring, setWhatToBring
 	} = useStore()
-	props.setIsNextDisabled((!Boolean(courseTitle)) || (!Boolean(courseDescription)))
+
+	const [tagInput, setTagInput] = useState('');
+
 	useEffect(() => {
-		setTags([])
-	}, [])
+		// Run validation on every update of these fields
+		const isValid = Boolean(courseTitle?.trim()) && Boolean(courseDescription?.trim());
+		props.setIsNextDisabled(!isValid);
+	}, [courseTitle, courseDescription, props]);
 
-	function handleTags(event) {
-		event.preventDefault();
-		const form = document.getElementById('form');
-		const tag = document.getElementById('outlined-basic').value;
-		const newTags = [...tags, tag]
-		setTags(newTags);
-		form.reset();
-	}
+	const addTag = (newTag) => {
+		const tagText = newTag?.trim();
+		if (tagText && !tags.includes(tagText)) {
+			setTags([...tags, tagText]);
+		}
+		setTagInput('');
+	};
 
-	function handleTitle(event) {
-		event.preventDefault();
-		const courseTitle = event.target.value;
-		setCourseTitle(courseTitle);
-	}
+	const removeTag = (tagToRemove) => {
+		setTags(tags.filter(t => t !== tagToRemove));
+	};
 
-	function handleCourseDescription(event) {
-		event.preventDefault();
-		const courseDescription = event.target.value;
-		setCourseDescription(courseDescription);
-	}
+	const toggleVibe = (vibe) => {
+		// StudioVibe is a string, let's treat it as a comma-separated list or just a string
+		// The prompt suggests selectable mood tags. 
+		// We'll append/remove from the string or just replace if it's simpler.
+		// Let's treat it as a list for better curation feel.
+		const currentVibes = studioVibe ? studioVibe.split(', ').filter(Boolean) : [];
+		if (currentVibes.includes(vibe)) {
+			setStudioVibe(currentVibes.filter(v => v !== vibe).join(', '));
+		} else {
+			setStudioVibe([...currentVibes, vibe].join(', '));
+		}
+	};
 
-	const removeTag = (tag) => {
-		console.log(tags)
-		let filteredTags = tags.filter((specTag) => specTag !== tag)
-		setTags(filteredTags)
-	}
-
-
-
-
+	const inputStyles = {
+		'& .MuiOutlinedInput-root': {
+			bgcolor: 'rgba(250, 250, 250, 0.5)',
+			'& fieldset': { borderColor: 'rgba(0,0,0,0.05)' },
+			'&:hover fieldset': { borderColor: 'rgba(0,0,0,0.1)' },
+			'&.Mui-focused fieldset': { borderColor: 'rgba(0,0,0,0.2)', borderWidth: '1px' },
+		},
+		'& .MuiInputLabel-root': { color: 'text.secondary', fontSize: '0.9rem' },
+	};
 
 	return (
-		<>
-			<Container maxWidth='sm'>
-				<Typography variant='h4' mb={2} mt={8} align='center'>
-					Give your <span style={{ color: '#000000' }}>Studio Time </span> a title:
-				</Typography>
+		<Container maxWidth="md" sx={{ py: 4, pb: 12 }}>
+			<Stack spacing={6}>
 
-				<Box style={{ textAlign: 'left', marginTop: '5%' }}>
-					<Typography variant='h6'>
-						{courseTitle}
+				{/* Section 1: The Core Experience */}
+				<Box>
+					<Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 1.5 }}>
+						The Experience
 					</Typography>
-					<br />
-					<TextField
-						onChange={handleTitle}
-						fullWidth
-						label='Title'
-						placeholder='How to build a startup'
-						name='title'
-						value={courseTitle}
-					>
-					</TextField>
-				</Box>
-
-				<br />
-				<br />
-
-				<Typography variant='h4' mb={2} mt={2} align='center'>
-					What will you do?
-				</Typography>
-
-				<Box style={{ textAlign: 'left', marginTop: '5%' }}>
-					<Typography variant='h6'>
-						{courseDescription}
-					</Typography>
-					<br />
-					<TextField
-						onChange={handleCourseDescription}
-						fullWidth
-						multiline
-						label={`What you'll do`}
-						placeholder='Describe the experience. What makes your studio special? What will guests learn or create?'
-						name='title'
-						value={courseDescription}
-					>
-					</TextField>
-					<Button
-						size="small"
-						startIcon={<AutoAwesomeIcon />}
-						sx={{ mt: 1, textTransform: 'none' }}
-						onClick={() => alert('AI Assist: Enter bullet points and I will polish them into a professional description! (Coming soon)')}
-					>
-						AI Assist: Polish description
-					</Button>
-				</Box>
-
-				<br />
-				<br />
-
-				<Typography variant='h4' mb={2} mt={2} align='center'>
-					Studio Vibe:
-				</Typography>
-
-				<Box style={{ textAlign: 'left', marginTop: '5%' }}>
-					<TextField
-						onChange={(e) => setStudioVibe(e.target.value)}
-						fullWidth
-						multiline
-						label="Studio Vibe"
-						placeholder="Describe the atmosphere of your studio (e.g., music, lighting, energy)."
-						value={studioVibe}
-					/>
-				</Box>
-
-				<br />
-				<br />
-
-				<Typography variant='h4' mb={2} mt={2} align='center'>
-					What to bring:
-				</Typography>
-
-				<Box style={{ textAlign: 'left', marginTop: '5%' }}>
-					<TextField
-						onChange={(e) => setWhatToBring(e.target.value)}
-						fullWidth
-						multiline
-						label="What to bring"
-						placeholder="List anything guests should bring (e.g., comfortable shoes, a notebook)."
-						value={whatToBring}
-					/>
-				</Box>
-
-				<br />
-				<br />
-
-				<Typography variant='h4' mb={4} mt={2} align='center'>
-					Any tags related to your {TERMS.COURSE.toLowerCase()}:
-				</Typography>
-
-				{
-					tags.map((tag, index) => {
-						return (
-							<Grid container alignItems='left'>
-								<Grid item>
-									<Typography
-										variant='h5'
-										align='left'
-										key={index}
-										id={index}
-									>
-										#{tag}
-									</Typography>
-								</Grid>
-
-								<Grid item>
-									<IconButton variant='contained' onClick={() => removeTag(tag)}>
-										<HighlightOffIcon style={{ color: 'red' }} />
-									</IconButton>
-								</Grid>
-
-							</Grid>
-
-						)
-					})
-				}
-
-				<Box style={{ textAlign: 'center', marginTop: '5%' }}>
-					<form id="form" onSubmit={handleTags}>
+					<Stack spacing={3} sx={{ mt: 2 }}>
 						<TextField
 							fullWidth
-							id='outlined-basic'
-							label='Tags'
-							placeholder='#sculpting, #painting, #drawing, #ceramics, #pottery, #surrealism'
-							// onChange={handleChange}
-							name='generalTags'
-						// value={generalTags}
-						>
-						</TextField>
-						<Input type="submit" >Add Tag ^^</Input>
-					</form>
+							label="Session title"
+							placeholder="e.g., Intro to Ceramics or Sunset Painting"
+							value={courseTitle}
+							onChange={(e) => setCourseTitle(e.target.value)}
+							sx={inputStyles}
+						/>
+						<TextField
+							fullWidth
+							multiline
+							rows={4}
+							label="What guests will experience"
+							placeholder="Describe the journey. What will they learn? What's the flow of the session?"
+							value={courseDescription}
+							onChange={(e) => setCourseDescription(e.target.value)}
+							sx={inputStyles}
+						/>
+					</Stack>
 				</Box>
 
-				<Button variant="contained" size="large" align='center' disabled={!Boolean(courseTitle) || !Boolean(courseDescription)}
-					style={{ margin: '20% 0 20px', fontSize: 26, fontFamily: 'Poppins', color: 'white' }} fullWidth
-					onClick={props.handleNext}>
-					Next
-				</Button>
+				{/* Section 2: Atmosphere & Vibes */}
+				<Box>
+					<Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 1.5 }}>
+						Atmosphere
+					</Typography>
+					<Box sx={{ mt: 2 }}>
+						<Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+							Select the energy of your studio space:
+						</Typography>
+						<Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
+							{SUGGESTED_VIBES.map((vibe) => {
+								const selected = studioVibe?.split(', ').includes(vibe);
+								return (
+									<Chip
+										key={vibe}
+										label={vibe}
+										onClick={() => toggleVibe(vibe)}
+										sx={{
+											bgcolor: selected ? 'text.primary' : 'rgba(0,0,0,0.04)',
+											color: selected ? 'background.paper' : 'text.primary',
+											fontWeight: 600,
+											'&:hover': {
+												bgcolor: selected ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.08)',
+											},
+											transition: 'all 0.2s',
+											borderRadius: '16px',
+											border: 'none'
+										}}
+									/>
+								);
+							})}
+						</Stack>
+						<TextField
+							fullWidth
+							size="small"
+							label="Add custom vibe details"
+							placeholder="e.g. music choice, lighting, unique rules"
+							value={studioVibe}
+							onChange={(e) => setStudioVibe(e.target.value)}
+							sx={inputStyles}
+						/>
+					</Box>
+				</Box>
 
-			</Container>
-		</>
+				{/* Section 3: Details & Logistics */}
+				<Box>
+					<Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 1.5 }}>
+						Logistics
+					</Typography>
+					<Stack spacing={3} sx={{ mt: 2 }}>
+						<TextField
+							fullWidth
+							label="What guests should bring (optional)"
+							placeholder="e.g. comfortable clothes, notebook, water bottle"
+							value={whatToBring}
+							onChange={(e) => setWhatToBring(e.target.value)}
+							sx={inputStyles}
+						/>
+
+						<Box>
+							<Typography variant="body2" sx={{ mb: 1, color: 'text.secondary' }}>
+								Supporting tags:
+							</Typography>
+							<Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+								{tags.map((tag, index) => (
+									<PremiumChip
+										key={index}
+										label={`#${tag}`}
+										onDelete={() => removeTag(tag)}
+										sx={{
+											height: 32,
+											borderRadius: '16px',
+											px: 1,
+											bgcolor: 'rgba(0,0,0,0.04)',
+											'& .MuiChip-deleteIcon': { fontSize: 18 }
+										}}
+									/>
+								))}
+							</Box>
+							<TextField
+								fullWidth
+								size="small"
+								label="Add tags"
+								placeholder="Press enter to add tag (e.g. pottery, design)"
+								value={tagInput}
+								onChange={(e) => setTagInput(e.target.value)}
+								onKeyDown={(e) => {
+									if (e.key === 'Enter') {
+										e.preventDefault();
+										addTag(tagInput);
+									}
+								}}
+								InputProps={{
+									endAdornment: (
+										<InputAdornment position="end">
+											<IconButton onClick={() => addTag(tagInput)} disabled={!tagInput.trim()}>
+												<AddIcon size="small" />
+											</IconButton>
+										</InputAdornment>
+									),
+								}}
+								sx={inputStyles}
+							/>
+						</Box>
+					</Stack>
+				</Box>
+
+			</Stack>
+		</Container>
 	);
 }

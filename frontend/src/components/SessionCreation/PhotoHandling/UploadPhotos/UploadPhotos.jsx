@@ -1,86 +1,182 @@
-import React from 'react';
-import { Button, Box, IconButton, Stack, Typography } from '@mui/material';
+import React, { useEffect } from 'react';
+import {
+	Button,
+	Box,
+	IconButton,
+	Stack,
+	Typography,
+	Grid,
+	Container,
+	Fade
+} from '@mui/material';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import TERMS from '../../../../constants/terms';
 import useStore from '../../../../store';
+import { PremiumSectionHeader } from '../../../../ui/PremiumSectionHeader';
+import { PremiumCard } from '../../../../ui/PremiumCard';
 
 export default function UploadPhotos(props) {
-
 	const { images, setImages } = useStore();
+
+	useEffect(() => {
+		// Validation is handled via the store (images array)
+		props.setIsNextDisabled(images.length === 0);
+	}, [images, props]);
 
 	//Handle and convert image to base 64 
 	const addImage = (e) => {
 		const files = Array.from(e.target.files);
+		const currentImages = Array.isArray(images) ? images : [];
+		let newImages = [...currentImages];
+
+		let counter = 0;
 		files.forEach(file => {
 			const reader = new FileReader();
 			reader.readAsDataURL(file);
 			reader.onloadend = () => {
-				setImages([...images, reader.result])
-			}
-		})
-	}
+				newImages.push(reader.result);
+				counter++;
+				if (counter === files.length) {
+					setImages(newImages);
+				}
+			};
+		});
+	};
 
 	//Remove image from array
-	function removeImage(e) {
-		const remove = images.filter((item, index) => index !== e);
-		setImages(remove);
+	function removeImage(indexToRemove) {
+		const currentImages = Array.isArray(images) ? images : [];
+		const updatedImages = currentImages.filter((_, index) => index !== indexToRemove);
+		setImages(updatedImages);
 	}
 
 	return (
-		<div>
-			<Box style={{ marginBottom: '20px', justifyContent: 'center' }}>
-				<Typography variant='h4' mt={8} mb={4} align='center' fontSize={21}>
-					Upload <span style={{ color: '#000000' }}> Photos: </span>
-					<Typography>{TERMS.STUDENTS} want to see photos of the {TERMS.CLASS.toLowerCase()} environment</Typography>
-				</Typography>
+		<Box sx={{ py: 4, pb: 12 }}>
+			<PremiumSectionHeader
+				title="Studio Photos"
+				subtitle="Show guests what the space and experience feel like."
+				align="center"
+			/>
 
-				<Stack style={{ alignItems: 'center' }}>
-					<form
-						method='POST'
-						encType='multipart/form-data'
-						action='uploadfile'
-						style={{ display: 'flex', flexDirection: 'column' }}
-					>
-						<IconButton
-							style={{ height: 150, width: 150, border: 'solid 1px' }}
-							color='primary'
-							aria-label='upload picture'
-							component='label'>
+			<Container maxWidth="md" sx={{ mt: 6 }}>
+				<Stack spacing={4}>
+
+					{/* Upload Dropzone Area */}
+					<PremiumCard nohover sx={{
+						p: 0,
+						border: '2px dashed rgba(0,0,0,0.1)',
+						bgcolor: 'rgba(0,0,0,0.02)',
+						textAlign: 'center',
+						borderRadius: 4,
+						position: 'relative',
+						transition: 'all 0.2s ease',
+						'&:hover': {
+							borderColor: 'rgba(0,0,0,0.2)',
+							bgcolor: 'rgba(0,0,0,0.03)'
+						}
+					}}>
+						<Box
+							component="label"
+							sx={{
+								py: 8,
+								display: 'flex',
+								flexDirection: 'column',
+								alignItems: 'center',
+								cursor: 'pointer',
+								width: '100%'
+							}}
+						>
 							<input
-								style={{ zIndex: 10 }}
 								hidden
 								type="file"
-								className="form-control"
+								accept="image/*"
+								multiple
 								onChange={addImage}
 							/>
-							<PhotoCamera style={{ fontSize: '95px' }} />
-						</IconButton>
-					</form>
-					{
-						images.map((item, index) => {
-							return (
-								<div style={{ position: 'relative', marginTop: '3%' }} key={item}>
-									<img src={item} alt="" style={{ width: '250px', height: '125px', objectFit: 'cover' }} />
+							<AddPhotoAlternateIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2, opacity: 0.6 }} />
+							<Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }}>
+								Tap to upload photos
+							</Typography>
+							<Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+								High-quality JPG or PNG preferred
+							</Typography>
+						</Box>
+					</PremiumCard>
 
-									<div style={{ position: 'absolute', bottom: 0, right: 0 }}>
-										<IconButton type="button" color='error' onClick={() => removeImage(index)}>
-											<DeleteIcon style={{ height: 25, width: 25, background: 'white', opacity: '.75', borderRadius: '50%', padding: '1px' }} />
+					{/* Cover Image Reassurance */}
+					{(Array.isArray(images) && images.length > 0) && (
+						<Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', display: 'block', fontStyle: 'italic' }}>
+							The first photo will appear as your cover image.
+						</Typography>
+					)}
+
+					{/* Image Gallery Grid */}
+					<Grid container spacing={2}>
+						{(Array.isArray(images) ? images : []).map((item, index) => (
+							<Grid item xs={6} sm={4} md={3} key={`upload-${index}`}>
+								<Fade in={true} timeout={400}>
+									<Box sx={{
+										position: 'relative',
+										borderRadius: 3,
+										overflow: 'hidden',
+										aspectRatio: '4/3',
+										border: '1px solid rgba(0,0,0,0.05)',
+										boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+										'&:hover .delete-btn': { opacity: 1 }
+									}}>
+										<img
+											src={item}
+											alt={`Studio ${index}`}
+											style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+										/>
+
+										{/* Cover Label */}
+										{index === 0 && (
+											<Box sx={{
+												position: 'absolute',
+												top: 8,
+												left: 8,
+												bgcolor: 'text.primary',
+												color: 'background.paper',
+												px: 1,
+												py: 0.25,
+												borderRadius: 1,
+												fontSize: '0.65rem',
+												fontWeight: 800,
+												letterSpacing: 0.5,
+												textTransform: 'uppercase'
+											}}>
+												Cover
+											</Box>
+										)}
+
+										{/* Delete Action */}
+										<IconButton
+											className="delete-btn"
+											size="small"
+											onClick={() => removeImage(index)}
+											sx={{
+												position: 'absolute',
+												top: 4,
+												right: 4,
+												bgcolor: 'rgba(255,255,255,0.8)',
+												color: 'error.main',
+												opacity: { xs: 1, md: 0 },
+												transition: 'opacity 0.2s',
+												'&:hover': { bgcolor: 'background.paper' }
+											}}
+										>
+											<DeleteIcon fontSize="small" />
 										</IconButton>
-									</div>
-								</div>
-							)
-						})
-					}
+									</Box>
+								</Fade>
+							</Grid>
+						))}
+					</Grid>
 				</Stack>
-
-				<Button variant="contained" size="large" align='center'
-					style={{ left: '50%', transform: 'translate(-50%, -50%)', margin: '20% 0 20px', width: '80%', fontSize: 26, fontFamily: 'Poppins', color: 'white' }} fullWidth
-					onClick={props.handleNext}>
-					Next
-				</Button>
-			</Box>
-
-		</div>
+			</Container>
+		</Box>
 	);
 }

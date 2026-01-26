@@ -22,13 +22,14 @@ import StudioTemplates from '../SessionCreation/StudioTemplates/StudioTemplates'
 import { PremiumStepper } from '../../ui/PremiumStepper';
 import { useState } from 'react';
 
-const steps = ['Templates', 'Tags', 'Capacity', 'Availability', 'Location', 'Cost', 'Photos', 'Confirmation']
+const steps = ['Templates', 'Tags', 'Capacity & Pricing', 'Availability', 'Location', 'Photos', 'Confirmation']
 
 export default function UpdatedProgressBar() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [activeStep, setActiveStep] = useState(0);
   const [isNextDisabled, setIsNextDisabled] = useState(false)
+  const [hideFooter, setHideFooter] = useState(false);
   const maxSteps = steps.length;
 
   const handleSteps = (step) => {
@@ -44,11 +45,9 @@ export default function UpdatedProgressBar() {
       case 4:
         return <Address setIsNextDisabled={setIsNextDisabled} handleNext={handleNext} />
       case 5:
-        return <Cost setIsNextDisabled={setIsNextDisabled} handleNext={handleNext} />
-      case 6:
         return <UploadPhotos setIsNextDisabled={setIsNextDisabled} handleNext={handleNext} />
-      case 7:
-        return <ConfirmSession setActiveStep={setActiveStep} />
+      case 6:
+        return <ConfirmSession setActiveStep={setActiveStep} setHideFooter={setHideFooter} />
       default:
         return null;
     }
@@ -77,50 +76,71 @@ export default function UpdatedProgressBar() {
       </Container>
 
       {/* Navigation Footer */}
-      <Box sx={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        bgcolor: 'background.paper',
-        borderTop: '1px solid',
-        borderColor: 'divider',
-        p: 2,
-        zIndex: 1100
-      }}>
-        <Container maxWidth="md">
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Button
-              size="large"
-              onClick={handleBack}
-              disabled={activeStep === 0}
-              startIcon={<KeyboardArrowLeft />}
-              sx={{ fontWeight: 700, textTransform: 'none' }}
-            >
-              Back
-            </Button>
-
-            {activeStep < maxSteps - 1 && (
+      {!hideFooter && (
+        <Box sx={{
+          position: 'fixed',
+          bottom: { xs: 'calc(92px + env(safe-area-inset-bottom))', md: 0 },
+          left: { xs: 0, md: 96 },
+          right: 0,
+          bgcolor: 'background.paper',
+          borderTop: '1px solid',
+          borderColor: 'divider',
+          pt: 2,
+          pb: {
+            xs: 2,
+            md: 'calc(16px + env(safe-area-inset-bottom))'
+          },
+          px: { xs: 2, md: 0 },
+          zIndex: 1100,
+          boxShadow: { xs: '0 -4px 12px rgba(0,0,0,0.05)', md: 'none' },
+          borderRadius: { xs: '20px 20px 0 0', md: 0 }
+        }}>
+          <Container maxWidth="md">
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
               <Button
-                variant="contained"
                 size="large"
-                onClick={handleNext}
-                disabled={isNextDisabled}
-                endIcon={<KeyboardArrowRight />}
+                onClick={handleBack}
+                disabled={activeStep === 0}
+                startIcon={<KeyboardArrowLeft />}
                 sx={{
                   fontWeight: 700,
                   textTransform: 'none',
-                  px: 4,
-                  borderRadius: 0,
-                  boxShadow: 'none'
+                  color: 'text.primary',
+                  px: { md: 0 }, // Precise alignment on desktop
+                  '&.Mui-disabled': { opacity: 0.3 }
                 }}
               >
-                Next
+                Back
               </Button>
-            )}
-          </Stack>
-        </Container>
-      </Box>
+
+              {activeStep < maxSteps - 1 && (
+                <Button
+                  variant="contained"
+                  size="large"
+                  onClick={handleNext}
+                  disabled={isNextDisabled}
+                  endIcon={<KeyboardArrowRight />}
+                  sx={{
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    px: 4,
+                    borderRadius: '12px',
+                    boxShadow: 'none',
+                    bgcolor: 'text.primary',
+                    color: 'background.paper',
+                    '&:hover': {
+                      bgcolor: 'rgba(0,0,0,0.8)',
+                      boxShadow: 'none'
+                    }
+                  }}
+                >
+                  Continue
+                </Button>
+              )}
+            </Stack>
+          </Container>
+        </Box>
+      )}
     </Box>
   );
 }

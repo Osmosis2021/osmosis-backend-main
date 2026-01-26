@@ -14,12 +14,13 @@ router.post('/createBooking', async (req, res, next) => {
     jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
         console.log('userData', userData)
         try {
-            if (err) throw err;
-
             const booking = await reservationService.createReservation(req.body);
 
-            // Original code returned this specific message
-            res.json({ 'message': 'stored a courseTimeslotUpdate' });
+            res.json({
+                success: true,
+                message: 'Booking created successfully',
+                booking
+            });
         } catch (err) {
             console.log('Error in /createBooking', err);
             next(err);
@@ -60,30 +61,62 @@ router.get('/teacherBookings/:userName', async (req, res, next) => {
 router.get('/teacherBookingInfo/:bookingID', async (req, res, next) => {
     const accessToken = req?.headers?.authorization?.slice(7)
     const { bookingID } = req.params
+    console.log('[API] Fetching Teacher Booking Info for ID:', bookingID);
     jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
         try {
             if (err) throw err;
-            const teacher = await reservationService.getReservationById(bookingID);
-            res.json(teacher)
+            const booking = await reservationService.getReservationById(bookingID);
+
+            if (!booking) {
+                console.warn(`[API] Booking not found: ${bookingID}`);
+                return res.status(404).json({ message: 'Booking not found' });
+            }
+
+            // Authorization: User must be the student or the teacher for this booking
+            if (booking.studentUserName !== userData.userName && booking.teacherUserName !== userData.userName) {
+                console.warn(`[API] Unauthorized access attempt to booking ${bookingID} by ${userData.userName}`);
+                return res.status(403).json({ message: 'You do not have permission to view this booking' });
+            }
+
+            res.json(booking)
         } catch (error) {
-            console.log('Ran into this error in /teacherBookingInfo/:bookingID', error)
+            console.error('[API ERROR] /teacherBookingInfo:', {
+                id: bookingID,
+                error: error.message,
+                stack: error.stack
+            });
             next(error);
         }
     })
 })
 
 
-// ROUTE FOR STUDENT SINGLE BOOKING
 router.get('/studentBookingInfo/:bookingID', async (req, res, next) => {
     const accessToken = req?.headers?.authorization?.slice(7)
     const { bookingID } = req.params
+    console.log('[API] Fetching Student Booking Info for ID:', bookingID);
     jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
         try {
             if (err) throw err;
             const studentBooking = await reservationService.getReservationById(bookingID);
+            if (!studentBooking) {
+                console.warn(`[API] Booking not found: ${bookingID}`);
+                return res.status(404).json({ message: 'Booking not found' });
+            }
+
+            // Authorization check
+            if (studentBooking.studentUserName !== userData.userName && studentBooking.teacherUserName !== userData.userName) {
+                console.warn(`[API] Unauthorized access attempt to booking ${bookingID} by ${userData.userName}`);
+                return res.status(403).json({ message: 'You do not have permission to view this booking' });
+            }
+
             res.json(studentBooking)
         } catch (error) {
-            console.log('Error in /studentBookingInfo/:bookingID', error)
+            console.error('[API ERROR] /studentBookingInfo:', {
+                id: bookingID,
+                error: error.message,
+                stack: error.stack
+            });
             next(error);
         }
     })

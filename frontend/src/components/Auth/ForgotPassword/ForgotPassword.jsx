@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { TextField, Container, Grid, Button, Avatar, Typography } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import {
+    TextField,
+    Container,
+    Button,
+    Typography,
+    Box,
+    Stack,
+    CircularProgress,
+    Link as MuiLink
+} from '@mui/material';
+import { useNavigate, Link as LinkRouter } from 'react-router-dom';
 import TopNavBar from '../../TopNavBar/TopNavBar';
 import logo from '../../../assets/studio_time_logo.png'
 import './ForgotPassword.css'
@@ -11,30 +20,55 @@ const Forgot = () => {
     const navigate = useNavigate()
     const manageKeyboard = useKeyboard()
     const [email, setEmail] = useState('')
-    const [stage, setStage] = useState('email')
+    const [stage, setStage] = useState('email') // email, success, resetCode, newPassword
+    const [error, setError] = useState('')
+    const [isLoading, setIsLoading] = useState(false)
+
+    // Hidden fields for existing multi-step flow (preserved for logic)
     const [resetCode, setResetCode] = useState('')
     const [newPassword, setNewPassword] = useState('')
     const [repeatPassword, setRepeatPassword] = useState('')
+
     const { backendURL } = useStore()
 
     useEffect(() => {
         manageKeyboard('fieldGrid')
     }, [])
 
-    const requestResetCode = () => {
-        fetch(`${backendURL}email/sendResetCode/${email}`)
-            .then(res => res.json())
-            .then(resp => {
-                if (resp.result === 'Email not found') {
-                    alert('Email not found')
-                    return
-                }
-                setStage('resetCode')
-            }).catch(err => {
-                console.log('Error sending reset code:\n', err)
-            })
+    const validateEmail = (email) => {
+        return /\S+@\S+\.\S+/.test(email);
     }
 
+    const requestResetCode = async (e) => {
+        if (e) e.preventDefault();
+        if (!email || !validateEmail(email)) {
+            setError('Please enter a valid email address.');
+            return;
+        }
+
+        setIsLoading(true);
+        setError('');
+
+        try {
+            const response = await fetch(`${backendURL}email/sendResetCode/${email}`);
+            const resp = await response.json();
+
+            if (resp.result === 'Email not found') {
+                setError('No account found with this email address.');
+                setIsLoading(false);
+                return;
+            }
+
+            setStage('success');
+        } catch (err) {
+            console.log('Error sending reset code:\n', err);
+            setError('Something went wrong. Please try again later.');
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    // Preserving secondary flow logic just in case the link takes them here
     const verifyResetCode = () => {
         fetch(`${backendURL}email/verifyResetCode/${email}/${resetCode}`)
             .then(res => res.json())
@@ -69,10 +103,6 @@ const Forgot = () => {
                 } else {
                     alert('Password reset successfully, now please log in')
                     setStage('email')
-                    setEmail('')
-                    setResetCode('')
-                    setNewPassword('')
-                    setRepeatPassword('')
                 }
                 navigate('/')
             }).catch(err => {
@@ -80,55 +110,147 @@ const Forgot = () => {
             })
     }
 
+    const isButtonDisabled = !email || !validateEmail(email) || isLoading;
+
     return (
-        <>
+        <Box sx={{
+            flexGrow: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: 0,
+            bgcolor: 'background.default'
+        }}>
             <TopNavBar back='/' next='empty' />
-            <Container maxWidth="sm" style={{ alignItems: 'center' }}>
-                <Grid container align='center' direction="column" style={{ marginTop: '2rem', }} >
-                    <Grid item>
-                        <img src={logo} alt='Studio Time Logo' style={{ width: '250px', height: 'auto' }} />
-                    </Grid>
 
-                    <Grid id='fieldGrid' item className={`display-${stage === 'email'}`}>
-                        <Typography style={{ marginBottom: '10px' }} align='center' variant='h5' mt={6} mb={0}>
-                            Enter the email address<br />associated with your account.<br />We'll send you a link to reset your password.
-                        </Typography>
-                        <TextField variant='outlined' label='Email' placeholder='Email' fullWidth size='large' value={email}
-                            inputProps={{ autoCapitalize: 'none' }} style={{ margin: '16px 0' }} onChange={e => setEmail(e.target.value)} />
-                        <Button variant='contained' size='large' fullWidth onClick={requestResetCode}
-                            style={{ fontSize: 18, color: 'white', fontFamily: 'Poppins' }}>
-                            Send Password Reset Code
-                        </Button>
-                    </Grid>
+            <Box sx={{
+                flexGrow: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                px: 3,
+                pb: 10 // Pushes content up slightly to feel balanced
+            }}>
+                <Container maxWidth="xs" sx={{ p: 0 }}>
+                    {stage === 'success' ? (
+                        <Stack spacing={3} sx={{ textAlign: 'center', animation: 'fadeIn 0.4s ease-out' }}>
+                            <Box>
+                                <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
+                                    Check your email
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    If an account exists for {email}, you’ll receive a reset link shortly.
+                                </Typography>
+                            </Box>
 
-                    <Grid item className={`display-${stage === 'resetCode'}`} style={{ marginBottom: '10px' }}>
-                        <Typography align='center' variant='h5' mt={6} mb={0}>Enter the password reset code <br /> you received by email.</Typography>
-                    </Grid>
-                    <Grid item className={`display-${stage === 'resetCode'}`}>
-                        <TextField variant='outlined' label='Reset Code' placeholder='Code' fullWidth size='large'
-                            value={resetCode} onChange={e => { setResetCode(e.target.value) }} inputProps={{ autoCapitalize: 'none' }} />
-                        <Button variant='contained' size='large' fullWidth sx={{ marginTop: 2 }}
-                            onClick={verifyResetCode} style={{ fontSize: 18, color: 'white', fontFamily: 'Poppins', marginBottom: '25px' }}>
-                            Verify Password Reset Code
-                        </Button>
-                    </Grid>
+                            <Box sx={{ pt: 2 }}>
+                                <LinkRouter to="/" style={{ textDecoration: 'none' }}>
+                                    <Typography
+                                        variant="body2"
+                                        sx={{
+                                            color: 'text.primary',
+                                            fontWeight: 600,
+                                            textDecoration: 'underline'
+                                        }}
+                                    >
+                                        Back to login
+                                    </Typography>
+                                </LinkRouter>
+                            </Box>
+                        </Stack>
+                    ) : (
+                        <Box component="form" onSubmit={requestResetCode} id="fieldGrid">
+                            <Stack spacing={3}>
+                                <Box sx={{ textAlign: 'center', mb: 1 }}>
+                                    <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
+                                        Reset your password
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Enter the email associated with your account and we’ll send a reset link.
+                                    </Typography>
+                                </Box>
 
-                    <Grid item className={`display-${stage === 'newPassword'}`}>
-                        <Typography align='center' variant='h5' mt={6} mb={0}> Enter a new password <br /> at least 8 letters long.</Typography>
-                        <TextField variant='outlined' label='New Password' placeholder='Password' value={newPassword} type="password"
-                            onChange={e => { setNewPassword(e.target.value) }} fullWidth size='large' style={{ marginTop: '16px' }} inputProps={{ autoCapitalize: 'none' }} />
-                        <TextField variant='outlined' label='Repeat Password' placeholder='Repeat Password' value={repeatPassword} type="password"
-                            onChange={e => { setRepeatPassword(e.target.value) }} fullWidth size='large' style={{ margin: '16px 0' }} inputProps={{ autoCapitalize: 'none' }} />
-                        <Button variant='contained' size='large' fullWidth onClick={updatePassword}
-                            style={{ fontSize: 18, color: 'white', fontFamily: 'Poppins' }}>
-                            Save New Password
-                        </Button>
-                    </Grid>
-                </Grid>
-            </Container>
-        </>
-    )
-}
+                                <Box>
+                                    <TextField
+                                        variant='outlined'
+                                        label='Email'
+                                        fullWidth
+                                        value={email}
+                                        onChange={e => {
+                                            setEmail(e.target.value);
+                                            if (error) setError('');
+                                        }}
+                                        error={!!error}
+                                        helperText={error}
+                                        inputProps={{ autoCapitalize: 'none' }}
+                                        disabled={isLoading}
+                                    />
+                                </Box>
 
+                                <Box>
+                                    <Button
+                                        variant='contained'
+                                        size='large'
+                                        fullWidth
+                                        type="submit"
+                                        disabled={isButtonDisabled}
+                                        sx={{
+                                            py: 1.5,
+                                            textTransform: 'none',
+                                            fontWeight: 600,
+                                            height: '56px'
+                                        }}
+                                    >
+                                        {isLoading ? <CircularProgress size={24} color="inherit" /> : "Send reset link"}
+                                    </Button>
+
+                                    <Box sx={{ mt: 3, textAlign: 'center' }}>
+                                        <LinkRouter to="/" style={{ textDecoration: 'none' }}>
+                                            <Typography
+                                                variant="body2"
+                                                sx={{
+                                                    color: 'text.secondary',
+                                                    '&:hover': { color: 'text.primary' },
+                                                    textDecoration: 'underline'
+                                                }}
+                                            >
+                                                Back to login
+                                            </Typography>
+                                        </LinkRouter>
+                                    </Box>
+                                </Box>
+                            </Stack>
+                        </Box>
+                    )}
+
+                    {/* Hidden legacy stages - kept for structural compatibility if needed */}
+                    {stage === 'resetCode' && (
+                        <Box sx={{ mt: 4, pt: 4, borderTop: '1px solid', borderColor: 'divider' }}>
+                            <Typography variant="caption" color="text.secondary">Verify Code Flow (Legacy)</Typography>
+                            <TextField fullWidth size="small" value={resetCode} onChange={e => setResetCode(e.target.value)} sx={{ mt: 1 }} />
+                            <Button fullWidth onClick={verifyResetCode} sx={{ mt: 1 }}>Verify</Button>
+                        </Box>
+                    )}
+                    {stage === 'newPassword' && (
+                        <Box sx={{ mt: 4, pt: 4, borderTop: '1px solid', borderColor: 'divider' }}>
+                            <Typography variant="caption" color="text.secondary">New Password Flow (Legacy)</Typography>
+                            <TextField fullWidth size="small" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} sx={{ mt: 1 }} />
+                            <TextField fullWidth size="small" type="password" value={repeatPassword} onChange={e => setRepeatPassword(e.target.value)} sx={{ mt: 1 }} />
+                            <Button fullWidth onClick={updatePassword} sx={{ mt: 1 }}>Update</Button>
+                        </Box>
+                    )}
+                </Container>
+            </Box>
+            <style>
+                {`
+                    @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(10px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+                `}
+            </style>
+        </Box>
+    );
+};
 
 export default Forgot;

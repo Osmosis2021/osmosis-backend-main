@@ -52,7 +52,7 @@ function StudentviewingTeacherProfile() {
 				flexDirection='row'
 				width='100%'
 				gap={2}>
-				<Link to='/MapOpen' style={{ textDecoration: 'none' }}>
+				<Link to='/explore' style={{ textDecoration: 'none' }}>
 					<Fab size='small' color='primary' aria-label='back'>
 						{' '}
 						<ArrowBackIcon fontSize='medium' />

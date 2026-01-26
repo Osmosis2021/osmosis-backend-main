@@ -50,7 +50,8 @@ export default function CheckoutForm({ clientSecret, bookThisCourse, onBookingSu
             console.log("Booking created successfully");
             setIsSuccess(true);
             if (onBookingSuccess) {
-              onBookingSuccess(bookingResponse.data.bookingID || bookingResponse.data._id);
+              const bookingId = bookingResponse.data.booking?._id || bookingResponse.data.bookingID || bookingResponse.data._id;
+              onBookingSuccess(bookingId);
             }
           } else {
             console.error("Booking creation failed response:", bookingResponse);
@@ -87,7 +88,9 @@ export default function CheckoutForm({ clientSecret, bookThisCourse, onBookingSu
   return (
     <form id="payment-form" onSubmit={handleSubmit}>
       <Stack spacing={3}>
-        <PaymentElement options={{ layout: 'tabs' }} />
+        <Box sx={{ minHeight: 240, width: '100%' }}>
+          <PaymentElement options={{ layout: 'tabs' }} />
+        </Box>
 
         {message && (
           <Alert severity="error" icon={<ErrorOutlineIcon />} sx={{ borderRadius: 2 }}>

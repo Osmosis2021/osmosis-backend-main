@@ -7,6 +7,8 @@ import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import useStore from '../../store';
+import studioTimeIcon from '../../assets/studio_time_icon.png';
+
 
 const NavItem = ({ to, icon, label, isActive }) => (
     <Tooltip title={label} placement="right" arrow>
@@ -94,12 +96,10 @@ const SideRail = () => {
             {/* Logo area */}
             <Box sx={{ mb: 6 }}>
                 <Avatar
-                    // src="/frontend/src/assets/studio_time_icon.png"
+                    src={studioTimeIcon}
                     variant="rounded"
-                    sx={{ width: 48, height: 48, bgcolor: 'primary.main' }}
-                >
-                    ST
-                </Avatar>
+                    sx={{ width: 48, height: 48 }}
+                />
             </Box>
 
             {/* Nav Items */}

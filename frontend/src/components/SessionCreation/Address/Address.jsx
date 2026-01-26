@@ -1,11 +1,23 @@
 import TERMS from '../../../constants/terms';
 import React, { useState, useEffect } from 'react'
 import useStore from "../../../store";
-import { Button, Container, Stack, Typography, Grid, TextField, InputLabel, MenuItem, FormControl, Select } from '@mui/material'
+import {
+    Button,
+    Container,
+    Stack,
+    Typography,
+    Grid,
+    TextField,
+    Box,
+    Paper,
+    Fade
+} from '@mui/material'
 import ReactMapGL, { Marker } from 'react-map-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder'
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css'
 import theme from '../../../theme.js';
+import { PremiumSectionHeader } from '../../../ui/PremiumSectionHeader';
+import { PremiumCard } from '../../../ui/PremiumCard';
 import './Address.css';
 
 import mapboxgl from 'mapbox-gl'
@@ -15,7 +27,6 @@ import mapboxgl from 'mapbox-gl'
 // eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
 mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker').default;
 
-// import Geocoder from 'react-map-gl-geocoder'
 const MAPBOX_TOKEN =
     'pk.eyJ1IjoicmFkZXItamFrZSIsImEiOiJjbDU4dXdnMXcyNDZ2M2pvY2k2OW1yajY5In0.VoWote3L5R1CdSF1RPKaZg';
 
@@ -43,7 +54,8 @@ const Address = props => {
         const geo = new MapboxGeocoder({
             accessToken: MAPBOX_TOKEN,
             proximity: { longitude: -73.9569994, latitude: 40.7297027 },
-            bbox: [-74.2713341, 40.4873118, -72.5270252, 41.2417642]
+            bbox: [-74.2713341, 40.4873118, -72.5270252, 41.2417642],
+            placeholder: 'Search for your studio address...'
         })
         geo.addTo('#geocoderContainer')
 
@@ -76,104 +88,127 @@ const Address = props => {
         }
     }, [])
 
-    props.setIsNextDisabled([newCourseAddressLine1, newCourseAddressCity, newCourseAddressZipcode,
-        newCourseAddressState, newCourseLatitude].some(val => !Boolean(val)))
+    useEffect(() => {
+        const isValid = [newCourseAddressLine1, newCourseAddressCity, newCourseAddressZipcode,
+            newCourseAddressState, newCourseLatitude].every(val => Boolean(val));
+        props.setIsNextDisabled(!isValid);
+    }, [newCourseAddressLine1, newCourseAddressCity, newCourseAddressZipcode, newCourseAddressState, newCourseLatitude, props]);
 
 
     return (
-        <div>
-            <Typography variant='h4' mb={2} mt={8} align='center'>Where will you host?</Typography>
-            <Container style={{ width: "90vw", display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }} sx={{ py: 2, }}>
+        <Box sx={{ py: 4, pb: 12 }}>
+            <PremiumSectionHeader
+                title="Location"
+                subtitle="Where will this studio time take place?"
+                align="center"
+            />
+
+            <Container maxWidth="md" sx={{ mt: 4 }}>
                 <Stack spacing={4}>
-                    <div id='geocoderContainer'></div>
-                    <TextField className={`display-${showFields}`}
-                        value={newCourseAddressLine1}
-                        onChange={e => setNewCourseAddressLine1(e.target.value)}
-                        required
-                        id="outlined-required"
-                        label="Address Line 1"
-                    />
-                    <TextField className={`display-${showFields}`}
-                        value={newCourseAddressLine2}
-                        onChange={e => setNewCourseAddressLine2(e.target.value)}
-                        required
-                        id="outlined-required"
-                        label="Suite or Apt # etc."
-                    />
-                    <Grid className={`display-${showFields}`} container direction="row" sx={{}}>
-                        <Grid item xs={8} spacing={4} sx={{}}>
-                            <TextField fullWidth label='City' placeholder='City'
-                                onChange={e => setNewCourseAddressCity(e.target.value)} value={newCourseAddressCity} >xs=8</TextField>
-                        </Grid>
-                        <Grid item xs={4} sx={{}} style={{ paddingLeft: "2%" }}>
-                            <FormControl variant="standard">
-                                <InputLabel id="demo-simple-select-standard-label">State</InputLabel>
-                                <Select
-                                    id="demo-simple-select-standard"
-                                    value={newCourseAddressState}
-                                    onChange={e => setNewCourseAddressCity(e.target.value)}
-                                >
-                                    <MenuItem value="">
-                                        <em>Select State</em>
-                                    </MenuItem>
-                                    <MenuItem value="NY">NY</MenuItem>
-                                    <MenuItem value="FL">FL</MenuItem>
-                                    <MenuItem value="CA">CA</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Grid>
-                    </Grid>
-                    <Grid className={`display-${showFields}`} item xs={4} sx={{}}>
-                        <TextField fullWidth label='Zipcode' placeholder='Zipcode'
-                            onChange={e => setNewCourseAddressZipcode(e.target.value)} value={newCourseAddressZipcode}></TextField>
-                    </Grid>
+
+                    {/* Search Section */}
+                    <Box sx={{ maxWidth: 600, mx: 'auto', width: '100%' }}>
+                        <PremiumCard nohover sx={{ p: 1, border: '1px solid rgba(0,0,0,0.05)', bgcolor: 'rgba(0,0,0,0.02)' }}>
+                            <div id='geocoderContainer'></div>
+                        </PremiumCard>
+                    </Box>
+
+                    {/* Form & Map Display */}
+                    <Fade in={showFields}>
+                        <Box>
+                            <Grid container spacing={4}>
+                                <Grid item xs={12} md={6}>
+                                    <Stack spacing={3}>
+                                        <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 1.5 }}>
+                                            Address Details
+                                        </Typography>
+                                        <TextField
+                                            fullWidth
+                                            label="Address Line 1"
+                                            value={newCourseAddressLine1}
+                                            onChange={e => setNewCourseAddressLine1(e.target.value)}
+                                            sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(0,0,0,0.01)' } }}
+                                        />
+                                        <TextField
+                                            fullWidth
+                                            label="Suite, Apt, etc. (Optional)"
+                                            value={newCourseAddressLine2}
+                                            onChange={e => setNewCourseAddressLine2(e.target.value)}
+                                            sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(0,0,0,0.01)' } }}
+                                        />
+                                        <Grid container spacing={2}>
+                                            <Grid item xs={7}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="City"
+                                                    value={newCourseAddressCity}
+                                                    onChange={e => setNewCourseAddressCity(e.target.value)}
+                                                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(0,0,0,0.01)' } }}
+                                                />
+                                            </Grid>
+                                            <Grid item xs={5}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="State"
+                                                    value={newCourseAddressState}
+                                                    onChange={e => setNewCourseAddressState(e.target.value)}
+                                                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(0,0,0,0.01)' } }}
+                                                />
+                                            </Grid>
+                                        </Grid>
+                                        <TextField
+                                            fullWidth
+                                            label="Zipcode"
+                                            value={newCourseAddressZipcode}
+                                            onChange={e => setNewCourseAddressZipcode(e.target.value)}
+                                            sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(0,0,0,0.01)' } }}
+                                        />
+                                    </Stack>
+                                </Grid>
+
+                                <Grid item xs={12} md={6}>
+                                    <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 1.5, mb: 2, display: 'block' }}>
+                                        Map Preview
+                                    </Typography>
+                                    <Box sx={{
+                                        height: 300,
+                                        borderRadius: 4,
+                                        overflow: 'hidden',
+                                        border: '1px solid rgba(0,0,0,0.05)',
+                                        boxShadow: '0 4px 20px rgba(0,0,0,0.04)'
+                                    }}>
+                                        <ReactMapGL
+                                            mapboxAccessToken={MAPBOX_TOKEN}
+                                            initialViewState={{ zoom: 14, latitude: newCourseLatitude, longitude: newCourseLongitude }}
+                                            mapStyle={`mapbox://styles/mapbox/${theme.palette.mode}-v11`}
+                                            style={{ width: '100%', height: '100%' }}
+                                        >
+                                            <Marker
+                                                latitude={newCourseLatitude}
+                                                longitude={newCourseLongitude}>
+                                                <Box sx={{
+                                                    transform: 'translate(-50%, -50%)',
+                                                    bgcolor: 'text.primary',
+                                                    color: 'background.paper',
+                                                    px: 1.5,
+                                                    py: 0.5,
+                                                    borderRadius: 2,
+                                                    fontWeight: 700,
+                                                    fontSize: '0.75rem',
+                                                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                                                }}>
+                                                    Studio
+                                                </Box>
+                                            </Marker>
+                                        </ReactMapGL>
+                                    </Box>
+                                </Grid>
+                            </Grid>
+                        </Box>
+                    </Fade>
                 </Stack>
-                {showFields &&
-                    <ReactMapGL mapboxAccessToken={MAPBOX_TOKEN}
-                        initialViewState={{ zoom: 14, latitude: newCourseLatitude, longitude: newCourseLongitude }}
-                        mapStyle={`mapbox://styles/mapbox/${theme.palette.mode}-v11`}
-                        style={{ width: '100%', height: '30vh' }}
-                    // onLoad={onMapLoad}
-                    >
-                        <Marker
-                            latitude={newCourseLatitude}
-                            longitude={newCourseLongitude}>
-                            {/* <div>
-                    <button
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                        }}
-                        onClick={(e) => {
-                            setSelectedCourse(course);
-                            setInitialViewState({
-                                zoom: 12,
-                                latitude: course.latitude,
-                                longitude: course.longitude,
-                            });
-                        }}>
-                        <img
-                            src={require(`../../assets/icons/${course.industry}.png`)}
-                            alt='industry'
-                            style={{ width: '25px' }}
-                        />
-                    </button>
-                </div> */}
-                        </Marker>
-                    </ReactMapGL>
-                }
-
-                <Button variant="contained" size="large" align='center' disabled={[newCourseAddressLine1, newCourseAddressCity, newCourseAddressZipcode,
-                    newCourseAddressState, newCourseLatitude].some(val => !Boolean(val))}
-                    style={{ margin: '25% 0 20px', width: '80%', fontSize: 26, fontFamily: 'Poppins', color: 'white' }} fullWidth
-                    onClick={props.handleNext}>
-                    Next
-                </Button>
-
             </Container>
-
-        </div>
+        </Box>
     )
 }
 

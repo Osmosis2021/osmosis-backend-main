@@ -3,7 +3,7 @@ import { Link as LinkRouter, useNavigate, useLocation } from 'react-router-dom';
 import useStore from "../../store";
 import logo from '../../assets/studio_time_logo.png';
 import './Opening.css';
-import { TextField, Container, Grid, Button, Typography, CircularProgress } from '@mui/material';
+import { TextField, Container, Grid, Button, Typography, CircularProgress, Box, Stack } from '@mui/material';
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
 import Visibility from '@mui/icons-material/Visibility'
@@ -34,7 +34,7 @@ const Opening = () => {
 			if (auth.roles?.includes(205)) {
 				navigate(`/teachers/${auth.userName}`)
 			} else {
-				navigate('/MapOpen')
+				navigate('/explore')
 			}
 		}
 	}, [auth, navigate])
@@ -85,7 +85,7 @@ const Opening = () => {
 				} else if (userDoc.isTeacher) {
 					navigate(`/teachers/${userDoc.userName}`)
 				} else {
-					navigate(`/MapOpen`)
+					navigate(`/explore`)
 				}
 			} else {
 				setIsLoading(false)
@@ -99,84 +99,121 @@ const Opening = () => {
 	}
 
 	return (
-		<Container style={{ width: '90vw', backgroundColor: 'white' }}>
-			{/* <Bubbles /> */}
-			<Grid container style={{ marginTop: '2rem', flexDirection: 'column', alignItems: 'center' }}>
+		<Box sx={{
+			flexGrow: 1,
+			width: '100%',
+			display: 'flex',
+			flexDirection: 'column',
+			justifyContent: 'center',
+			alignItems: 'center',
+			px: 3,
+			bgcolor: 'background.default',
+			minHeight: 0 // allow shrinking
+		}}>
+			<Container maxWidth="xs" sx={{ p: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+				{/* Hero / Logo Section */}
+				<Box sx={{ mb: 6, textAlign: 'center' }}>
+					<img
+						src={logo}
+						alt='Studio Time Logo'
+						style={{ width: '260px', height: 'auto', display: 'block' }}
+					/>
+				</Box>
 
-				<Grid item>
-					<img src={logo} alt='Studio Time Logo' style={{ width: '280px', height: 'auto', marginBottom: '1rem' }} align='center' />
-				</Grid>
-				<Typography variant='h4' mt={2} mb={2} align='center'>Inside the studios <br />of real artists 🎨</Typography>
-
-				{
-					isLoading ?
-						(
-							<CircularProgress
-								size="xl"
-								w={20}
-								h={20}
-								style={{ display: 'flex', justifyContent: "center", alignItems: 'center', height: '70vh' }}
-								margin="auto"
+				{isLoading ? (
+					<Box sx={{ display: 'flex', justifyContent: "center", alignItems: 'center', height: '300px' }}>
+						<CircularProgress color="primary" />
+					</Box>
+				) : (
+					<Box id='fieldGrid' sx={{ width: '100%' }}>
+						<Stack spacing={2}>
+							{/* Email Field */}
+							<TextField
+								autoComplete='email'
+								variant='outlined'
+								label="Email or Username"
+								fullWidth
+								onChange={handleChangeEmail}
+								value={email_}
+								inputProps={{ autoCapitalize: 'none' }}
+								error={isWrong}
 							/>
-						) :
-						<>
-							<Typography variant='subtitle1' mt={2} mb={2}>Already have an account:</Typography>
 
-							<Grid id='fieldGrid' item>
-								{
-									isWrong ? <TextField variant='outlined' label="Email or Username" inputProps={{ autoCapitalize: 'none' }}
-										error fullWidth onChange={handleChangeEmail} style={{ marginBottom: '12px' }} /> :
-										<TextField autoComplete='off' variant='outlined' label="Email or Username"
-											fullWidth onChange={handleChangeEmail} inputProps={{ autoCapitalize: 'none' }} />
-								}
-								{
-									isWrong ? <TextField variant='outlined' type={showPassword ? "text" : "password"} label="Password" error
-										fullWidth inputProps={{ autoCapitalize: 'none' }} onChange={handleChangePassword} helperText="Incorrect entry."
-										InputProps={{ // <-- This is where the toggle button is added
-											endAdornment: (
-												<InputAdornment position="end">
-													<IconButton onClick={() => setShowPassword(!showPassword)} >
-														{showPassword ? <VisibilityOff /> : <Visibility />}
-													</IconButton>
-												</InputAdornment>
-											)
-										}}
-									/>
-										: <TextField variant='outlined' type={showPassword ? "text" : "password"} label="Password" onChange={handleChangePassword}
-											autoCapitalize='none' fullWidth size='large' style={{ marginTop: 8, marginBottom: 3 }} inputProps={{ autoCapitalize: 'none' }}
-											InputProps={{ // <-- This is where the toggle button is added
-												endAdornment: (
-													<InputAdornment position="end">
-														<IconButton onClick={() => setShowPassword(!showPassword)} >
-															{showPassword ? <VisibilityOff /> : <Visibility />}
-														</IconButton>
-													</InputAdornment>
-												)
+							{/* Password Field & Forgot Password */}
+							<Box>
+								<TextField
+									variant='outlined'
+									type={showPassword ? "text" : "password"}
+									label="Password"
+									onChange={handleChangePassword}
+									value={password}
+									autoCapitalize='none'
+									fullWidth
+									error={isWrong}
+									helperText={isWrong ? "Incorrect email or password." : ""}
+									InputProps={{
+										endAdornment: (
+											<InputAdornment position="end">
+												<IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+													{showPassword ? <VisibilityOff /> : <Visibility />}
+												</IconButton>
+											</InputAdornment>
+										)
+									}}
+								/>
+								<Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-start' }}>
+									<LinkRouter to='/forgot' style={{ textDecoration: 'none' }}>
+										<Typography
+											variant="caption"
+											sx={{
+												color: 'text.secondary',
+												cursor: 'pointer',
+												'&:hover': { color: 'text.primary', textDecoration: 'underline' }
 											}}
-										/>
-								}
-								<LinkRouter to='/forgot' style={{ textDecoration: 'none' }}>
-									<Button size='small' fontSize='extra-small' style={{ marginBottom: 8, marginTop: 6 }}> Forgot Password?</Button>
-								</LinkRouter>
+										>
+											Forgot password?
+										</Typography>
+									</LinkRouter>
+								</Box>
+							</Box>
 
-								<div className="persistCheck" onChange={toggleThisPersist}>
-									<input style={{ zIndex: 3, position: 'relative' }} type="checkbox" id="persists" checked={thisPersist} />
-									<label style={{ zIndex: 3, position: 'relative' }} htmlFor="persists">Remember me</label>
-								</div>
-								<Button variant='contained' size='large' fullWidth style={{ fontSize: 14, fontFamily: 'Poppins', color: 'white', marginTop: '16px' }} onClick={handleLogin}>Login</Button>
+							{/* Primary Action: Login */}
+							<Button
+								variant='contained'
+								size='large'
+								fullWidth
+								onClick={handleLogin}
+								sx={{
+									mt: 2,
+									py: 1.5,
+									fontSize: '1rem',
+									textTransform: 'none'
+								}}
+							>
+								Login
+							</Button>
 
-								<Typography variant='h5' mt={2} mb={2} align='center'>OR</Typography>
-
-								<LinkRouter to='/sign-up' align='center' style={{ textDecoration: 'none' }}>
-									<Button variant="contained" size="large" align='center' style={{ fontSize: 26, fontFamily: 'Poppins', color: 'white' }} fullWidth>
-										Signup Today
-									</Button>
-								</LinkRouter>
-							</Grid>
-						</>
-				}
-			</Grid>
-		</Container>
+							{/* Secondary Action: Sign Up */}
+							<Box sx={{ mt: 4, textAlign: 'center' }}>
+								<Typography variant="body2" sx={{ color: 'text.secondary' }}>
+									New here?{' '}
+									<LinkRouter
+										to='/sign-up'
+										style={{
+											color: 'inherit',
+											fontWeight: 600,
+											textDecoration: 'underline'
+										}}
+									>
+										Create an account
+									</LinkRouter>
+								</Typography>
+							</Box>
+						</Stack>
+					</Box>
+				)}
+			</Container>
+		</Box>
 	);
 };
 

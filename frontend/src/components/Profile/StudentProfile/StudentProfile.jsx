@@ -134,7 +134,7 @@ const StudentProfile = () => {
                   <Box>
                     <Typography variant="caption" color="text.secondary" display="block">Location</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 700 }} noWrap>
-                      {booking?.courseID?.address?.city || 'Remote'}
+                      {booking?.courseID?.address || 'Remote'}
                     </Typography>
                   </Box>
                 </Stack>
@@ -159,9 +159,31 @@ const StudentProfile = () => {
                 size="small"
                 startIcon={<MessageIcon />}
                 sx={{ fontWeight: 700, textTransform: 'none' }}
-                onClick={() => navigate('/chat')}
+                onClick={async () => {
+                  if (!userID) {
+                    alert("Please log in to message artists.");
+                    navigate('/');
+                    return;
+                  }
+                  if (!booking?.teacherID?._id) {
+                    alert("Could not identify the artist. Please try again.");
+                    return;
+                  }
+                  try {
+                    const { data } = await axiosPrivate.get(`${backendURL}chat/accessChats/${booking.teacherID._id}?userID=${userID}`);
+                    const { chats, setChats, setSelectedChat } = useStore.getState();
+                    if (!chats.find((c) => c._id === data._id)) {
+                      setChats([data, ...chats]);
+                    }
+                    setSelectedChat(data);
+                    navigate('/chat');
+                  } catch (err) {
+                    console.error("Error accessing chat:", err);
+                    navigate('/chat');
+                  }
+                }}
               >
-                Message
+                Message Artist
               </Button>
               <PremiumButton
                 size="small"

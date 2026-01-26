@@ -76,6 +76,7 @@ const TeacherProfile = (props) => {
         });
         if (isMounted) {
           setBookings(resp.data);
+          console.log("Teacher bookings:", resp.data);
           setClassHappened(teacherClassHappened);
         }
       } catch (err) {
@@ -245,8 +246,31 @@ const TeacherProfile = (props) => {
                   {!isOwnProfile && (
                     <PremiumButton
                       startIcon={<MessageIcon />}
-                      component={Link}
-                      to="/chat"
+                      onClick={async () => {
+                        if (!userID) {
+                          alert("Please log in to message artists.");
+                          navigate("/");
+                          return;
+                        }
+                        if (!teacherInfo?._id) {
+                          alert("Could not identify the artist. Please try again.");
+                          return;
+                        }
+                        try {
+                          const { data } = await axiosPrivate.get(
+                            `${backendURL}chat/accessChats/${teacherInfo._id}?userID=${userID}`
+                          );
+                          const { chats, setChats, setSelectedChat } = useStore.getState();
+                          if (!chats.find((c) => c._id === data._id)) {
+                            setChats([data, ...chats]);
+                          }
+                          setSelectedChat(data);
+                          navigate("/chat");
+                        } catch (err) {
+                          console.error("Error accessing chat:", err);
+                          navigate("/chat");
+                        }
+                      }}
                     >
                       Message Artist
                     </PremiumButton>
@@ -331,7 +355,7 @@ const TeacherProfile = (props) => {
                 .filter(b => new Date(b.date) > new Date())
                 .map(booking => (
                   <Grid item xs={12} md={6} key={booking._id}>
-                    <PremiumCard component={Link} to={`/teacher/bookings/${booking._id}`} sx={{ textDecoration: 'none' }}>
+                    <PremiumCard component={Link} to={`/teacher/bookings/${booking?._id}`} sx={{ textDecoration: 'none' }}>
                       <Stack direction="row" spacing={2} alignItems="center">
                         <Avatar src={booking?.studentID?.profileImage?.url} sx={{ width: 56, height: 56 }} />
                         <Box sx={{ flex: 1 }}>

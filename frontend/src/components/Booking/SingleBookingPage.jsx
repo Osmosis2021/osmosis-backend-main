@@ -32,24 +32,48 @@ function SingleBookingPage() {
     const { id } = useParams()
     const { backendURL, userName, chats, setChats, setSelectedChat, userID } = useStore();
     const [booking, setBooking] = useState(null);
+    const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
         setIsLoading(true);
-        axiosPrivate.get(`${backendURL}booking/teacherBookingInfo/${id}`).then(response => {
-            setBooking(response.data[0]);
-            setIsLoading(false);
-        }).catch(err => {
-            console.error(err);
-            setIsLoading(false);
-        })
-    }, [id]);
+        setError(null);
+        axiosPrivate.get(`${backendURL}booking/studentBookingInfo/${id}`)
+            .then(response => {
+                const data = response.data;
+                // Backend returns a single object now, but handle array just in case
+                setBooking(Array.isArray(data) ? data[0] : data);
+                setIsLoading(false);
+            })
+            .catch(err => {
+                console.error("Error fetching booking info:", err);
+                setError(err.response?.data?.message || "Could not load booking details.");
+                setIsLoading(false);
+            });
+    }, [id, axiosPrivate, backendURL]);
 
-    const handleMessageHost = async () => {
-        if (!booking?.teacherID?._id) return;
+    const handleMessageStudent = async () => {
+        if (!userID) {
+            alert("Please log in to message.");
+            navigate('/');
+            return;
+        }
+        const targetUserId =
+            booking?.studentID?._id
+        // booking?.studentUserName ||
+        // booking?.studentID ||
+        // booking?.student?._id ||
+        // booking?.student?._id;
+        if (!targetUserId) {
+            alert("Could not identify guest for this booking. Please try again.");
+            return;
+        };
+        if (targetUserId === userID) return; // safety: never message yourself
+
         try {
-            const { data } = await axiosPrivate.get(`${backendURL}chat/accessChats/${booking.teacherID._id}?userID=${userID}`);
+            const { data } = await axiosPrivate.get(`${backendURL}chat/accessChats/${targetUserId}?userID=${userID}`);
+            const { chats, setChats, setSelectedChat } = useStore.getState();
             if (!chats.find((c) => c._id === data._id)) {
                 setChats([data, ...chats]);
             }
@@ -73,13 +97,15 @@ function SingleBookingPage() {
 
     if (isLoading) return (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#FAFAFA' }}>
-            <Typography>Loading booking details...</Typography>
+            <Typography variant="h6" color="text.secondary">Loading booking details...</Typography>
         </Box>
     );
 
-    if (!booking) return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#FAFAFA' }}>
-            <Typography>Booking not found.</Typography>
+    if (error || !booking) return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#FAFAFA', p: 3 }}>
+            <Typography variant="h5" sx={{ fontWeight: 800, mb: 2 }}>Oops!</Typography>
+            <Typography color="text.secondary" sx={{ mb: 3 }}>{error || "We couldn't find this booking."}</Typography>
+            <PremiumBackButton fallback="/bookings" />
         </Box>
     );
 
@@ -146,10 +172,10 @@ function SingleBookingPage() {
                                                 <LocationOnIcon color="primary" />
                                                 <Box>
                                                     <Typography variant="body1" sx={{ fontWeight: 700 }}>
-                                                        {booking?.courseID?.address?.line1 || booking?.courseID?.address || booking?.courseID?.city || "Location details provided"}
+                                                        {booking?.courseID?.addressDetails?.line1 || booking?.courseID?.addressDetails || booking?.courseID?.city || "Location details provided"}
                                                     </Typography>
                                                     <Typography variant="body2" color="text.secondary">
-                                                        {booking?.courseID?.address?.city || booking?.courseID?.city}, {booking?.courseID?.address?.state || booking?.courseID?.state} {booking?.courseID?.address?.zipCode || booking?.courseID?.zipCode}
+                                                        {booking?.courseID?.addressDetails?.city || booking?.courseID?.city}, {booking?.courseID?.addressDetails?.state || booking?.courseID?.state} {booking?.courseID?.addressDetails?.zipCode || booking?.courseID?.zipCode}
                                                     </Typography>
                                                 </Box>
                                             </Stack>
@@ -160,24 +186,24 @@ function SingleBookingPage() {
                                 <Grid item xs={12} sm={6}>
                                     <Box>
                                         <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1, display: 'block', mb: 1 }}>
-                                            Host Info
+                                            Guest Info
                                         </Typography>
                                         <Stack direction="row" spacing={2} alignItems="center">
                                             <Avatar
-                                                src={booking?.teacherID?.profileImage?.url}
+                                                src={booking?.studentID?.profileImage?.url}
                                                 sx={{ width: 56, height: 56, border: '2px solid white', boxShadow: 1 }}
                                             />
                                             <Box>
                                                 <Typography variant="body1" sx={{ fontWeight: 700 }}>
-                                                    {booking?.teacherID?.firstName} {booking?.teacherID?.lastName}
+                                                    {booking?.studentID?.firstName} {booking?.studentID?.lastName}
                                                 </Typography>
                                                 <Button
                                                     size="small"
                                                     startIcon={<MessageIcon />}
                                                     sx={{ fontWeight: 700, p: 0, textTransform: 'none' }}
-                                                    onClick={handleMessageHost}
+                                                    onClick={handleMessageStudent}
                                                 >
-                                                    Message Host
+                                                    Message Guest
                                                 </Button>
                                             </Box>
                                         </Stack>
@@ -228,7 +254,7 @@ function SingleBookingPage() {
                                     sx={{ bgcolor: 'white', color: 'primary.main', fontWeight: 800, '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' } }}
                                     onClick={() => navigate('/chat')}
                                 >
-                                    Contact Host
+                                    Contact Guest
                                 </Button>
                             </PremiumCard>
                         </Stack>

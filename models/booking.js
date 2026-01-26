@@ -4,21 +4,21 @@ const User = require('./user');
 // const CourseTimeslot = require('./courseTimeSlot')
 
 const BookingSchema = new mongoose.Schema({
-    timestamp: {type: Number},
-    studentID: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
-    numberOfGuests: {type: Number, required: true},
-    total: {type: Number},
-    courseTimeslotID: {type: mongoose.Schema.Types.ObjectId, ref: 'CourseTimeSlot'},
-    courseID: {type: mongoose.Schema.Types.ObjectId, ref: 'Course'},
-    teacherID: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
-    teacherUserName: {type: String},
-    studentUserName: {type: String},
-    time: {type: String},
-    date: {type: String},
-    status: {type: String},
-    ratedAndReviewed: {type: Boolean, default: false},
-    rating: {type: Number},
-    review: {type: String}
+    timestamp: { type: Number },
+    studentID: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    numberOfGuests: { type: Number, required: true },
+    total: { type: Number },
+    courseTimeslotID: { type: mongoose.Schema.Types.ObjectId, ref: 'CourseTimeSlot' },
+    courseID: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
+    teacherID: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    teacherUserName: { type: String },
+    studentUserName: { type: String },
+    time: { type: String },
+    date: { type: String },
+    status: { type: String },
+    ratedAndReviewed: { type: Boolean, default: false },
+    rating: { type: Number },
+    review: { type: String },
     // date: { startDate: {type: String}, startTime: {type: String},},
     // checkIn: {type: TimeRanges, required: true},
     // checkOut: {type: TimeRanges, required: true},
@@ -34,8 +34,8 @@ const BookingSchema = new mongoose.Schema({
     // startDate: {type: String},
     // startTime: {type: String},
     // course: {type: mongoose.Schema.Types.ObjectId, required: true, ref: Course},
-    // student: {type: mongoose.Schema.Types.ObjectId, ref: User},
-    // teacher: {type: mongoose.Schema.Types.ObjectId, required: true, ref: User}
+    // student: { type: mongoose.Schema.Types.ObjectId, ref: User },
+    // teacher: { type: mongoose.Schema.Types.ObjectId, required: true, ref: User }
 })
 
 const Booking = mongoose.model('Booking', BookingSchema);

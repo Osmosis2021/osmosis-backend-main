@@ -90,9 +90,11 @@ export const ConfirmSession = (props) => {
             const { data } = await axios.post(backendURL + 'course/registerCourse', courseInfo)
             setIsLoading(false);
 
-            if (data.success === true) {
-                setNewCourseID(data.courseID);
+            if (data.success === true && data.course?._id) {
+                setNewCourseID(data.course._id);
                 setIsSuccess(true);
+                if (props.setHideFooter) props.setHideFooter(true);
+
                 // Reset store
                 setNewCourseIndustry('')
                 setTags([])
@@ -175,9 +177,10 @@ export const ConfirmSession = (props) => {
                             startIcon={<VisibilityIcon />}
                             component={Link}
                             to={`/teachers/${userName}/${newCourseID}`}
-                            sx={{ py: 2, fontWeight: 700, borderRadius: 3 }}
+                            disabled={!newCourseID}
+                            sx={{ py: 2, fontWeight: 700, borderRadius: 3, opacity: newCourseID ? 1 : 0.6 }}
                         >
-                            View Your Listing
+                            {newCourseID ? 'View Your Listing' : 'Finalizing Listing...'}
                         </Button>
                         <Stack direction="row" spacing={2}>
                             <Button
@@ -185,6 +188,7 @@ export const ConfirmSession = (props) => {
                                 fullWidth
                                 startIcon={<ContentCopyIcon />}
                                 onClick={handleCopyLink}
+                                disabled={!newCourseID}
                                 sx={{ py: 1.5, fontWeight: 700, borderRadius: 3 }}
                             >
                                 Copy Link
@@ -194,6 +198,7 @@ export const ConfirmSession = (props) => {
                                 fullWidth
                                 startIcon={<ShareIcon />}
                                 onClick={handleShare}
+                                disabled={!newCourseID}
                                 sx={{ py: 1.5, fontWeight: 700, borderRadius: 3 }}
                             >
                                 Share

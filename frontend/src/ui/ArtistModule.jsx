@@ -2,13 +2,42 @@ import React, { useState } from 'react';
 import { Box, Typography, Avatar, Stack, Button, Collapse } from '@mui/material';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { PremiumButton } from './PremiumButton';
+import useStore from '../store';
+import useAxiosPrivate from '../hooks/useAxiosPrivate';
 
 export const ArtistModule = ({ teacherInfo, userName, city }) => {
+    const navigate = useNavigate();
+    const { userID, backendURL } = useStore();
+    const axiosPrivate = useAxiosPrivate();
     const [expanded, setExpanded] = useState(false);
     const description = teacherInfo?.description || `Hi, I'm ${teacherInfo?.firstName}! Welcome to my studio.`;
     const isLong = description.length > 150;
+
+    const handleMessage = async () => {
+        if (!userID) {
+            alert("Please log in to message artists.");
+            navigate('/');
+            return;
+        }
+        if (!teacherInfo?._id) {
+            alert("Could not identify the artist. Please try again.");
+            return;
+        }
+        try {
+            const { data } = await axiosPrivate.get(`${backendURL}chat/accessChats/${teacherInfo._id}?userID=${userID}`);
+            const { chats, setChats, setSelectedChat } = useStore.getState();
+            if (!chats.find((c) => c._id === data._id)) {
+                setChats([data, ...chats]);
+            }
+            setSelectedChat(data);
+            navigate('/chat');
+        } catch (err) {
+            console.error("Error accessing chat:", err);
+            navigate('/chat');
+        }
+    };
 
     return (
         <Box
@@ -73,8 +102,7 @@ export const ArtistModule = ({ teacherInfo, userName, city }) => {
                     variant="contained"
                     fullWidth
                     size="small"
-                    component={Link}
-                    to="/chat"
+                    onClick={handleMessage}
                 >
                     Message
                 </PremiumButton>

@@ -65,8 +65,8 @@ function LandingPage() {
                 <Container className="text">
                     <Grid container direction='column'>
                         <Grid item data-aos="fade-left">
-                            <Typography variant='h2'>Inside the studios of</Typography>
-                            <Typography variant='h2'>real artists 🎨</Typography>
+                            {/* <Typography variant='h2'>Inside the studios of</Typography>
+                            <Typography variant='h2'>real artists 🎨</Typography> */}
                             <br />
                         </Grid>
                         <Grid item xs={12} md={2} data-aos="fade-right">

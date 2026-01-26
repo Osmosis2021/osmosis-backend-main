@@ -75,84 +75,62 @@ function App() {
 						<Route path='/' element={<Opening />} />
 						<Route path='/role' element={<Role />} />
 						<Route path='/majors' element={<Major />} />
-						{/* <Route path='/classes' element={<GetClasses />} /> */}
-						{/* <Route path='/classes/:course' element={<GetCourse />} /> */}
-						{/* <Route path='/*' element={<PageNotFound />} /> */}
-
-						{/* TEACHER */}
-						<Route path='/teachers/:userName' element={<TeacherProfile />} />
-						<Route path='/teachers/:userName/:course' element={<Course />} />
-						<Route path='/editcourse/:courseID' element={<EditCourse />} />
-						<Route path='/editphotos' element={<EditPhotos />} />
-
-						{/* STUDENT */}
-						<Route path='/students/:userName' element={<StudentProfile />} />
-						<Route path='/settings' element={<Settings />} />
-						<Route path='/students' element={<h1 style={{ padding: '10px' }}>This is where your personal page will be when you sign up.</h1>} />
-						<Route path='/ordersandpayments' element={<OrdersAndPayments />} />
-						<Route path='/stripeonboarding/:userName' element={<StripeOnboarding />} />
-						<Route path='/chat' element={<Chat />} />
-						<Route path='/edit' element={<EditProfile />} />
-						<Route path='/confirm' element={
-							<Elements stripe={stripePromise}>
-								<Confirm />
-							</Elements>
-						} />
-
-						<Route path='/bookings' element={<BookingPage />} />
-
-						<Route path='teacher/bookings/:id' element={<SingleBookingPage />} />
-						<Route path='student/bookings/:id' element={<SingleBookingPageForStudent />} />
-
-						<Route path='/payment' element={<Payment />} />
-
 						<Route path='/termsofservice' element={<TermsOfService />} />
 						<Route path='/privacy' element={<Privacy />} />
-
-						{/* <Route path='/passwordreset' element={<PasswordReset />} /> */}
-						{/* <Route path='/src/teacherComponents/Map/Map' element={<Maap/>}/> */}
-						{/* <Route path='/teacherComponents/Calendar' element={<Calendar/>} /> */}
-
 						<Route path='/forgot' element={<Forgot />} />
 						<Route path='landing' element={<LandingPage />} />
-						{/* TO RENDER TEACHER FLOW INPUT ELEMENTS FOR PRODUCTION */}
-						<Route path='/availability' element={<ToggleDays />} />
-						<Route path='/FLOW' element={<UpdatedProgressBar />} />
-
-						<Route path='/calendar' element={<Calendar />} />
-
 						<Route path='/explore' element={<Explore />} />
-						{/* SIGN UP PROMPT FOR TEACHERS*/}
 						<Route path='/sign-up' element={<Signup isTeacher={true} />} />
-						{/* SIGN UP PROMPT FOR STUDENTS*/}
 						<Route path='/student-sign-up' element={<Signup isStudent={true} />} />
-
 						<Route path='/unauthorized' element={<Unauthorized />} />
 
-						{/* MAP */}
-						<Route path='/MapOpen' element={<MapOpen />} />
+						{/* Public Profile Viewers */}
+						<Route path='/teachers/:userName' element={<TeacherProfile />} />
+						<Route path='/teachers/:userName/:course' element={<Course />} />
+						<Route path='/students/:userName' element={<StudentProfile />} />
+						<Route path='/students' element={<h1 style={{ padding: '10px' }}>This is where your personal page will be when you sign up.</h1>} />
 
-						{/* Private routes only for users */}
+						{/* <Route path='/passwordreset' element={<PasswordReset />} /> */}
+						{/* Authenticated routes (Any User) */}
 						<Route element={<RequireAuth allowedRoles={[2119]} />} >
+							<Route path='/chat' element={<Chat />} />
+							<Route path='/settings' element={<Settings />} />
+							<Route path='/edit' element={<EditProfile />} />
+							<Route path='/ordersandpayments' element={<OrdersAndPayments />} />
+							<Route path='/bookings' element={<BookingPage />} />
+							<Route path='/calendar' element={<Calendar />} />
+							<Route path='/payment' element={<Payment />} />
+							<Route path='/confirm' element={
+								<Elements stripe={stripePromise}>
+									<Confirm />
+								</Elements>
+							} />
 							<Route path='/usersonly' element={<p>This pages is for users only (teachers and students).</p>} />
 						</Route>
 
-						{/* Private routes only for teachers */}
+						{/* Teacher Only Routes */}
 						<Route element={<RequireAuth allowedRoles={[205]} />} >
+							<Route path='/editcourse/:courseID' element={<EditCourse />} />
+							<Route path='/editphotos' element={<EditPhotos />} />
+							<Route path='/stripeonboarding/:userName' element={<StripeOnboarding />} />
+							<Route path='teacher/bookings/:id' element={<SingleBookingPage />} />
+							<Route path='/availability' element={<ToggleDays />} />
+							<Route path='/FLOW' element={<UpdatedProgressBar />} />
 							<Route path='/teachersonly' element={<p>This pages is for teachers only.</p>} />
 						</Route>
 
-						{/* Private routes only for students */}
+						{/* Student Only Routes */}
 						<Route element={<RequireAuth allowedRoles={[1920]} />} >
+							<Route path='student/bookings/:id' element={<SingleBookingPageForStudent />} />
 							<Route path='/studentsonly' element={<p>This pages is for students only.</p>} />
 						</Route>
 
-						{/* Private routes only for admins */}
+						{/* Admin Only Routes */}
 						<Route element={<RequireAuth allowedRoles={[1413]} />} >
-							{/* <Route path='editProfile' element={<EditProfile />} /> */}
+							{/* Admin specific routes here */}
 						</Route>
 
-						{/* Catch all 404 page, also public */}
+						{/* Catch all 404 page */}
 						<Route path='*' element={<h1>We couldn't find that page.</h1>} />
 					</Route>
 				</Route>

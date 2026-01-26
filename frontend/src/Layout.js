@@ -35,7 +35,7 @@ const Layout = () => {
                 pb: isMobile ? 'calc(80px + env(safe-area-inset-bottom))' : 0,
                 // Add left padding on desktop for SideRail
                 pl: isMobile ? 0 : '96px',
-                minHeight: '100vh',
+                minHeight: '100dvh',
                 display: 'flex',
                 flexDirection: 'column'
             }}
@@ -47,6 +47,9 @@ const Layout = () => {
                 key={location.pathname}
                 sx={{
                     flex: 1,
+                    minHeight: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
                     animation: 'fadeSlideIn 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
                     '@keyframes fadeSlideIn': {
                         '0%': {

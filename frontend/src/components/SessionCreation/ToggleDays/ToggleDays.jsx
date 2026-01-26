@@ -1,6 +1,6 @@
 import { Button, Container, Grid, Stack, Typography, useMediaQuery, useTheme, Box } from '@mui/material';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import ToggleButton from '@mui/material/ToggleButton';
 import LoopIcon from '@mui/icons-material/Loop';
 import LengthOfSession from './LengthOfSession';
@@ -8,6 +8,7 @@ import { styled } from '@mui/material/styles';
 import TimeSelector from './TimeSelector';
 import { withStyles } from '@mui/styles';
 import useStore from '../../../store';
+import { PremiumSectionHeader } from '../../../ui/PremiumSectionHeader';
 import './ToggleDays.css';
 
 const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
@@ -73,17 +74,9 @@ const nextDayOfTheWeek = _index => {
 }
 
 const initialState = [
+
     {
-        key: 'Sunday',
-        label: 'Sun',
-        'Start Time': '',
-        'End Time': '',
-        fullDate: nextDayOfTheWeek(0).toDateString(),
-        month: nextDayOfTheWeek(0).toLocaleString('default', { month: 'short' }),
-        dayNum: nextDayOfTheWeek(0).getDate(),
-    },
-    {
-        key: 'Monday',
+        key: 'Mon',
         label: 'Mon',
         'Start Time': '',
         'End Time': '',
@@ -92,7 +85,7 @@ const initialState = [
         dayNum: nextDayOfTheWeek(1).getDate(),
     },
     {
-        key: 'Tuesday',
+        key: 'Tues',
         label: 'Tue',
         'Start Time': '',
         'End Time': '',
@@ -101,7 +94,7 @@ const initialState = [
         dayNum: nextDayOfTheWeek(2).getDate(),
     },
     {
-        key: 'Wednesday',
+        key: 'Wed',
         label: 'Wed',
         'Start Time': '',
         'End Time': '',
@@ -110,7 +103,7 @@ const initialState = [
         dayNum: nextDayOfTheWeek(3).getDate(),
     },
     {
-        key: 'Thursday',
+        key: 'Thur',
         label: 'Thu',
         'Start Time': '',
         'End Time': '',
@@ -119,7 +112,7 @@ const initialState = [
         dayNum: nextDayOfTheWeek(4).getDate(),
     },
     {
-        key: 'Friday',
+        key: 'Fri',
         label: 'Fri',
         'Start Time': '',
         'End Time': '',
@@ -128,7 +121,7 @@ const initialState = [
         dayNum: nextDayOfTheWeek(5).getDate(),
     },
     {
-        key: 'Saturday',
+        key: 'Sat',
         label: 'Sat',
         'Start Time': '',
         'End Time': '',
@@ -136,6 +129,15 @@ const initialState = [
         month: nextDayOfTheWeek(6).toLocaleString('default', { month: 'short' }),
         dayNum: nextDayOfTheWeek(6).getDate(),
     },
+    {
+        key: 'Sun',
+        label: 'Sun',
+        'Start Time': '',
+        'End Time': '',
+        fullDate: nextDayOfTheWeek(0).toDateString(),
+        month: nextDayOfTheWeek(0).toLocaleString('default', { month: 'short' }),
+        dayNum: nextDayOfTheWeek(0).getDate(),
+    }
 ];
 
 const ToggleDays = (props) => {
@@ -152,7 +154,9 @@ const ToggleDays = (props) => {
 
     const toRemove = (startDate, i, _id, tempID) => {
         const timeslotEl = document.getElementById(`timeslot-${i}`)
-        timeslotEl.classList.add('toRemove')
+        if (timeslotEl) {
+            timeslotEl.classList.add('toRemove')
+        }
         if ((_id !== undefined) && (timeslotsToRemove.indexOf(_id) < 0)) {
             setTimeslotsToRemove([...timeslotsToRemove, _id])
         }
@@ -177,13 +181,14 @@ const ToggleDays = (props) => {
                 </div>`
                 dayContainer.appendChild(child)
                 setTimeout(() => {
-                    document.getElementById(`timeslot-${i}`)
-                        .addEventListener('click', (e) => {
+                    const el = document.getElementById(`timeslot-${i}`)
+                    if (el) {
+                        el.addEventListener('click', (e) => {
                             e.preventDefault()
                             toRemove(slot.startDate, i, slot?._id, slot?.tempID)
                         })
-                }, 250
-                )
+                    }
+                }, 250)
 
             }
         }
@@ -191,13 +196,17 @@ const ToggleDays = (props) => {
 
     useEffect(() => {
         setTimeslotsToRemove([])
-        for (let i = 0; i < newCourseTimeslots.length; i++) {
-            const slot = newCourseTimeslots[i]
-            insertNewTimeslotElements(slot, i)
+        if (Array.isArray(newCourseTimeslots)) {
+            for (let i = 0; i < newCourseTimeslots.length; i++) {
+                const slot = newCourseTimeslots[i];
+                if (slot) insertNewTimeslotElements(slot, i);
+            }
         }
     }, [])
 
     const handleSave = (index, isRepeating, dayKey) => {
+        if (!days[index]) return;
+
         const activeBtn = document.getElementById(`datePickerButton-${dayKey}`)
         if (activeBtn) {
             const child = document.createElement('div')
@@ -218,39 +227,47 @@ const ToggleDays = (props) => {
             tempID: timestamp.getTime()
         }
         insertNewTimeslotElements(course_timeslot, newCourseTimeslots.length)
-        let _updatedTimeslots = [...newCourseTimeslots, course_timeslot]
-        _updatedTimeslots = _updatedTimeslots.sort((a, b) => a.startTime > b.startTime)
-        setSelectedDay('')
+        let _updatedTimeslots = [...(newCourseTimeslots || []), course_timeslot]
+
+        // Robust sorting
+        _updatedTimeslots.sort((a, b) => {
+            if (!a.startTime || !b.startTime) return 0;
+            return a.startTime.localeCompare(b.startTime);
+        });
+
+        setSelectedDay(undefined)
         setNewCourseTimeslots(_updatedTimeslots)
     }
 
-    useMemo(() => setClassDays(days), [days]);
+    useEffect(() => {
+        if (typeof setClassDays === 'function') {
+            setClassDays(days);
+        }
+    }, [days, setClassDays]);
 
     function handleChange(event, newValue) {
-        if (newValue !== null) {
+        if (newValue !== null && newValue !== undefined) {
             setSelectedDay(newValue);
         }
     }
 
     return (
-        <>
-            {!props?.isExistingCourse && <LengthOfSession />}
+        <Box sx={{ py: 4, pb: 12 }}>
+            <PremiumSectionHeader
+                title="Availability"
+                subtitle="Set your session length and weekly hosting schedule."
+                align="center"
+            />
 
-            <Typography variant='h4' mb={-2} mt={2} align='center'>
-                Enter your availability this week:
-            </Typography>
-
-            <Grid
-                mt={2}
-                container
-                direction='column'
-                justifyContent='center'
-                alignItems='center'
-            >
+            <Box sx={{ mt: 4 }}>
+                {!props?.isExistingCourse && <LengthOfSession />}
 
                 <Container maxWidth="md">
-                    <Box sx={{ mb: 4 }}>
-                        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>Select a day to add hours:</Typography>
+                    {/* Day Selection Section */}
+                    <Box sx={{ mb: 6 }}>
+                        <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 1.5, mb: 2, display: 'block', textAlign: 'center' }}>
+                            Select Days
+                        </Typography>
                         <StyledToggleButtonGroup
                             value={selectedDay}
                             exclusive
@@ -258,27 +275,28 @@ const ToggleDays = (props) => {
                             sx={{
                                 display: 'flex',
                                 flexWrap: 'wrap',
+                                justifyContent: 'center',
                                 gap: 1,
                                 '& .MuiToggleButtonGroup-grouped': {
                                     margin: 0,
                                     border: '1px solid #EDEDED !important',
                                     borderRadius: '12px !important',
-                                    flex: '1 0 auto', // Grow to fill
-                                    minWidth: '60px',
+                                    flex: { xs: '1 0 30%', sm: '0 0 auto' },
+                                    minWidth: '64px',
                                     height: 'auto',
                                     py: 1.5
                                 }
                             }}
                         >
-                            {days.map((day, index) => (
+                            {(Array.isArray(days) ? days : []).map((day, index) => (
                                 <StyledToggle
-                                    key={day.key}
+                                    key={day?.key ?? index}
                                     value={index}
-                                    aria-label={day.key}
+                                    aria-label={day?.key}
                                 >
                                     <Stack alignItems="center" spacing={0.5}>
-                                        <Typography variant="caption" sx={{ lineHeight: 1, color: 'text.secondary' }}>{day.month} {day.dayNum}</Typography>
-                                        <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1 }}>{isMobile ? day.label : day.key}</Typography>
+                                        <Typography variant="caption" sx={{ lineHeight: 1, color: 'text.secondary', fontSize: '0.65rem' }}>{day?.month} {day?.dayNum}</Typography>
+                                        <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1, fontSize: '0.9rem' }}>{isMobile ? day?.label : day?.key}</Typography>
                                     </Stack>
                                 </StyledToggle>
                             ))}
@@ -286,14 +304,20 @@ const ToggleDays = (props) => {
                     </Box>
 
                     {/* Active Day Time Selector Area */}
-                    {selectedDay !== undefined && selectedDay !== null && (
-                        <Box sx={{ p: 3, bgcolor: '#F9F9F9', borderRadius: 4, mb: 4 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
+                    {selectedDay !== undefined && selectedDay !== null && days[selectedDay] && (
+                        <Box sx={{
+                            p: 4,
+                            bgcolor: 'rgba(0,0,0,0.02)',
+                            borderRadius: 4,
+                            mb: 6,
+                            border: '1px solid rgba(0,0,0,0.05)'
+                        }}>
+                            <Typography variant="h6" sx={{ fontWeight: 800, mb: 3, textAlign: 'center' }}>
                                 {days[selectedDay].key}
                             </Typography>
 
-                            <Grid container alignItems="center" spacing={2}>
-                                <Grid item xs={12} md={8}>
+                            <Grid container alignItems="center" spacing={3} justifyContent="center">
+                                <Grid item xs={12} sm={6} md={5}>
                                     <TimeSelector
                                         courseStartTime={courseStartTime}
                                         setCourseStartTime={setCourseStartTime}
@@ -301,51 +325,73 @@ const ToggleDays = (props) => {
                                         label='Start Time'
                                     />
                                 </Grid>
-                                <Grid item xs={12} md={4}>
+                                <Grid item xs={12} sm={6} md={5}>
                                     <Stack direction="row" spacing={1}>
-                                        <Button variant='contained' sx={{ color: 'white', boxShadow: 'none', borderRadius: 0, flex: 1 }} size='large' endIcon={<LoopIcon />}
-                                            onClick={e => { handleSave(selectedDay, true, days[selectedDay].key) }}>
+                                        <Button
+                                            variant='outlined'
+                                            fullWidth
+                                            size='large'
+                                            endIcon={<LoopIcon />}
+                                            onClick={e => { handleSave(selectedDay, true, days[selectedDay].key) }}
+                                            sx={{
+                                                borderRadius: '12px',
+                                                textTransform: 'none',
+                                                fontWeight: 700,
+                                                borderColor: 'rgba(0,0,0,0.1)',
+                                                color: 'text.primary'
+                                            }}
+                                        >
                                             Repeat
                                         </Button>
-                                        <Button variant='contained' sx={{ color: 'white', boxShadow: 'none', borderRadius: 0, flex: 1 }} size='large'
-                                            onClick={e => { handleSave(selectedDay, false, days[selectedDay].key) }}>
+                                        <Button
+                                            variant='contained'
+                                            fullWidth
+                                            size='large'
+                                            onClick={e => { handleSave(selectedDay, false, days[selectedDay].key) }}
+                                            sx={{
+                                                borderRadius: '12px',
+                                                textTransform: 'none',
+                                                fontWeight: 700,
+                                                bgcolor: 'text.primary',
+                                                '&:hover': { bgcolor: 'rgba(0,0,0,0.8)' }
+                                            }}
+                                        >
                                             Save
                                         </Button>
                                     </Stack>
                                 </Grid>
                             </Grid>
 
-                            <Box id={`${days[selectedDay].key}-container`} sx={{ mt: 3, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                {/* Timeslots will be injected here by the DOM logic or we can render them reactively if we refactor 'insertNewTimeslotElements' but let's keep the DOM logic container for now to minimize logic refactor risk, just ensuring it exists */}
+                            <Box sx={{ mt: 3, display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
+                                {/* Timeslots are injected into the 'Weekly Schedule' containers below */}
                             </Box>
                         </Box>
                     )}
 
-                    {/* Render all day containers hidden or visible? The original code had them per row. 
-                        The DOM injection logic looks for `${slot.dayOfWeek}-container`.
-                        We need to ensure these containers exist for the 'toRemove' logic to work on existing slots.
-                        Let's render a hidden list of containers for ALL days so the legacy DOM logic works, 
-                        OR refactor the DOM logic. Refactoring is better but risky.
-                        Let's just render the "Summary" of added timeslots below cleanly.
-                    */}
-
+                    {/* Weekly Schedule Preview */}
                     <Box sx={{ mt: 4 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Weekly Schedule:</Typography>
-                        {newCourseTimeslots.length === 0 && (
-                            <Typography variant="body2" color="text.secondary">No availability added yet.</Typography>
+                        <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 1.5, mb: 2, display: 'block', textAlign: 'center' }}>
+                            Your Schedule
+                        </Typography>
+                        {(newCourseTimeslots?.length === 0 || !Array.isArray(newCourseTimeslots)) && (
+                            <Typography variant="body2" color="text.secondary" align="center">No timeslots added yet.</Typography>
                         )}
                         <Grid container spacing={2}>
-                            {days.map((day, idx) => {
-                                // We need to filter timeslots for this day to render them React-ivly instead of DOM injection?
-                                // The user prompt said "No logic refactors unless required".
-                                // DOM injection relies on IDs. I must preserve the IDs.
+                            {(Array.isArray(days) ? days : []).map((day, idx) => {
+                                if (!day) return null;
                                 return (
-                                    <Grid item xs={12} sm={6} md={4} key={day.key}>
+                                    <Grid item xs={12} sm={6} md={4} key={day.key ?? idx}>
                                         <Box
                                             id={`${day.key}-container`}
-                                            sx={{ p: 2, border: '1px solid #EDEDED', borderRadius: 2, minHeight: '100px' }}
+                                            sx={{
+                                                p: 2.5,
+                                                border: '1px solid rgba(0,0,0,0.05)',
+                                                borderRadius: 3,
+                                                minHeight: '120px',
+                                                bgcolor: 'background.paper'
+                                            }}
                                         >
-                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>{day.key}</Typography>
+                                            <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.5, fontSize: '0.85rem' }}>{day.key}</Typography>
                                             {/* DOM injection happens here */}
                                         </Box>
                                     </Grid>
@@ -355,17 +401,9 @@ const ToggleDays = (props) => {
                     </Box>
 
                 </Container>
+            </Box>
+        </Box>
+    );
+};
 
-                {!props?.isExistingCourse &&
-                    <Button variant="contained" size="large" align='center'
-                        disabled={!Boolean(newCourseTimeslots.length)} onClick={props.handleNext} fullWidth
-                        style={{ margin: '15px 0 20px', width: '80%', fontSize: 26, fontFamily: 'Poppins', color: 'white' }}>
-                        Next
-                    </Button>}
-
-            </Grid>
-        </>
-    )
-}
-
-export default ToggleDays
+export default ToggleDays;

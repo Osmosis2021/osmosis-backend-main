@@ -153,9 +153,9 @@ const EditCourse = (props) => {
 
 				<Grid container direction='row' alignItems='center' columnSpacing={1} sx={{ mb: 4, px: 2 }}>
 					<Grid item>
-						{isLoading ? <Skeleton /> :
+						{/* {isLoading ? <Skeleton /> :
 							<img src={require(`../../../assets/icons/${courseInfo?.industry}.png`)} style={{ height: 32, width: 32 }} alt={courseInfo.industry} />
-						}
+						} */}
 					</Grid>
 					<Grid item style={{ textAlign: 'left' }}>
 						<Typography variant='h5' sx={{ fontWeight: 800 }}>{courseInfo.industry}</Typography>

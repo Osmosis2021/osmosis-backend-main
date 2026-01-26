@@ -1,18 +1,18 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-    BottomNavigation,
-    BottomNavigationAction,
     Paper,
     Badge,
     useTheme,
     useMediaQuery,
-    Box
+    Box,
+    Stack,
+    IconButton,
 } from '@mui/material';
-import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
-import ExploreRoundedIcon from '@mui/icons-material/ExploreRounded';
-import ForumRoundedIcon from '@mui/icons-material/ForumRounded';
-import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
+import HomeIcon from '@mui/icons-material/Home';
+import SearchIcon from '@mui/icons-material/Search';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import useStore from '../store';
 
 export const PremiumBottomNav = () => {
@@ -22,111 +22,140 @@ export const PremiumBottomNav = () => {
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const { isTeacher, userName, notification } = useStore();
 
-    // Simple rule: show on mobile, hide on desktop
     if (!isMobile) return null;
 
-    const getActiveValue = () => {
-        if (location.pathname.includes('/explore')) return 'explore';
-        if (location.pathname.includes('/MapOpen')) return 'map';
-        if (location.pathname.includes('/chat')) return 'messages';
-        if (location.pathname.includes('/students/') || location.pathname.includes('/teachers/')) return 'profile';
-        return 'explore';
-    };
-
-    const handleChange = (event, newValue) => {
-        switch (newValue) {
-            case 'explore':
-                navigate('/explore');
-                break;
-            case 'map':
-                navigate('/MapOpen');
-                break;
-            case 'messages':
-                navigate('/chat');
-                break;
-            case 'profile':
-                navigate(`${isTeacher ? '/teachers' : '/students'}/${userName}`);
-                break;
-            default:
-                break;
+    const navItems = [
+        {
+            id: 'home',
+            path: '/',
+            icon: <HomeIcon />,
+            label: 'Home'
+        },
+        {
+            id: 'explore',
+            path: '/explore',
+            icon: <SearchIcon />,
+            label: 'Explore'
+        },
+        {
+            id: 'messages',
+            path: '/chat',
+            icon: <ChatBubbleOutlineIcon />,
+            label: 'Messages',
+            badge: notification?.length
+        },
+        {
+            id: 'profile',
+            path: userName ? `/${isTeacher ? 'teachers' : 'students'}/${userName}` : '/sign-up',
+            icon: <PersonOutlineIcon />,
+            label: 'Profile'
         }
+    ];
+
+    const isActive = (item) => {
+        if (item.path === '/') return location.pathname === '/';
+        return location.pathname.startsWith(item.path);
     };
 
     return (
-        <Paper
+        <Box
             sx={{
                 position: 'fixed',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                zIndex: 1100, // Base nav layer
-                borderRadius: 0,
-                borderTop: '1px solid #E8E8E8',
-                boxShadow: '0 -2px 12px rgba(0,0,0,0.04)',
-                pb: 'env(safe-area-inset-bottom)',
-                bgcolor: 'white'
+                bottom: 'calc(16px + env(safe-area-inset-bottom))',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 'calc(100% - 48px)',
+                maxWidth: '420px',
+                zIndex: 1300, // Above most elements including sticky bars usually
+                pointerEvents: 'none', // Allow clicks through empty space
+                display: 'flex',
+                justifyContent: 'center'
             }}
-            elevation={0}
         >
-            <BottomNavigation
-                value={getActiveValue()}
-                onChange={handleChange}
-                showLabels={false}
+            <Paper
+                elevation={0}
                 sx={{
-                    height: 64,
-                    bgcolor: 'transparent',
-                    '& .MuiBottomNavigationAction-root': {
-                        minWidth: 'auto',
-                        padding: '8px 12px',
-                        color: 'text.secondary',
-                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                        '&:active': {
-                            transform: 'scale(0.92)',
-                        },
-                        '&.Mui-selected': {
-                            color: 'primary.main',
-                            '& .MuiSvgIcon-root': {
-                                transform: 'scale(1.08)',
-                            }
-                        },
-                        '& .MuiSvgIcon-root': {
-                            transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                        }
-                    }
+                    pointerEvents: 'auto', // Re-enable for the dock itself
+                    bgcolor: 'rgba(255, 255, 255, 0.94)',
+                    backdropFilter: 'blur(12px)',
+                    borderRadius: '32px',
+                    border: '1px solid rgba(0, 0, 0, 0.08)',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+                    px: 1,
+                    py: 0.75,
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'space-around',
+                    alignItems: 'center'
                 }}
             >
-                <BottomNavigationAction
-                    value="explore"
-                    icon={<HomeRoundedIcon sx={{ fontSize: 26 }} />}
-                />
-                <BottomNavigationAction
-                    value="map"
-                    icon={<ExploreRoundedIcon sx={{ fontSize: 26 }} />}
-                />
-                <BottomNavigationAction
-                    value="messages"
-                    icon={
-                        <Badge
-                            badgeContent={notification?.length}
-                            color="primary"
+                {navItems.map((item) => {
+                    const active = isActive(item);
+                    return (
+                        <Box
+                            key={item.id}
+                            onClick={() => navigate(item.path)}
                             sx={{
-                                '& .MuiBadge-badge': {
-                                    fontWeight: 700,
-                                    fontSize: '0.65rem',
-                                    minWidth: 18,
-                                    height: 18,
+                                position: 'relative',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flex: 1,
+                                height: '48px',
+                                cursor: 'pointer',
+                                borderRadius: '24px',
+                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                bgcolor: active ? '#F2F2F2' : 'transparent',
+                                '&:active': {
+                                    transform: 'scale(0.92)',
+                                    bgcolor: '#EAEAEA'
                                 }
                             }}
                         >
-                            <ForumRoundedIcon sx={{ fontSize: 26 }} />
-                        </Badge>
-                    }
-                />
-                <BottomNavigationAction
-                    value="profile"
-                    icon={<AccountCircleRoundedIcon sx={{ fontSize: 26 }} />}
-                />
-            </BottomNavigation>
-        </Paper>
+                            <Box sx={{ position: 'relative', display: 'flex' }}>
+                                <Badge
+                                    badgeContent={item.badge}
+                                    color="primary"
+                                    overlap="circular"
+                                    sx={{
+                                        '& .MuiBadge-badge': {
+                                            fontWeight: 700,
+                                            fontSize: '0.65rem',
+                                            minWidth: 16,
+                                            height: 16,
+                                            top: 2,
+                                            right: 2
+                                        }
+                                    }}
+                                >
+                                    {React.cloneElement(item.icon, {
+                                        sx: {
+                                            fontSize: 26,
+                                            color: active ? 'text.primary' : 'text.secondary',
+                                            transition: 'color 0.2s ease',
+                                        }
+                                    })}
+                                </Badge>
+                            </Box>
+
+                            {/* Subtle dot or underline if active */}
+                            {active && (
+                                <Box
+                                    sx={{
+                                        position: 'absolute',
+                                        bottom: 6,
+                                        width: 4,
+                                        height: 4,
+                                        borderRadius: '50%',
+                                        bgcolor: 'text.primary'
+                                    }}
+                                />
+                            )}
+                        </Box>
+                    );
+                })}
+            </Paper>
+        </Box>
     );
 };
+
