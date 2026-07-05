@@ -63,7 +63,7 @@ function Capacity(props) {
 	};
 
 	const totalEarnings = (Number(capacity) || 0) * (Number(newCourseCost) || 0);
-	const osmosisFee = totalEarnings * 0.1;
+	const studioTimeFee = totalEarnings * 0.1;
 
 	// Determine current tier for styling
 	const getActiveTier = () => {
@@ -175,7 +175,7 @@ function Capacity(props) {
 							</Typography>
 						</Stack>
 						<Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-							{capacity} guests × ${newCourseCost} per guest. Studio Time fee (10%): ${osmosisFee.toFixed(0)}
+							{capacity} guests × ${newCourseCost} per guest. Studio Time fee (10%): ${studioTimeFee.toFixed(0)}
 						</Typography>
 					</Box>
 				</Fade>

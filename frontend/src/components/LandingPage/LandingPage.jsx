@@ -4,7 +4,7 @@ import ResponsiveAppBar from './ResponsiveAppBar';
 import './LandingPage.css';
 import smallVideo from './Comp1.mp4';
 import largeVideo from './animatedVid.mp4';
-import CreateCourseWalkthrough from './osmosisWalkthrough.mp4'
+import CreateCourseWalkthrough from './studiotimeWalkthrough.mp4'
 import mapWalkthrough from './mapWalkthrough.mp4'
 import Messaging from './messaging.png'
 import AOS from 'aos';

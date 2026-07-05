@@ -1,0 +1,124 @@
+{
+  "colors": {
+    "primary": {
+      "main": "#0A0A0A",
+      "light": "#1F1F1F",
+      "dark": "#000000",
+      "contrastText": "#FFFFFF"
+    },
+    "secondary": {
+      "main": "#F7F7F7",
+      "light": "#FAFAFA",
+      "dark": "#E5E5E5",
+      "contrastText": "#0A0A0A"
+    },
+    "background": {
+      "default": "#FFFFFF",
+      "paper": "#F7F7F7"
+    },
+    "text": {
+      "primary": "#0A0A0A",
+      "secondary": "#525252",
+      "disabled": "#8C8C8C"
+    },
+    "divider": "#E5E5E5",
+    "error": {
+      "main": "#EF4444",
+      "light": "#FEE2E2",
+      "contrastText": "#FFFFFF"
+    },
+    "success": {
+      "main": "#10B981",
+      "light": "#D1FAE5",
+      "contrastText": "#FFFFFF"
+    },
+    "warning": {
+      "main": "#F59E0B",
+      "light": "#FEF3C7",
+      "contrastText": "#0A0A0A"
+    },
+    "info": {
+      "main": "#3B82F6",
+      "light": "#DBEAFE",
+      "contrastText": "#FFFFFF"
+    }
+  },
+  "spacing": {
+    "1": "4px",
+    "2": "8px",
+    "3": "12px",
+    "4": "16px",
+    "5": "20px",
+    "6": "24px",
+    "8": "32px",
+    "10": "40px",
+    "12": "48px",
+    "16": "64px"
+  },
+  "borderRadius": {
+    "xs": "4px",
+    "sm": "8px",
+    "md": "12px",
+    "lg": "16px",
+    "xl": "32px"
+  },
+  "shadows": {
+    "none": "none",
+    "sm": "0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03)",
+    "md": "0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.04)",
+    "lg": "0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -2px rgba(15, 23, 42, 0.05)",
+    "xl": "0 8px 32px rgba(15, 23, 42, 0.12)"
+  },
+  "typography": {
+    "fontFamilies": {
+      "heading": "\"Outfit\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+      "body": "\"Inter\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+    },
+    "sizes": {
+      "h1": "2.25rem",
+      "h2": "1.875rem",
+      "h3": "1.5rem",
+      "h4": "1.25rem",
+      "h5": "1.125rem",
+      "h6": "1rem",
+      "subtitle1": "1rem",
+      "subtitle2": "0.875rem",
+      "body1": "1rem",
+      "body2": "0.875rem",
+      "button": "0.95rem",
+      "caption": "0.75rem"
+    },
+    "lineHeights": {
+      "heading": 1.25,
+      "body": 1.6,
+      "h1": 1.2,
+      "h2": 1.25,
+      "h3": 1.3,
+      "h4": 1.35,
+      "h5": 1.4,
+      "h6": 1.4,
+      "subtitle1": 1.5,
+      "subtitle2": 1.5,
+      "body1": 1.6,
+      "body2": 1.6,
+      "button": 1.5,
+      "caption": 1.4
+    },
+    "weights": {
+      "light": 300,
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700,
+      "extrabold": 800
+    }
+  },
+  "navbar": {
+    "height": "64px",
+    "padding": "16px",
+    "backdropBlur": "16px",
+    "backgroundOpacity": 0.85,
+    "elevation": 0,
+    "borderBottom": "1px solid rgba(10, 10, 10, 0.06)"
+  }
+}

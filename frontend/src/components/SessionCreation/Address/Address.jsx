@@ -1,15 +1,12 @@
-import TERMS from '../../../constants/terms';
 import React, { useState, useEffect } from 'react'
 import useStore from "../../../store";
 import {
-    Button,
     Container,
     Stack,
     Typography,
     Grid,
     TextField,
     Box,
-    Paper,
     Fade
 } from '@mui/material'
 import ReactMapGL, { Marker } from 'react-map-gl';
@@ -17,7 +14,6 @@ import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder'
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css'
 import theme from '../../../theme.js';
 import { PremiumSectionHeader } from '../../../ui/PremiumSectionHeader';
-import { PremiumCard } from '../../../ui/PremiumCard';
 import './Address.css';
 
 import mapboxgl from 'mapbox-gl'
@@ -107,10 +103,8 @@ const Address = props => {
                 <Stack spacing={4}>
 
                     {/* Search Section */}
-                    <Box sx={{ maxWidth: 600, mx: 'auto', width: '100%' }}>
-                        <PremiumCard nohover sx={{ p: 1, border: '1px solid rgba(0,0,0,0.05)', bgcolor: 'rgba(0,0,0,0.02)' }}>
-                            <div id='geocoderContainer'></div>
-                        </PremiumCard>
+                    <Box sx={{ maxWidth: { xs: '100%', sm: 780 }, mx: 'auto', width: '100%', px: { xs: 2, sm: 0 } }}>
+                        <div id='geocoderContainer'></div>
                     </Box>
 
                     {/* Form & Map Display */}

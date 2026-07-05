@@ -37,7 +37,7 @@ const Role = () => {
 
           <Typography variant='h3' mt={6} mb={6} align='center'>OR</Typography>
           
-          <Link to='/MapOpen' style={{ textDecoration: 'none' }}>
+          <Link to='/explore' style={{ textDecoration: 'none' }}>
             <Box textAlign='center'>
               <Button variant="contained" style={{alignItems:'center', width:175, height:175, borderRadius:'50%'}}>
                 <Container align='center'>

@@ -8,12 +8,12 @@
       "type": "image/x-icon"
     },
     {
-      "src": "osmosis_logo192.png",
+      "src": "studio_time_icon.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "osmosis_logo512.png",
+      "src": "studio_time_icon.png",
       "type": "image/png",
       "sizes": "512x512"
     }

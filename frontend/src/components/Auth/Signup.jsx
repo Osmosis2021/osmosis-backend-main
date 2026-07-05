@@ -1,77 +1,199 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from "react-router-dom";
-import { Container, Typography, TextField, Grid, Button, CircularProgress, Box, Stack } from '@mui/material';
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormLabel from '@mui/material/FormLabel';
-import IconButton from '@mui/material/IconButton';
-import InputAdornment from '@mui/material/InputAdornment';
+import { useNavigate, Link as LinkRouter } from "react-router-dom";
+import { 
+  Container, 
+  Typography, 
+  TextField, 
+  Grid, 
+  Button, 
+  CircularProgress, 
+  Box, 
+  Stack,
+  IconButton,
+  InputAdornment,
+  Snackbar,
+  Alert
+} from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { Link as LinkRouter } from 'react-router-dom';
+import BrushIcon from '@mui/icons-material/Brush';
+import EventIcon from '@mui/icons-material/Event';
 import './Signup.css';
 import TopNavBar from '../TopNavBar/TopNavBar';
-import useStore from "../../store"
-import useKeyboard from '../../hooks/useKeyboard'
-
+import useStore from "../../store";
+import useKeyboard from '../../hooks/useKeyboard';
+import useAuth from '../../hooks/useAuth';
 
 const Signup = props => {
-    const { backendURL, setFirstName, setLastName, setUserName, setIsTeacher, setIsStudent } = useStore()
-    const [tempFirstName, setTempFirstName] = useState('')
-    const [tempLastName, setTempLastName] = useState('')
-    const [tempUserName, setTempUserName] = useState('')
-    const [tempEmail, setTempEmail] = useState('')
-    const [tempPassword, setTempPassword] = useState('')
-    const [showPassword, setShowPassword] = useState(false)
-    const [repeatedTempPassword, setRepeatedTempPassword] = useState('')
-    const [showRepeatedPassword, setShowRepeatedPassword] = useState(false)
-    const [role, setRole] = useState('') // Artist or Guest
-    const [isLoading, setIsLoading] = useState(false)
-    const navigate = useNavigate()
-    const manageKeyboard = useKeyboard()
+    const { backendURL, setFirstName, setLastName, setUserName, setIsTeacher, setIsStudent } = useStore();
+    const { setAuth, setPersist } = useAuth();
+    const navigate = useNavigate();
+    const manageKeyboard = useKeyboard();
+
+    // Route-based pre-selection logic
+    const initialRole = props.isTeacher ? 'artist' : props.isStudent ? 'guest' : '';
+
+    const [tempFirstName, setTempFirstName] = useState('');
+    const [tempLastName, setTempLastName] = useState('');
+    const [tempUserName, setTempUserName] = useState('');
+    const [tempEmail, setTempEmail] = useState('');
+    const [tempPassword, setTempPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [repeatedTempPassword, setRepeatedTempPassword] = useState('');
+    const [showRepeatedPassword, setShowRepeatedPassword] = useState(false);
+    const [role, setRole] = useState(initialRole); // artist or guest
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Validation feedback states
+    const [usernameError, setUsernameError] = useState('');
+    const [usernameSuccess, setUsernameSuccess] = useState('');
+    
+    // Toast Feedback state
+    const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
+
+    const showToast = (message, severity = 'success') => {
+        setToast({ open: true, message, severity });
+    };
+
+    const handleGoogleSignupResponse = async (response) => {
+        if (!role) {
+            showToast("Please select if you are an Artist or a Guest before continuing.", "warning");
+            return;
+        }
+        setIsLoading(true);
+        try {
+            const res = await fetch(`${backendURL}user/google-login`, {
+                body: JSON.stringify({
+                    credential: response.credential,
+                    role: role
+                }),
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            const userDoc = await res.json();
+            
+            if (userDoc._id) {
+                localStorage.setItem("persist", true);
+                setPersist(true);
+                const accessToken = userDoc?.accessToken;
+                const roles = userDoc?.roles;
+                setAuth({ userName: userDoc.userName, accessToken, roles, isEmailVerified: userDoc.isEmailVerified });
+                
+                setFirstName(userDoc.firstName);
+                setLastName(userDoc.lastName);
+                setUserName(userDoc.userName);
+                setIsTeacher(userDoc.isTeacher);
+                setIsStudent(userDoc.isStudent);
+                
+                showToast('Successfully registered and logged in!', 'success');
+                
+                setTimeout(() => {
+                    if (userDoc.isTeacher) {
+                        navigate(`/teachers/${userDoc.userName}`);
+                    } else {
+                        navigate('/explore');
+                    }
+                }, 1500);
+            } else {
+                setIsLoading(false);
+                showToast(userDoc.message || 'Google registration failed.', 'error');
+            }
+        } catch (error) {
+            showToast('Registration failed, please try again later', 'error');
+            console.error('Error registering user via Google:\n', error);
+            setIsLoading(false);
+        }
+    };
 
     useEffect(() => {
-        manageKeyboard('fieldGrid') // consistent with Opening.jsx
-    }, [])
+        let googleBtnTimeout;
+        const initGoogleSignupBtn = () => {
+            if (window.google?.accounts?.id) {
+                window.google.accounts.id.initialize({
+                    client_id: '812674900898-fakeclientid.apps.googleusercontent.com',
+                    callback: handleGoogleSignupResponse
+                });
+                const btnElem = document.getElementById("googleSignupBtn");
+                if (btnElem) {
+                    window.google.accounts.id.renderButton(
+                        btnElem,
+                        { theme: "outline", size: "large", width: "100%", text: "signup_with" }
+                    );
+                }
+            } else {
+                googleBtnTimeout = setTimeout(initGoogleSignupBtn, 200);
+            }
+        };
+        if (!isLoading) {
+            googleBtnTimeout = setTimeout(initGoogleSignupBtn, 100);
+        }
+        return () => clearTimeout(googleBtnTimeout);
+    }, [isLoading, role]);
 
-    const changeFirstName = e => setTempFirstName(e.target.value)
-    const changeLastName = e => setTempLastName(e.target.value)
+    useEffect(() => {
+        manageKeyboard('fieldGrid'); // consistent with Opening.jsx
+    }, []);
+
+    const changeFirstName = e => setTempFirstName(e.target.value);
+    const changeLastName = e => setTempLastName(e.target.value);
 
     const changeUserName = e => {
-        const newName = e.target.value
-        setTempUserName(newName)
-        const userNameInput = document.getElementById('userNameInput')
-        if (!userNameInput) return;
-        userNameInput.classList.remove('available-false')
-        if (newName.length >= 5) {
-            fetch(`${backendURL}user/isUserNameUnique/${newName}`
-            ).then(res => res.json()
-            ).then(data => {
-                userNameInput.classList.remove(`available-${!data.isAvailable}`)
-                userNameInput.classList.add(`available-${data.isAvailable}`)
-            }).catch(err => {
-                console.log('Error checking if username is unique:\n', err)
-            })
+        const newName = e.target.value;
+        setTempUserName(newName);
+        
+        if (newName.length === 0) {
+            setUsernameError('');
+            setUsernameSuccess('');
+            return;
         }
-    }
+        
+        if (newName.length < 5) {
+            setUsernameError('Username must be at least 5 characters.');
+            setUsernameSuccess('');
+            return;
+        }
 
-    const changeEmail = e => setTempEmail(e.target.value)
-    const changePassword = e => setTempPassword(e.target.value)
-    const changeRepeatedPassword = e => setRepeatedTempPassword(e.target.value)
+        setUsernameError('');
+        setUsernameSuccess('');
 
-    const changeUserType = e => setRole(e.target.value)
+        fetch(`${backendURL}user/isUserNameUnique/${newName}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.isAvailable) {
+                    setUsernameSuccess('Username is available!');
+                    setUsernameError('');
+                } else {
+                    setUsernameError('Username is already taken.');
+                    setUsernameSuccess('');
+                }
+            })
+            .catch(err => {
+                console.error('Error checking if username is unique:\n', err);
+            });
+    };
+
+    const changeEmail = e => setTempEmail(e.target.value);
+    const changePassword = e => setTempPassword(e.target.value);
+    const changeRepeatedPassword = e => setRepeatedTempPassword(e.target.value);
 
     const handleUserRegistration = async (e) => {
         e.preventDefault();
+        
         if (!role) {
-            alert("Please select if you are an Artist or a Guest.")
-            return
+            showToast("Please select if you are an Artist or a Guest.", "warning");
+            return;
         }
+        
         if (tempPassword !== repeatedTempPassword) {
-            alert("Passwords don't match, please fix.")
-            return
+            showToast("Passwords do not match. Please verify.", "error");
+            return;
         }
+
+        if (usernameError) {
+            showToast("Please select an available username.", "error");
+            return;
+        }
+
         const userObj = {
             firstName: tempFirstName,
             lastName: tempLastName,
@@ -80,8 +202,9 @@ const Signup = props => {
             password: tempPassword,
             isTeacher: role === 'artist',
             isStudent: role === 'guest'
-        }
-        setIsLoading(true)
+        };
+
+        setIsLoading(true);
         try {
             const response = await fetch(`${backendURL}user/registerUser`, {
                 body: JSON.stringify(userObj),
@@ -91,25 +214,27 @@ const Signup = props => {
             const data = await response.json();
 
             if (data?.message?.startsWith('Unsuccessful')) {
-                console.log('Unable to register this user. ' + data.message)
-                setIsLoading(false)
-                alert(data.message)
-                return
+                setIsLoading(false);
+                showToast(data.message, "error");
+                return;
             }
 
-            setFirstName(userObj.firstName)
-            setLastName(userObj.lastName)
-            setUserName(userObj.userName)
-            setIsTeacher(userObj.isTeacher)
-            setIsStudent(userObj.isStudent)
+            setFirstName(userObj.firstName);
+            setLastName(userObj.lastName);
+            setUserName(userObj.userName);
+            setIsTeacher(userObj.isTeacher);
+            setIsStudent(userObj.isStudent);
 
-            setIsLoading(false)
-            alert('Successfully registered, you can now login')
-            navigate('/')
+            setIsLoading(false);
+            showToast('Successfully registered! Redirecting to login...', 'success');
+            
+            setTimeout(() => {
+                navigate('/');
+            }, 1800);
         } catch (error) {
-            alert('Registration failed, please try again later')
-            console.log('Error registering user:\n', error);
-            setIsLoading(false)
+            showToast('Registration failed, please try again later', 'error');
+            console.error('Error registering user:\n', error);
+            setIsLoading(false);
         }
     };
 
@@ -118,10 +243,10 @@ const Signup = props => {
             flexGrow: 1,
             display: 'flex',
             flexDirection: 'column',
-            minHeight: 0,
+            minHeight: '100vh',
             bgcolor: 'background.default'
         }}>
-            <TopNavBar back='/' />
+            <TopNavBar back='/' title="Create Account" />
 
             <Box sx={{
                 flexGrow: 1,
@@ -130,7 +255,7 @@ const Signup = props => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 px: 3,
-                py: 2
+                py: 4
             }}>
                 <Container maxWidth="xs" sx={{ p: 0 }}>
                     {isLoading ? (
@@ -139,71 +264,95 @@ const Signup = props => {
                         </Box>
                     ) : (
                         <Box component="form" onSubmit={handleUserRegistration} id="fieldGrid">
-                            <Stack spacing={2.5}>
+                            <Stack spacing={3}>
                                 <Box sx={{ textAlign: 'center', mb: 1 }}>
-                                    <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                    <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5, fontFamily: 'Outfit' }}>
                                         Join Studio Time
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                        Create your account to start exploring
+                                        Create your account to start booking experiences
                                     </Typography>
                                 </Box>
 
-                                {/* Role Selection */}
+                                {/* Modern Graphic Role Selection Cards */}
                                 <Box>
-                                    <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>
+                                    <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700, color: 'text.primary' }}>
                                         How will you use Studio Time?
                                     </Typography>
-                                    <RadioGroup
-                                        value={role}
-                                        onChange={changeUserType}
-                                        sx={{
-                                            display: 'flex',
-                                            flexDirection: 'row',
-                                            gap: 2,
-                                            '& .MuiFormControlLabel-root': {
-                                                flex: 1,
-                                                margin: 0,
-                                                border: '1px solid',
-                                                borderColor: 'divider',
-                                                borderRadius: 1,
-                                                px: 1,
-                                                py: 0.5,
-                                                transition: 'all 0.2s',
-                                                '&:hover': { bgcolor: 'action.hover' },
-                                                '&.Mui-selected': { borderColor: 'primary.main', bgcolor: 'action.selected' }
-                                            }
-                                        }}
-                                    >
-                                        <FormControlLabel
-                                            value="artist"
-                                            control={<Radio size="small" />}
-                                            label={<Typography variant="body2">Artist <br /><Box component="span" sx={{ fontSize: '0.75rem', opacity: 0.7 }}>Host sessions</Box></Typography>}
-                                        />
-                                        <FormControlLabel
-                                            value="guest"
-                                            control={<Radio size="small" />}
-                                            label={<Typography variant="body2">Guest <br /><Box component="span" sx={{ fontSize: '0.75rem', opacity: 0.7 }}>Book experiences</Box></Typography>}
-                                        />
-                                    </RadioGroup>
+                                    <Grid container spacing={2}>
+                                        <Grid item xs={6}>
+                                            <Box
+                                                onClick={() => setRole('artist')}
+                                                sx={{
+                                                    p: 2,
+                                                    border: '2px solid',
+                                                    borderColor: role === 'artist' ? 'primary.main' : 'divider',
+                                                    borderRadius: '16px',
+                                                    bgcolor: role === 'artist' ? 'rgba(10, 10, 10, 0.04)' : 'background.paper',
+                                                    cursor: 'pointer',
+                                                    textAlign: 'center',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        transform: 'translateY(-2px)',
+                                                        borderColor: role === 'artist' ? 'primary.main' : 'text.disabled',
+                                                        boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+                                                    }
+                                                }}
+                                            >
+                                                <BrushIcon sx={{ fontSize: 28, color: role === 'artist' ? 'primary.main' : 'text.secondary', mb: 1 }} />
+                                                <Typography variant="body2" sx={{ fontWeight: 700, display: 'block', fontSize: '0.9rem' }}>
+                                                    Artist
+                                                </Typography>
+                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, lineHeight: 1.2, fontSize: '0.7rem' }}>
+                                                    Host creative studio experiences
+                                                </Typography>
+                                            </Box>
+                                        </Grid>
+                                        <Grid item xs={6}>
+                                            <Box
+                                                onClick={() => setRole('guest')}
+                                                sx={{
+                                                    p: 2,
+                                                    border: '2px solid',
+                                                    borderColor: role === 'guest' ? 'primary.main' : 'divider',
+                                                    borderRadius: '16px',
+                                                    bgcolor: role === 'guest' ? 'rgba(10, 10, 10, 0.04)' : 'background.paper',
+                                                    cursor: 'pointer',
+                                                    textAlign: 'center',
+                                                    transition: 'all 0.2s ease-in-out',
+                                                    '&:hover': {
+                                                        transform: 'translateY(-2px)',
+                                                        borderColor: role === 'guest' ? 'primary.main' : 'text.disabled',
+                                                        boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+                                                    }
+                                                }}
+                                            >
+                                                <EventIcon sx={{ fontSize: 28, color: role === 'guest' ? 'primary.main' : 'text.secondary', mb: 1 }} />
+                                                <Typography variant="body2" sx={{ fontWeight: 700, display: 'block', fontSize: '0.9rem' }}>
+                                                    Guest
+                                                </Typography>
+                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, lineHeight: 1.2, fontSize: '0.7rem' }}>
+                                                    Explore & book art sessions
+                                                </Typography>
+                                            </Box>
+                                        </Grid>
+                                    </Grid>
                                 </Box>
 
-                                {/* Fields */}
+                                {/* Form Fields */}
                                 <Stack direction="row" spacing={2}>
                                     <TextField
                                         label="First Name"
-                                        variant="outlined"
+                                        placeholder="Enter first name"
                                         fullWidth
-                                        size="small"
                                         value={tempFirstName}
                                         onChange={changeFirstName}
                                         required
                                     />
                                     <TextField
                                         label="Last Name"
-                                        variant="outlined"
+                                        placeholder="Enter last name"
                                         fullWidth
-                                        size="small"
                                         value={tempLastName}
                                         onChange={changeLastName}
                                         required
@@ -213,20 +362,26 @@ const Signup = props => {
                                 <TextField
                                     id="userNameInput"
                                     label="Username"
-                                    variant="outlined"
+                                    placeholder="Choose username"
                                     fullWidth
-                                    size="small"
                                     value={tempUserName}
                                     onChange={changeUserName}
                                     required
                                     inputProps={{ autoCapitalize: 'none' }}
+                                    error={!!usernameError}
+                                    helperText={usernameError || usernameSuccess}
+                                    FormHelperTextProps={{
+                                        sx: {
+                                            color: usernameSuccess ? 'success.main' : usernameError ? 'error.main' : 'inherit',
+                                            fontWeight: usernameSuccess || usernameError ? 600 : 400
+                                        }
+                                    }}
                                 />
 
                                 <TextField
-                                    label="Email"
-                                    variant="outlined"
+                                    label="Email Address"
+                                    placeholder="Enter your email"
                                     fullWidth
-                                    size="small"
                                     value={tempEmail}
                                     onChange={changeEmail}
                                     required
@@ -237,9 +392,8 @@ const Signup = props => {
                                 <Stack spacing={2}>
                                     <TextField
                                         label="Password"
-                                        variant="outlined"
+                                        placeholder="Min 6 characters"
                                         fullWidth
-                                        size="small"
                                         type={showPassword ? "text" : "password"}
                                         value={tempPassword}
                                         onChange={changePassword}
@@ -255,15 +409,15 @@ const Signup = props => {
                                         }}
                                     />
                                     <TextField
-                                        label="Repeat"
-                                        variant="outlined"
+                                        label="Repeat Password"
+                                        placeholder="Confirm your password"
                                         fullWidth
-                                        size="small"
                                         type={showRepeatedPassword ? "text" : "password"}
                                         value={repeatedTempPassword}
                                         onChange={changeRepeatedPassword}
                                         required
                                         error={repeatedTempPassword !== "" && repeatedTempPassword !== tempPassword}
+                                        helperText={repeatedTempPassword !== "" && repeatedTempPassword !== tempPassword ? "Passwords do not match." : ""}
                                         InputProps={{
                                             endAdornment: (
                                                 <InputAdornment position="end">
@@ -283,23 +437,29 @@ const Signup = props => {
                                         variant="contained"
                                         fullWidth
                                         size="large"
-                                        sx={{ py: 1.5, textTransform: 'none', fontWeight: 600 }}
+                                        sx={{ py: 1.5, textTransform: 'none', fontWeight: 600, fontSize: '1rem', borderRadius: '12px' }}
                                     >
-                                        Create your account
+                                        Create Account
                                     </Button>
 
-                                    <Box sx={{ mt: 2, textAlign: 'center' }}>
-                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                                            By signing up you agree to our{' '}
-                                            <LinkRouter to='/termsofservice' style={{ color: 'inherit', textDecoration: 'underline' }}>Terms of Service</LinkRouter>
+                                    {/* Google Sign-Up */}
+                                    <Box sx={{ my: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Typography variant="body2" color="text.secondary">or</Typography>
+                                    </Box>
+                                    <div id="googleSignupBtn" style={{ width: '100%', minHeight: '40px', marginBottom: '8px' }}></div>
+
+                                    <Box sx={{ mt: 3, textAlign: 'center' }}>
+                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5, lineHeight: 1.4 }}>
+                                            By signing up, you agree to our{' '}
+                                            <LinkRouter to='/termsofservice' style={{ color: '#0A0A0A', fontWeight: 600, textDecoration: 'none' }}>Terms of Service</LinkRouter>
                                             {' '}and{' '}
-                                            <LinkRouter to='/privacy' style={{ color: 'inherit', textDecoration: 'underline' }}>Privacy Policy</LinkRouter>
+                                            <LinkRouter to='/privacy' style={{ color: '#0A0A0A', fontWeight: 600, textDecoration: 'none' }}>Privacy Policy</LinkRouter>.
                                         </Typography>
 
                                         <Typography variant="body2" color="text.secondary">
                                             Already have an account?{' '}
-                                            <LinkRouter to='/' style={{ color: 'inherit', fontWeight: 600, textDecoration: 'underline' }}>
-                                                Login
+                                            <LinkRouter to='/' style={{ color: '#0A0A0A', fontWeight: 700, textDecoration: 'none' }}>
+                                                Log In
                                             </LinkRouter>
                                         </Typography>
                                     </Box>
@@ -309,6 +469,23 @@ const Signup = props => {
                     )}
                 </Container>
             </Box>
+
+            {/* Snackbar feedback */}
+            <Snackbar 
+                open={toast.open} 
+                autoHideDuration={4000} 
+                onClose={() => setToast({ ...toast, open: false })}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert 
+                    onClose={() => setToast({ ...toast, open: false })} 
+                    severity={toast.severity} 
+                    variant="filled"
+                    sx={{ width: '100%', borderRadius: '12px', fontWeight: 600, boxShadow: 3 }}
+                >
+                    {toast.message}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

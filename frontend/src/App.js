@@ -11,6 +11,7 @@ import Signup from './components/Auth/Signup';
 import MapOpen from './components/OpeningMap/MapOpen';
 import Course from './components/Course/Course';
 import Forgot from './components/Auth/ForgotPassword/ForgotPassword';
+import VerifyEmail from './components/Auth/VerifyEmail/VerifyEmail';
 import './App.css';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
@@ -78,6 +79,7 @@ function App() {
 						<Route path='/termsofservice' element={<TermsOfService />} />
 						<Route path='/privacy' element={<Privacy />} />
 						<Route path='/forgot' element={<Forgot />} />
+						<Route path='/verify-email' element={<VerifyEmail />} />
 						<Route path='landing' element={<LandingPage />} />
 						<Route path='/explore' element={<Explore />} />
 						<Route path='/sign-up' element={<Signup isTeacher={true} />} />

@@ -59,6 +59,7 @@ export const PremiumBottomNav = () => {
 
     return (
         <Box
+            id="BottomNav"
             sx={{
                 position: 'fixed',
                 bottom: 'calc(16px + env(safe-area-inset-bottom))',
@@ -105,10 +106,10 @@ export const PremiumBottomNav = () => {
                                 cursor: 'pointer',
                                 borderRadius: '24px',
                                 transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                bgcolor: active ? '#F2F2F2' : 'transparent',
+                                bgcolor: active ? 'rgba(10, 10, 10, 0.08)' : 'transparent',
                                 '&:active': {
                                     transform: 'scale(0.92)',
-                                    bgcolor: '#EAEAEA'
+                                    bgcolor: 'rgba(10, 10, 10, 0.14)'
                                 }
                             }}
                         >
@@ -131,7 +132,7 @@ export const PremiumBottomNav = () => {
                                     {React.cloneElement(item.icon, {
                                         sx: {
                                             fontSize: 26,
-                                            color: active ? 'text.primary' : 'text.secondary',
+                                            color: active ? 'primary.main' : 'text.secondary',
                                             transition: 'color 0.2s ease',
                                         }
                                     })}
@@ -147,7 +148,7 @@ export const PremiumBottomNav = () => {
                                         width: 4,
                                         height: 4,
                                         borderRadius: '50%',
-                                        bgcolor: 'text.primary'
+                                        bgcolor: 'primary.main'
                                     }}
                                 />
                             )}

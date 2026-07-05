@@ -1,6 +1,6 @@
-# Osmosis Backend & Frontend
+# Studio Time Backend & Frontend
 
-This is the monolithic repository for the Osmosis application, containing both the Node.js/Express backend and the React frontend.
+This is the monolithic repository for the Studio Time application, containing both the Node.js/Express backend and the React frontend.
 
 ## Prerequisites
 

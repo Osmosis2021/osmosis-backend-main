@@ -1,9 +1,9 @@
 {
   "files": {
-    "main.css": "/static/css/main.668d1980.css",
-    "main.js": "/static/js/main.0bfe5815.js",
+    "main.css": "/static/css/main.85acbf95.css",
+    "main.js": "/static/js/main.4cc119f8.js",
     "static/media/mapWalkthrough.mp4": "/static/media/mapWalkthrough.c909a1d6ca377f662259.mp4",
-    "static/media/osmosisWalkthrough.mp4": "/static/media/osmosisWalkthrough.5ef3d810430ffe5a97d8.mp4",
+    "static/media/studiotimeWalkthrough.mp4": "/static/media/studiotimeWalkthrough.5ef3d810430ffe5a97d8.mp4",
     "static/media/animatedVid.mp4": "/static/media/animatedVid.8bef000f60e4e496bec3.mp4",
     "static/media/Comp1.mp4": "/static/media/Comp1.0918c9a51c606b150cc4.mp4",
     "static/media/Receiving.png": "/static/media/Receiving.0d9bc56dcfde825128d1.png",
@@ -12,8 +12,8 @@
     "static/media/Sharing.png": "/static/media/Sharing.75413ba09a6ed7c544db.png",
     "static/media/few.png": "/static/media/few.fcb3bee615bad093b717.png",
     "static/js/mapbox-gl-csp-worker.fb354265.worker.js": "/static/js/mapbox-gl-csp-worker.fb354265.worker.js",
+    "static/media/studio_time_logo_white.png": "/static/media/studio_time_logo_white.3a3161e2f843d53f175e.png",
     "static/media/language.png": "/static/media/language.552811a816fbd702d6ee.png",
-    "static/media/Osmosis_Logo.png": "/static/media/Osmosis_Logo.b57c7918b0757ca0a4ac.png",
     "static/media/cook.png": "/static/media/cook.8a07b0b55aed0c5acf99.png",
     "static/media/business.png": "/static/media/business.93f064bfb4f8bb8c6dfa.png",
     "static/media/music.png": "/static/media/music.ee59099fded0b0542cd5.png",
@@ -21,6 +21,7 @@
     "static/media/reviews.png": "/static/media/reviews.0b616ba1a065e1537ce4.png",
     "static/media/megaphone.png": "/static/media/megaphone.bd1547cb20f514c3cc74.png",
     "static/media/map.png": "/static/media/map.73948584a92a3fc87a6f.png",
+    "static/media/studio_time_logo.png": "/static/media/studio_time_logo.8c997d488a3388fd65a6.png",
     "static/media/learning.png": "/static/media/learning.6843d1737b19bd8005bd.png",
     "static/media/schedule.png": "/static/media/schedule.08574752ed9e1ce7fa6e.png",
     "static/media/art.png": "/static/media/art.73fe264702ea1367766a.png",
@@ -28,6 +29,7 @@
     "static/media/mindfulness.png": "/static/media/mindfulness.7f307aeeaabef95f9a3a.png",
     "static/media/yoga.png": "/static/media/yoga.7f307aeeaabef95f9a3a.png",
     "static/media/tech.png": "/static/media/tech.088410b8a90d2096c794.png",
+    "static/media/studio_time_icon.png": "/static/media/studio_time_icon.a0eef18a64f582a246f8.png",
     "static/media/fitness.png": "/static/media/fitness.32a0186e72549c7804db.png",
     "static/media/messaging.png": "/static/media/messaging.88080b6820fe77479bbc.png",
     "static/media/pay.png": "/static/media/pay.71b55e4172aacf1507c3.png",
@@ -36,11 +38,11 @@
     "static/media/slick.ttf": "/static/media/slick.c94f7671dcc99dce43e2.ttf",
     "static/media/slick.woff": "/static/media/slick.295183786cd8a1389865.woff",
     "index.html": "/index.html",
-    "main.668d1980.css.map": "/static/css/main.668d1980.css.map",
-    "main.0bfe5815.js.map": "/static/js/main.0bfe5815.js.map"
+    "main.85acbf95.css.map": "/static/css/main.85acbf95.css.map",
+    "main.4cc119f8.js.map": "/static/js/main.4cc119f8.js.map"
   },
   "entrypoints": [
-    "static/css/main.668d1980.css",
-    "static/js/main.0bfe5815.js"
+    "static/css/main.85acbf95.css",
+    "static/js/main.4cc119f8.js"
   ]
 }

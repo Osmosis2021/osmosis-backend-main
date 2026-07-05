@@ -70,10 +70,30 @@ const UserSchema = new mongoose.Schema(
 			type: Number,
 			default: 0
 		 },
-		 description: {
+				 description: {
 			type: String,
 			default: ''
-		 }
+		 },
+		isEmailVerified: {
+			type: Boolean,
+			default: false
+		},
+		emailVerificationCode: {
+			type: String,
+			default: ''
+		},
+		phoneNumber: {
+			type: String,
+			default: ''
+		},
+		smsEnabled: {
+			type: Boolean,
+			default: false
+		},
+		googleId: {
+			type: String,
+			default: ''
+		}
 
 	},
 	{

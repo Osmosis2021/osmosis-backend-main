@@ -1,4 +1,4 @@
-import { Button, IconButton, Stack } from '@mui/material';
+import { Button, IconButton, Stack, Box } from '@mui/material';
 import useStore from '../../store';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -11,7 +11,7 @@ import CameraAltIcon from '@mui/icons-material/CameraAlt';
 // import useStore from '../../../../store';
 
 
-export default function UploadProfilePicture() {
+export default function UploadProfilePicture(props) {
  
 	const [image, setImage] = useState('');
 	const {userID, userName, backendURL} = useStore()
@@ -46,46 +46,86 @@ export default function UploadProfilePicture() {
 
     const uploadFile = async (e) => {
         e.preventDefault();
-			axiosPrivate.put(`${backendURL}user/updateProfileImage/${userID}`, { image }, {withCredentials: true}
-			).then(res => {
-				alert('Image updated')
-		})
+        if (!image) return;
+        
+        axiosPrivate.put(`${backendURL}user/updateProfileImage/${userID}`, { image }, {withCredentials: true}
+        ).then(res => {
+            if (props.showToast) {
+                props.showToast('Profile picture updated successfully!', 'success');
+            } else {
+                alert('Image updated');
+            }
+            // Clear base64 selected image state once confirmed
+            setImage('');
+        }).catch(err => {
+            if (props.showToast) {
+                props.showToast('Failed to update profile picture.', 'error');
+            } else {
+                alert('Upload failed');
+            }
+        });
     }
 	
 	return (
 		<div>
-			<Stack style={{ alignItems: 'center' }}>
-				
-				
+			<Stack sx={{ alignItems: 'center' }}>
 				<form
 					onSubmit={uploadFile}
 					method='POST'
 					encType='multipart/form-data'
 					action=''
-					style={{display: 'flex', flexDirection: 'column'}}>
+					style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px'}}>
 
-						<IconButton
-							// style={{ height: 100, width: 100, border:'#000000 solid 1px' }}
-							color='primary'
-							variant='outlined'
-							aria-label='upload picture'
-							component='label'>
-								<input
-									hidden
-									type='file'
-									multiple
-									accept='image/*'
-									onChange={handleImage}
-								/>
-								<CameraAltIcon style={{ position:'absolute', top:'30%', zIndex:'10', fontSize:'40px' }} />
-				<Prof avatar={image || userInfo?.profileImage?.url}/>
-							{/* Change Profile */}
-						</IconButton>
+                    <Box sx={{ position: 'relative', display: 'inline-block' }}>
+                        <Prof avatar={image || userInfo?.profileImage?.url}/>
+                        
+                        <IconButton
+                            color='primary'
+                            aria-label='upload picture'
+                            component='label'
+                            sx={{
+                                position: 'absolute',
+                                bottom: 0,
+                                right: 0,
+                                bgcolor: 'white',
+                                border: '1px solid #E2E8F0',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                width: 36,
+                                height: 36,
+                                '&:hover': {
+                                    bgcolor: '#F8FAFC',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                }
+                            }}
+                        >
+                            <input
+                                hidden
+                                type='file'
+                                accept='image/*'
+                                onChange={handleImage}
+                            />
+                            <CameraAltIcon sx={{ fontSize: 18, color: 'primary.main' }} />
+                        </IconButton>
+                    </Box>
 
-						<Button variant='contained' type="submit" style={{color:'white'}}>Confirm Photo</Button>
-
+                    {image && (
+                        <Button 
+                            variant='contained' 
+                            type="submit" 
+                            size="small"
+                            sx={{ 
+                                borderRadius: '20px', 
+                                px: 3, 
+                                py: 0.75, 
+                                fontSize: '0.85rem',
+                                color: 'white',
+                                animation: 'fadeIn 0.2s ease-out'
+                            }}
+                        >
+                            Confirm Photo
+                        </Button>
+                    )}
 				</form>
-
 			</Stack>
 		</div>
 	);

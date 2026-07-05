@@ -17,7 +17,6 @@ import {
   useMediaQuery
 } from "@mui/material";
 import { Link, Link as LinkRouter, useNavigate, useParams } from "react-router-dom";
-import TopProfileBar from "../../TopNavBar/TopProfileBar";
 import SessionCard from "../../SessionCard/SessionCard";
 import React, { useState, useEffect } from "react";
 import AddIcon from "@mui/icons-material/Add";

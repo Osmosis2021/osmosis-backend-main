@@ -4,7 +4,7 @@ import { Capacitor } from '@capacitor/core'
 const useStore = create(set => ({
     platform: Capacitor.getPlatform() || 'ios',  //  'web', 'ios' or 'android'
 
-    backendURL: process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/',
+    backendURL: process.env.NODE_ENV === 'production' ? 'https://studiotime.app/' : 'http://localhost:8126/',
 
     firstName: '',
     setFirstName: firstName => set({ firstName }),

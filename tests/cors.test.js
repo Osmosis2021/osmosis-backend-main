@@ -29,7 +29,7 @@ describe('CORS Configuration', () => {
     });
 
     it('should allow requests from production origin', async () => {
-        const origin = 'https://getosmosis.io';
+        const origin = 'https://studiotime.app';
         const response = await request(app)
             .get('/test-cors')
             .set('Origin', origin);
@@ -40,7 +40,7 @@ describe('CORS Configuration', () => {
     });
 
     it('should allow requests from www production origin', async () => {
-        const origin = 'https://www.getosmosis.io';
+        const origin = 'https://www.studiotime.app';
         const response = await request(app)
             .get('/test-cors')
             .set('Origin', origin);

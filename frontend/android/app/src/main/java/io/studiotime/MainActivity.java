@@ -1,4 +1,4 @@
-package io.getosmosis;
+package io.studiotime;
 
 import com.getcapacitor.BridgeActivity;
 

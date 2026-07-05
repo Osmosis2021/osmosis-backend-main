@@ -7,39 +7,39 @@ import {
     Box,
     Stack,
     CircularProgress,
-    Link as MuiLink
+    Alert
 } from '@mui/material';
 import { useNavigate, Link as LinkRouter } from 'react-router-dom';
 import TopNavBar from '../../TopNavBar/TopNavBar';
-import logo from '../../../assets/studio_time_logo.png'
-import './ForgotPassword.css'
-import useStore from "../../../store"
-import useKeyboard from '../../../hooks/useKeyboard'
+import './ForgotPassword.css';
+import useStore from "../../../store";
+import useKeyboard from '../../../hooks/useKeyboard';
+import axios from "../../../actions/axios";
 
 const Forgot = () => {
-    const navigate = useNavigate()
-    const manageKeyboard = useKeyboard()
-    const [email, setEmail] = useState('')
-    const [stage, setStage] = useState('email') // email, success, resetCode, newPassword
-    const [error, setError] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
+    const navigate = useNavigate();
+    const manageKeyboard = useKeyboard();
+    const { backendURL } = useStore();
 
-    // Hidden fields for existing multi-step flow (preserved for logic)
-    const [resetCode, setResetCode] = useState('')
-    const [newPassword, setNewPassword] = useState('')
-    const [repeatPassword, setRepeatPassword] = useState('')
+    const [email, setEmail] = useState('');
+    const [stage, setStage] = useState('email'); // email, resetCode, newPassword, success
+    const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const { backendURL } = useStore()
+    const [resetCode, setResetCode] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [repeatPassword, setRepeatPassword] = useState('');
 
     useEffect(() => {
-        manageKeyboard('fieldGrid')
-    }, [])
+        manageKeyboard('fieldGrid');
+    }, []);
 
     const validateEmail = (email) => {
         return /\S+@\S+\.\S+/.test(email);
-    }
+    };
 
-    const requestResetCode = async (e) => {
+    const handleSendCode = async (e) => {
         if (e) e.preventDefault();
         if (!email || !validateEmail(email)) {
             setError('Please enter a valid email address.');
@@ -50,197 +50,312 @@ const Forgot = () => {
         setError('');
 
         try {
-            const response = await fetch(`${backendURL}email/sendResetCode/${email}`);
-            const resp = await response.json();
-
-            if (resp.result === 'Email not found') {
+            const response = await axios.get(`email/sendResetCode/${email}`);
+            if (response.data.result === 'Email not found') {
                 setError('No account found with this email address.');
-                setIsLoading(false);
-                return;
+            } else if (response.data.success) {
+                setSuccessMessage('Verification code sent to your email.');
+                setStage('resetCode');
+            } else {
+                setError('Failed to send reset code. Please try again.');
             }
-
-            setStage('success');
         } catch (err) {
-            console.log('Error sending reset code:\n', err);
+            console.error('Error sending reset code:', err);
             setError('Something went wrong. Please try again later.');
         } finally {
             setIsLoading(false);
         }
-    }
+    };
 
-    // Preserving secondary flow logic just in case the link takes them here
-    const verifyResetCode = () => {
-        fetch(`${backendURL}email/verifyResetCode/${email}/${resetCode}`)
-            .then(res => res.json())
-            .then(resp => {
-                if (resp.result === 'Incorrect reset code') {
-                    alert('Incorrect reset code')
-                    return
-                }
-                setStage('newPassword')
-            }).catch(err => {
-                console.log('Error verifying reset code:\n', err)
-            })
-    }
-
-    const updatePassword = () => {
-        if (newPassword !== repeatPassword) {
-            alert('Passwords do not match')
-            return
-        } else if (newPassword.length < 8) {
-            alert('Password must be at least 8 characters')
-            return
+    const handleVerifyCode = async (e) => {
+        if (e) e.preventDefault();
+        if (!resetCode || resetCode.length !== 6) {
+            setError('Please enter the 6-digit reset code.');
+            return;
         }
-        const userInfo = { email, password: newPassword, resetCode }
-        fetch(`${backendURL}email/updatePassword/${email}/${resetCode}`, {
-            body: JSON.stringify(userInfo),
-            method: 'PATCH', headers: { 'Content-Type': 'application/json' }
-        })
-            .then(res => res.json())
-            .then(resp => {
-                if (resp.result === 'Password not updated') {
-                    alert('Password not updated')
-                } else {
-                    alert('Password reset successfully, now please log in')
-                    setStage('email')
-                }
-                navigate('/')
-            }).catch(err => {
-                console.log('Error resetting password:\n', err)
-            })
-    }
 
-    const isButtonDisabled = !email || !validateEmail(email) || isLoading;
+        setIsLoading(true);
+        setError('');
+
+        try {
+            const response = await axios.get(`email/verifyResetCode/${email}/${resetCode}`);
+            if (response.data.result === 'Incorrect reset code') {
+                setError('Incorrect reset code. Please try again.');
+            } else if (response.data.result === 'success') {
+                setStage('newPassword');
+                setSuccessMessage('Code verified successfully. Enter your new password.');
+            } else {
+                setError('Verification failed. Please check the code.');
+            }
+        } catch (err) {
+            console.error('Error verifying code:', err);
+            setError('Error verifying reset code. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleResetPassword = async (e) => {
+        if (e) e.preventDefault();
+        if (newPassword !== repeatPassword) {
+            setError('Passwords do not match.');
+            return;
+        }
+        if (newPassword.length < 8) {
+            setError('Password must be at least 8 characters.');
+            return;
+        }
+
+        setIsLoading(true);
+        setError('');
+
+        try {
+            const response = await axios.patch(`email/updatePassword/${email}/${resetCode}`, {
+                email,
+                password: newPassword,
+                resetCode
+            });
+
+            if (response.data.result === 'success') {
+                setStage('success');
+                setSuccessMessage('');
+            } else {
+                setError('Password not updated. Please try again.');
+            }
+        } catch (err) {
+            console.error('Error updating password:', err);
+            setError('Failed to update password. Please try again later.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <Box sx={{
             flexGrow: 1,
             display: 'flex',
             flexDirection: 'column',
-            minHeight: 0,
-            bgcolor: 'background.default'
+            minHeight: '85vh',
+            bgcolor: 'background.default',
+            justifyContent: 'center',
+            alignItems: 'center',
+            px: 3
         }}>
-            <TopNavBar back='/' next='empty' />
-
-            <Box sx={{
-                flexGrow: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                px: 3,
-                pb: 10 // Pushes content up slightly to feel balanced
-            }}>
-                <Container maxWidth="xs" sx={{ p: 0 }}>
-                    {stage === 'success' ? (
-                        <Stack spacing={3} sx={{ textAlign: 'center', animation: 'fadeIn 0.4s ease-out' }}>
-                            <Box>
-                                <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
-                                    Check your email
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    If an account exists for {email}, you’ll receive a reset link shortly.
-                                </Typography>
-                            </Box>
-
-                            <Box sx={{ pt: 2 }}>
-                                <LinkRouter to="/" style={{ textDecoration: 'none' }}>
-                                    <Typography
-                                        variant="body2"
-                                        sx={{
-                                            color: 'text.primary',
-                                            fontWeight: 600,
-                                            textDecoration: 'underline'
-                                        }}
-                                    >
-                                        Back to login
-                                    </Typography>
-                                </LinkRouter>
-                            </Box>
-                        </Stack>
-                    ) : (
-                        <Box component="form" onSubmit={requestResetCode} id="fieldGrid">
+            <Container maxWidth="xs" sx={{ p: 0 }}>
+                <Stack spacing={4} sx={{ bgcolor: 'background.paper', p: 4, borderRadius: '24px', boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.05)', animation: 'fadeIn 0.4s ease-out' }}>
+                    
+                    {stage === 'email' && (
+                        <Box component="form" onSubmit={handleSendCode}>
                             <Stack spacing={3}>
-                                <Box sx={{ textAlign: 'center', mb: 1 }}>
-                                    <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
-                                        Reset your password
+                                <Box sx={{ textAlign: 'center' }}>
+                                    <Typography variant="h5" sx={{ fontWeight: 800, fontFamily: 'Outfit', mb: 1 }}>
+                                        Forgot Password
                                     </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        Enter the email associated with your account and we’ll send a reset link.
+                                    <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'Inter' }}>
+                                        Enter your email and we'll send a 6-digit reset code.
                                     </Typography>
                                 </Box>
 
-                                <Box>
-                                    <TextField
-                                        variant='outlined'
-                                        label='Email'
-                                        fullWidth
-                                        value={email}
-                                        onChange={e => {
-                                            setEmail(e.target.value);
-                                            if (error) setError('');
-                                        }}
-                                        error={!!error}
-                                        helperText={error}
-                                        inputProps={{ autoCapitalize: 'none' }}
-                                        disabled={isLoading}
-                                    />
-                                </Box>
+                                {error && <Alert severity="error" sx={{ borderRadius: '12px' }}>{error}</Alert>}
 
-                                <Box>
-                                    <Button
-                                        variant='contained'
-                                        size='large'
-                                        fullWidth
-                                        type="submit"
-                                        disabled={isButtonDisabled}
-                                        sx={{
-                                            py: 1.5,
-                                            textTransform: 'none',
-                                            fontWeight: 600,
-                                            height: '56px'
-                                        }}
-                                    >
-                                        {isLoading ? <CircularProgress size={24} color="inherit" /> : "Send reset link"}
-                                    </Button>
+                                <TextField
+                                    variant='outlined'
+                                    label='Email Address'
+                                    fullWidth
+                                    type="email"
+                                    value={email}
+                                    onChange={e => {
+                                        setEmail(e.target.value);
+                                        if (error) setError('');
+                                    }}
+                                    inputProps={{ autoCapitalize: 'none' }}
+                                    disabled={isLoading}
+                                    required
+                                />
 
-                                    <Box sx={{ mt: 3, textAlign: 'center' }}>
-                                        <LinkRouter to="/" style={{ textDecoration: 'none' }}>
-                                            <Typography
-                                                variant="body2"
-                                                sx={{
-                                                    color: 'text.secondary',
-                                                    '&:hover': { color: 'text.primary' },
-                                                    textDecoration: 'underline'
-                                                }}
-                                            >
-                                                Back to login
-                                            </Typography>
-                                        </LinkRouter>
-                                    </Box>
-                                </Box>
+                                <Button
+                                    variant='contained'
+                                    size='large'
+                                    fullWidth
+                                    type="submit"
+                                    disabled={isLoading || !email || !validateEmail(email)}
+                                    sx={{
+                                        py: 1.5,
+                                        textTransform: 'none',
+                                        fontWeight: 700,
+                                        height: '56px',
+                                        borderRadius: '12px'
+                                    }}
+                                >
+                                    {isLoading ? <CircularProgress size={24} color="inherit" /> : "Send Reset Code"}
+                                </Button>
                             </Stack>
                         </Box>
                     )}
 
-                    {/* Hidden legacy stages - kept for structural compatibility if needed */}
                     {stage === 'resetCode' && (
-                        <Box sx={{ mt: 4, pt: 4, borderTop: '1px solid', borderColor: 'divider' }}>
-                            <Typography variant="caption" color="text.secondary">Verify Code Flow (Legacy)</Typography>
-                            <TextField fullWidth size="small" value={resetCode} onChange={e => setResetCode(e.target.value)} sx={{ mt: 1 }} />
-                            <Button fullWidth onClick={verifyResetCode} sx={{ mt: 1 }}>Verify</Button>
+                        <Box component="form" onSubmit={handleVerifyCode}>
+                            <Stack spacing={3}>
+                                <Box sx={{ textAlign: 'center' }}>
+                                    <Typography variant="h5" sx={{ fontWeight: 800, fontFamily: 'Outfit', mb: 1 }}>
+                                        Enter Reset Code
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'Inter' }}>
+                                        Enter the 6-digit code sent to <strong>{email}</strong>.
+                                    </Typography>
+                                </Box>
+
+                                {successMessage && <Alert severity="success" sx={{ borderRadius: '12px' }}>{successMessage}</Alert>}
+                                {error && <Alert severity="error" sx={{ borderRadius: '12px' }}>{error}</Alert>}
+
+                                <TextField
+                                    variant='outlined'
+                                    label='6-Digit Reset Code'
+                                    fullWidth
+                                    value={resetCode}
+                                    onChange={e => {
+                                        const val = e.target.value.replace(/[^0-9]/g, '');
+                                        if (val.length <= 6) {
+                                            setResetCode(val);
+                                        }
+                                    }}
+                                    inputProps={{
+                                        style: { textAlign: 'center', fontSize: '20px', letterSpacing: '4px', fontWeight: 'bold' },
+                                        maxLength: 6,
+                                        inputMode: 'numeric',
+                                        pattern: '[0-9]*'
+                                    }}
+                                    disabled={isLoading}
+                                    placeholder="000000"
+                                    required
+                                />
+
+                                <Button
+                                    variant='contained'
+                                    size='large'
+                                    fullWidth
+                                    type="submit"
+                                    disabled={isLoading || resetCode.length !== 6}
+                                    sx={{
+                                        py: 1.5,
+                                        textTransform: 'none',
+                                        fontWeight: 700,
+                                        height: '56px',
+                                        borderRadius: '12px'
+                                    }}
+                                >
+                                    {isLoading ? <CircularProgress size={24} color="inherit" /> : "Verify Code"}
+                                </Button>
+                            </Stack>
                         </Box>
                     )}
+
                     {stage === 'newPassword' && (
-                        <Box sx={{ mt: 4, pt: 4, borderTop: '1px solid', borderColor: 'divider' }}>
-                            <Typography variant="caption" color="text.secondary">New Password Flow (Legacy)</Typography>
-                            <TextField fullWidth size="small" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} sx={{ mt: 1 }} />
-                            <TextField fullWidth size="small" type="password" value={repeatPassword} onChange={e => setRepeatPassword(e.target.value)} sx={{ mt: 1 }} />
-                            <Button fullWidth onClick={updatePassword} sx={{ mt: 1 }}>Update</Button>
+                        <Box component="form" onSubmit={handleResetPassword}>
+                            <Stack spacing={3}>
+                                <Box sx={{ textAlign: 'center' }}>
+                                    <Typography variant="h5" sx={{ fontWeight: 800, fontFamily: 'Outfit', mb: 1 }}>
+                                        Set New Password
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'Inter' }}>
+                                        Choose a secure password (minimum 8 characters).
+                                    </Typography>
+                                </Box>
+
+                                {successMessage && <Alert severity="success" sx={{ borderRadius: '12px' }}>{successMessage}</Alert>}
+                                {error && <Alert severity="error" sx={{ borderRadius: '12px' }}>{error}</Alert>}
+
+                                <TextField
+                                    variant='outlined'
+                                    label='New Password'
+                                    type="password"
+                                    fullWidth
+                                    value={newPassword}
+                                    onChange={e => setNewPassword(e.target.value)}
+                                    disabled={isLoading}
+                                    required
+                                />
+
+                                <TextField
+                                    variant='outlined'
+                                    label='Repeat New Password'
+                                    type="password"
+                                    fullWidth
+                                    value={repeatPassword}
+                                    onChange={e => repeatPassword !== e.target.value ? setRepeatPassword(e.target.value) : setRepeatPassword(e.target.value)}
+                                    disabled={isLoading}
+                                    required
+                                />
+
+                                <Button
+                                    variant='contained'
+                                    size='large'
+                                    fullWidth
+                                    type="submit"
+                                    disabled={isLoading || !newPassword || !repeatPassword}
+                                    sx={{
+                                        py: 1.5,
+                                        textTransform: 'none',
+                                        fontWeight: 700,
+                                        height: '56px',
+                                        borderRadius: '12px'
+                                    }}
+                                >
+                                    {isLoading ? <CircularProgress size={24} color="inherit" /> : "Reset Password"}
+                                </Button>
+                            </Stack>
                         </Box>
                     )}
-                </Container>
-            </Box>
+
+                    {stage === 'success' && (
+                        <Stack spacing={3} sx={{ textAlign: 'center' }}>
+                            <Box>
+                                <Typography variant="h5" sx={{ fontWeight: 800, fontFamily: 'Outfit', mb: 1, color: 'success.main' }}>
+                                    Password Reset Complete
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'Inter' }}>
+                                    Your password has been successfully updated. You can now log in with your new password.
+                                </Typography>
+                            </Box>
+
+                            <Button
+                                variant='contained'
+                                size='large'
+                                fullWidth
+                                onClick={() => navigate('/')}
+                                sx={{
+                                    py: 1.5,
+                                    textTransform: 'none',
+                                    fontWeight: 700,
+                                    height: '56px',
+                                    borderRadius: '12px'
+                                }}
+                            >
+                                Back to Login
+                            </Button>
+                        </Stack>
+                    )}
+
+                    {stage !== 'success' && (
+                        <Box sx={{ textAlign: 'center' }}>
+                            <LinkRouter to="/" style={{ textDecoration: 'none' }}>
+                                <Typography
+                                    variant="body2"
+                                    sx={{
+                                        color: 'text.secondary',
+                                        '&:hover': { color: 'primary.main' },
+                                        textDecoration: 'underline',
+                                        fontFamily: 'Inter',
+                                        fontWeight: 500
+                                    }}
+                                >
+                                    Back to login
+                                </Typography>
+                            </LinkRouter>
+                        </Box>
+                    )}
+                </Stack>
+            </Container>
             <style>
                 {`
                     @keyframes fadeIn {

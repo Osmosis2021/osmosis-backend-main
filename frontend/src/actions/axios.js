@@ -1,5 +1,5 @@
 import axios from "axios"
-const BASE_URL = process.env.NODE_ENV === 'production' ? 'https://getosmosis.io/' : 'http://localhost:8126/'
+const BASE_URL = process.env.NODE_ENV === 'production' ? 'https://studiotime.app/' : 'http://localhost:8126/'
 
 export default axios.create({
     baseURL: BASE_URL,

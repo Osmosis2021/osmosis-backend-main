@@ -1,8 +1,140 @@
-.MuiListItemText-root {
-    color: #000000;
-    font-weight: bold;
+/* Custom Styles for Settings Dashboard */
+
+.settings-card {
+  border: 1px solid #E5E5E5 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02), 0 1px 3px rgba(0, 0, 0, 0.01) !important;
+  background-color: #FFFFFF !important;
+  overflow: hidden;
 }
 
-.MuiListItemIcon-root {
-    color: #000000 !important;   
+.settings-sidebar {
+  background-color: #FAFAFA;
+  padding: 20px 16px;
+  height: 100%;
+  border-right: 1px solid #E5E5E5;
+}
+
+.settings-menu-item {
+  border-radius: 12px !important;
+  margin-bottom: 6px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  padding: 12px 16px !important;
+}
+
+.settings-menu-item:hover {
+  background-color: #F7F7F7 !important;
+}
+
+.settings-menu-item.active-item {
+  background-color: #0A0A0A !important;
+  color: #FFFFFF !important;
+}
+
+.settings-menu-item.active-item .MuiListItemIcon-root {
+  color: #FFFFFF !important;
+}
+
+.settings-menu-item.active-item .MuiListItemText-root span {
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+}
+
+.settings-menu-item .MuiListItemIcon-root {
+  color: #525252 !important;
+  min-width: 40px !important;
+  transition: color 0.2s ease-in-out;
+}
+
+.settings-menu-item:hover .MuiListItemIcon-root {
+  color: #0A0A0A !important;
+}
+
+.settings-menu-item .MuiListItemText-root span {
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 0.95rem !important;
+  color: #525252 !important;
+  transition: color 0.2s ease-in-out;
+}
+
+.settings-menu-item:hover .MuiListItemText-root span {
+  color: #0A0A0A !important;
+}
+
+.settings-logout-item {
+  color: #EF4444 !important;
+}
+
+.settings-logout-item:hover {
+  background-color: #FEE2E2 !important;
+}
+
+.settings-logout-item:hover .MuiListItemIcon-root {
+  color: #EF4444 !important;
+}
+
+.settings-logout-item:hover .MuiListItemText-root span {
+  color: #EF4444 !important;
+}
+
+.settings-content-pane {
+  padding: 32px;
+  background-color: #FFFFFF;
+}
+
+@media (max-width: 900px) {
+  .settings-content-pane {
+    padding: 20px 16px;
+  }
+  .settings-sidebar {
+    border-right: none;
+    background-color: transparent;
+    padding: 8px;
+  }
+}
+
+/* Custom Scrollbar for Privacy Policy */
+.privacy-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.privacy-scroll-container::-webkit-scrollbar-track {
+  background: #F7F7F7;
+  border-radius: 4px;
+}
+
+.privacy-scroll-container::-webkit-scrollbar-thumb {
+  background: #E5E5E5;
+  border-radius: 4px;
+}
+
+.privacy-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #8C8C8C;
+}
+
+/* Visual Card Mockup */
+.payment-card-mockup {
+  border-radius: 16px;
+  background: linear-gradient(135deg, #0A0A0A 0%, #1F1F1F 100%);
+  padding: 24px;
+  color: #FFFFFF;
+  box-shadow: 0 8px 32px rgba(10, 10, 10, 0.15);
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: 1px;
+  width: 100%;
+  max-width: 340px;
+  position: relative;
+  overflow: hidden;
+}
+
+.payment-card-mockup::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 70%);
+  pointer-events: none;
 }

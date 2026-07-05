@@ -19,8 +19,8 @@ router.get('/accountLink/:stripeID', async (req, res) => {
     const { stripeID } = req.params;
     const accountLink = await stripe.accountLinks.create({
         account: stripeID,
-        refresh_url: 'https://getosmosis.io/reauth',
-        return_url: `https://getosmosis.io/explore`,
+        refresh_url: 'https://studiotime.app/reauth',
+        return_url: `https://studiotime.app/explore`,
         type: 'account_onboarding',
     });
     // res.redirect(accountLink)

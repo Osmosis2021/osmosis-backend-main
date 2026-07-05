@@ -5,6 +5,10 @@ const RequireAuth = ({allowedRoles}) => {
     const {auth} = useAuth()
     const location = useLocation()
 
+    if (auth?.userName && auth?.isEmailVerified === false) {
+        return <Navigate to='/verify-email' state={{from: location}} replace />
+    }
+
     return(
         auth?.roles?.find(role => allowedRoles?.includes(role))
             ? <Outlet />

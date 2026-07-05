@@ -22,19 +22,23 @@ const NavItem = ({ to, icon, label, isActive }) => (
                 justifyContent: 'center',
                 textDecoration: 'none',
                 color: isActive ? 'primary.main' : 'text.secondary',
-                width: 64,
-                height: 64,
-                borderRadius: 0,
-                bgcolor: isActive ? '#F7F7F7' : 'transparent',
-                transition: 'all 0.2s',
+                width: 68,
+                height: 68,
+                borderRadius: '12px',
+                bgcolor: isActive ? 'rgba(10, 10, 10, 0.06)' : 'transparent',
+                transition: 'all 0.2s ease-in-out',
                 '&:hover': {
-                    bgcolor: isActive ? '#F7F7F7' : '#FAFAFA',
-                    transform: 'none'
+                    bgcolor: isActive ? 'rgba(10, 10, 10, 0.06)' : 'rgba(0, 0, 0, 0.03)',
+                    color: 'primary.main',
+                    transform: 'translateY(-1px)'
+                },
+                '&:active': {
+                    transform: 'scale(0.95)'
                 }
             }}
         >
-            {React.cloneElement(icon, { sx: { fontSize: 28 } })}
-            <Typography variant="caption" sx={{ mt: 0.5, fontWeight: 700, fontSize: '0.65rem' }}>
+            {React.cloneElement(icon, { sx: { fontSize: 24 } })}
+            <Typography variant="caption" sx={{ mt: 0.75, fontWeight: 500, fontSize: '0.75rem', fontFamily: 'Inter, sans-serif' }}>
                 {label}
             </Typography>
         </Box>
@@ -45,32 +49,14 @@ const SideRail = () => {
     const location = useLocation();
     const { userID, userName, platform, isTeacher } = useStore();
 
-    // Determine profile link based on user role/data? 
-    // Usually it's /students/:userName or /teachers/:userName
-    // But we can fallback to /edit or something if unavailable.
-    // For now assuming generic profile link is tricky without knowing role.
-    // We can use /students or /teachers if we know.
-    // But App.js routes are specific.
-    // Let's use /edit as a proxy or just /role if checking.
-    // Actually, `StudentProfile` at /students/:userName and `TeacherProfile` at /teachers/:userName
-    // We can use `userName` from store.
-    // If not logged in, maybe show Login?
-
-    const profileLink = `/students/${userName}`; // Default to student URL, valid for both if handle exists? 
-    // Just a guess. Or better, linking to /students which shows "personal page" per App.js line 91?
-    // Let's check App.js line 91: <Route path='/students' element={<h1...>} />
-    // Teacher Link: /teachers/:userName
-
-    // Let's rely on /edit for now or just the profile logic
-    // Actually, let's look at BottomNav to see what it links to.
-    // Skipping that research for speed, I'll link to /edit for "Profile" or just userName if available.
+    const profileLink = userName ? `/${isTeacher ? 'teachers' : 'students'}/${userName}` : '/sign-up';
 
     const navItems = [
         { to: '/', icon: <HomeIcon />, label: 'Home' },
         { to: '/explore', icon: <SearchIcon />, label: 'Explore' },
         { to: '/chat', icon: <ChatBubbleOutlineIcon />, label: 'Messages' },
         {
-            to: userName ? `/${isTeacher ? 'teachers' : 'students'}/${userName}` : '/sign-up',
+            to: profileLink,
             icon: <PersonOutlineIcon />,
             label: 'Profile'
         }
@@ -84,7 +70,7 @@ const SideRail = () => {
                 position: 'fixed',
                 left: 0,
                 top: 0,
-                borderRight: '1px solid #F0F0F0',
+                borderRight: '1px solid #E5E5E5',
                 bgcolor: 'background.paper',
                 display: 'flex',
                 flexDirection: 'column',
@@ -98,17 +84,17 @@ const SideRail = () => {
                 <Avatar
                     src={studioTimeIcon}
                     variant="rounded"
-                    sx={{ width: 48, height: 48 }}
+                    sx={{ width: 44, height: 44, borderRadius: '10px' }}
                 />
             </Box>
 
             {/* Nav Items */}
-            <Stack spacing={2} sx={{ mb: 'auto' }}>
+            <Stack spacing={2.5} sx={{ mb: 'auto' }}>
                 {navItems.map((item) => (
                     <NavItem
                         key={item.label}
                         {...item}
-                        isActive={location.pathname === item.to || location.pathname.startsWith(item.to) && item.to !== '/'}
+                        isActive={location.pathname === item.to || (location.pathname.startsWith(item.to) && item.to !== '/')}
                     />
                 ))}
             </Stack>

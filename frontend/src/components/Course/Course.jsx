@@ -72,7 +72,7 @@ const Course = () => {
 	if (isLoading) {
 		return (
 			<Box>
-				<TopNavBar back='/MapOpen' next='empty' activeStep='empty' />
+				<TopNavBar back='/explore' next='empty' activeStep='empty' />
 				<PremiumSkeleton height={400} />
 				<Container sx={{ mt: 4 }}>
 					<Grid container spacing={4}>
@@ -94,7 +94,7 @@ const Course = () => {
 
 	return (
 		<Box sx={{ pb: { xs: 10, md: 6 }, bgcolor: 'background.default', minHeight: '100vh' }}>
-			<TopNavBar back='/MapOpen' next='empty' activeStep='empty' />
+			<TopNavBar back='/explore' next='empty' activeStep='empty' />
 
 			<PremiumHero
 				images={courseData.images}

@@ -6,142 +6,93 @@ import LoopIcon from '@mui/icons-material/Loop';
 import LengthOfSession from './LengthOfSession';
 import { styled } from '@mui/material/styles';
 import TimeSelector from './TimeSelector';
-import { withStyles } from '@mui/styles';
 import useStore from '../../../store';
 import { PremiumSectionHeader } from '../../../ui/PremiumSectionHeader';
 import './ToggleDays.css';
 
 const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: '8px',
+    border: 'none',
+    width: '100%',
     '& .MuiToggleButtonGroup-grouped': {
-        margin: theme.spacing(2),
-        '&:not(:first-of-type)': {
-            border: '1px solid',
-            borderColor: '#000000',
-            borderRadius: '20%',
-            height: '50px',
-            width: '50px',
+        margin: 0,
+        border: '1px solid #E5E5E5 !important',
+        borderRadius: '12px !important',
+        flex: '0 0 auto',
+        minWidth: '72px',
+        height: 'auto',
+        padding: '12px 16px',
+        backgroundColor: '#FFFFFF',
+        color: '#0A0A0A',
+        transition: 'all 0.2s ease',
+        textTransform: 'none',
+        '&.Mui-selected': {
+            color: '#FFFFFF !important',
+            backgroundColor: '#0A0A0A !important',
+            borderColor: '#0A0A0A !important',
+            '& .MuiTypography-root': {
+                color: '#FFFFFF !important',
+            },
+            '& .MuiTypography-caption': {
+                color: 'rgba(255, 255, 255, 0.7) !important',
+            }
         },
-        '&$selected': {
-            color: 'white',
-            background: '#000000',
+        '&:hover': {
+            borderColor: '#0A0A0A !important',
+            backgroundColor: '#F7F7F7 !important',
+            color: '#0A0A0A !important',
         },
-        '&:first-of-type': {
-            border: '1px solid',
-            borderColor: '#000000',
-            borderRadius: '20%',
-            height: '50px',
-            width: '50px',
+        '&.Mui-selected:hover': {
+            backgroundColor: '#1F1F1F !important',
+            borderColor: '#0A0A0A !important',
+            color: '#FFFFFF !important',
         },
+        [theme.breakpoints.down('sm')]: {
+            flex: '1 0 28%',
+            minWidth: '64px',
+            padding: '10px 8px',
+        }
     },
 }));
 
-const StyledToggle = withStyles({
-    selected: {},
-    root: {
-        color: '#000000',
-        borderRadius: '12px', // standard radius
-        height: 'auto',
-        width: 'auto',
-        padding: '12px',
-        border: '1px solid #EDEDED',
-        '&$selected': {
-            color: 'white',
-            background: '#000000',
-        },
-        '&:hover': {
-            borderColor: '#000000',
-            color: 'white',
-            background: '#000000',
-        },
-        '&:hover$selected': {
-            borderColor: '#000000',
-            background: '#000000',
-        },
-    },
-})(ToggleButton);
+const StyledToggle = styled(ToggleButton)({});
 
-const date = new Date();
-
-const nextDayOfTheWeek = _index => {
-    const today = new Date()
-    const _date = new Date()
-    let newDay = today.getDate() - today.getDay() + _index
-    if (newDay <= today.getDate()) {
-        newDay += 7
+const generateDays = () => {
+    const keyMap = {
+        0: { key: 'Sun', label: 'Sun' },
+        1: { key: 'Mon', label: 'Mon' },
+        2: { key: 'Tues', label: 'Tue' },
+        3: { key: 'Wed', label: 'Wed' },
+        4: { key: 'Thur', label: 'Thu' },
+        5: { key: 'Fri', label: 'Fri' },
+        6: { key: 'Sat', label: 'Sat' }
+    };
+    const list = [];
+    for (let i = 1; i <= 7; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() + i);
+        const dayOfWeek = d.getDay();
+        const mapping = keyMap[dayOfWeek];
+        list.push({
+            key: mapping.key,
+            label: mapping.label,
+            'Start Time': '',
+            'End Time': '',
+            fullDate: d.toDateString(),
+            month: d.toLocaleString('default', { month: 'short' }),
+            dayNum: d.getDate(),
+            actualDate: new Date(d.getFullYear(), d.getMonth(), d.getDate())
+        });
     }
-    _date.setDate(newDay);
-    return _date
-}
-
-const initialState = [
-
-    {
-        key: 'Mon',
-        label: 'Mon',
-        'Start Time': '',
-        'End Time': '',
-        fullDate: nextDayOfTheWeek(1).toDateString(),
-        month: nextDayOfTheWeek(1).toLocaleString('default', { month: 'short' }),
-        dayNum: nextDayOfTheWeek(1).getDate(),
-    },
-    {
-        key: 'Tues',
-        label: 'Tue',
-        'Start Time': '',
-        'End Time': '',
-        fullDate: nextDayOfTheWeek(2).toDateString(),
-        month: nextDayOfTheWeek(2).toLocaleString('default', { month: 'short' }),
-        dayNum: nextDayOfTheWeek(2).getDate(),
-    },
-    {
-        key: 'Wed',
-        label: 'Wed',
-        'Start Time': '',
-        'End Time': '',
-        fullDate: nextDayOfTheWeek(3).toDateString(),
-        month: nextDayOfTheWeek(3).toLocaleString('default', { month: 'short' }),
-        dayNum: nextDayOfTheWeek(3).getDate(),
-    },
-    {
-        key: 'Thur',
-        label: 'Thu',
-        'Start Time': '',
-        'End Time': '',
-        fullDate: nextDayOfTheWeek(4).toDateString(),
-        month: nextDayOfTheWeek(4).toLocaleString('default', { month: 'short' }),
-        dayNum: nextDayOfTheWeek(4).getDate(),
-    },
-    {
-        key: 'Fri',
-        label: 'Fri',
-        'Start Time': '',
-        'End Time': '',
-        fullDate: nextDayOfTheWeek(5).toDateString(),
-        month: nextDayOfTheWeek(5).toLocaleString('default', { month: 'short' }),
-        dayNum: nextDayOfTheWeek(5).getDate(),
-    },
-    {
-        key: 'Sat',
-        label: 'Sat',
-        'Start Time': '',
-        'End Time': '',
-        fullDate: nextDayOfTheWeek(6).toDateString(),
-        month: nextDayOfTheWeek(6).toLocaleString('default', { month: 'short' }),
-        dayNum: nextDayOfTheWeek(6).getDate(),
-    },
-    {
-        key: 'Sun',
-        label: 'Sun',
-        'Start Time': '',
-        'End Time': '',
-        fullDate: nextDayOfTheWeek(0).toDateString(),
-        month: nextDayOfTheWeek(0).toLocaleString('default', { month: 'short' }),
-        dayNum: nextDayOfTheWeek(0).getDate(),
-    }
-];
+    // Sort chronologically by the actual Date value
+    return list.sort((a, b) => a.actualDate.getTime() - b.actualDate.getTime());
+};
 
 const ToggleDays = (props) => {
-    const [days, setDays] = useState([...initialState.slice((date.getDay() + 1) % 7), ...initialState.slice(0, (date.getDay() + 1) % 7)])
+    const [days] = useState(() => generateDays());
     const [courseStartTime, setCourseStartTime] = useState('12:00');
     const [selectedDay, setSelectedDay] = useState();
     const { setClassDays, capacity, newCourseTimeslots, setNewCourseTimeslots, timeslotsToRemove, setTimeslotsToRemove } = useStore();
@@ -272,21 +223,6 @@ const ToggleDays = (props) => {
                             value={selectedDay}
                             exclusive
                             onChange={handleChange}
-                            sx={{
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                justifyContent: 'center',
-                                gap: 1,
-                                '& .MuiToggleButtonGroup-grouped': {
-                                    margin: 0,
-                                    border: '1px solid #EDEDED !important',
-                                    borderRadius: '12px !important',
-                                    flex: { xs: '1 0 30%', sm: '0 0 auto' },
-                                    minWidth: '64px',
-                                    height: 'auto',
-                                    py: 1.5
-                                }
-                            }}
                         >
                             {(Array.isArray(days) ? days : []).map((day, index) => (
                                 <StyledToggle

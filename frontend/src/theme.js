@@ -1,156 +1,265 @@
 import { createTheme } from '@mui/material/styles';
+import tokens from './theme/designTokens.json';
 
 const theme = createTheme({
-	palette: {
-		mode: 'light',
-		primary: {
-			main: '#000000', // Gallery Black
-			light: '#333333',
-			dark: '#000000',
-			contrastText: '#fff',
-		},
-		secondary: {
-			main: '#111111',
-			contrastText: '#fff',
-		},
-		background: {
-			default: '#FFFFFF', // Pure White
-			paper: '#FFFFFF',
-		},
-		text: {
-			primary: '#000000', // Deep Black
-			secondary: '#6B6B6B', // Muted Gray
-		},
-		divider: '#EDEDED', // Gallery Border
-	},
-	typography: {
-		fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-		h1: {
-			fontFamily: '"Outfit", sans-serif',
-			fontWeight: 800,
-		},
-		h2: {
-			fontFamily: '"Outfit", sans-serif',
-			fontWeight: 700,
-		},
-		h3: {
-			fontFamily: '"Outfit", sans-serif',
-			fontWeight: 700,
-		},
-		h4: {
-			fontFamily: '"Outfit", sans-serif',
-			fontWeight: 600,
-		},
-		h5: {
-			fontFamily: '"Outfit", sans-serif',
-			fontWeight: 600,
-		},
-		h6: {
-			fontFamily: '"Outfit", sans-serif',
-			fontWeight: 600,
-		},
-		subtitle1: {
-			fontFamily: '"Inter", sans-serif',
-			fontWeight: 500,
-		},
-		body1: {
-			fontFamily: '"Inter", sans-serif',
-			lineHeight: 1.6,
-		},
-		body2: {
-			fontFamily: '"Inter", sans-serif',
-			lineHeight: 1.6,
-		},
-		button: {
-			fontFamily: '"Outfit", sans-serif',
-			fontWeight: 600,
-			textTransform: 'none',
-		},
-	},
-	shape: {
-		borderRadius: 0, // Editorial squared look, or keep slightly rounded? User said "Gallery". Let's stick to slight round or 0. User didn't explicitly say remove radius, but "Timeless" often implies sharper. Let's keep 12px but simpler. Actually user said "Restrained". Let's keep 4px or 0px. Let's go with 0px for "architecture portfolio" feel, or very small. Let's checking existing. It was 16. Let's reduce to 4. 
-		// Actually, let's keep it safe. 8px is neutral.
-		borderRadius: 8,
-	},
-	shadows: [
-		'none',
-		'none', // No "glow"
-		'0 4px 12px rgba(0,0,0,0.08)', // Subtle hover
-		...Array(22).fill('none'),
-	],
-	components: {
-		MuiButton: {
-			styleOverrides: {
-				root: {
-					borderRadius: 0, // Square buttons for gallery feel? Or pill? Let's go with 0 or 4. User said "Architecture". Let's try 0.
-					padding: '12px 28px',
-					fontSize: '0.9rem',
-					letterSpacing: '0.05em',
-					transition: 'all 0.2s ease-in-out',
-					'&:hover': {
-						transform: 'translateY(-1px)',
-						boxShadow: 'none',
-						backgroundColor: '#333',
-					},
-				},
-				containedPrimary: {
-					background: '#000000', // Flat black
-					color: '#FFFFFF',
-					'&:hover': {
-						background: '#333333',
-					}
-				},
-				outlined: {
-					borderWidth: '1px',
-					borderColor: '#000',
-					'&:hover': {
-						borderWidth: '1px',
-						backgroundColor: '#F7F7F7',
-					}
-				}
-			},
-		},
-		MuiCard: {
-			styleOverrides: {
-				root: {
-					borderRadius: 0,
-					boxShadow: 'none',
-					border: '1px solid #EDEDED',
-					overflow: 'hidden',
-				},
-			},
-		},
-		MuiTextField: {
-			styleOverrides: {
-				root: {
-					'& .MuiOutlinedInput-root': {
-						borderRadius: 0,
-						backgroundColor: '#fff',
-						'& fieldset': {
-							borderColor: '#EDEDED',
-						},
-						'&:hover fieldset': {
-							borderColor: '#000000',
-						},
-						'&.Mui-focused fieldset': {
-							borderColor: '#000000',
-						}
-					},
-				},
-			},
-		},
-		MuiChip: {
-			styleOverrides: {
-				root: {
-					borderRadius: 0,
-					fontWeight: 500,
-					backgroundColor: '#F7F7F7',
-					color: '#000',
-					border: '1px solid #EDEDED',
-				},
-			},
-		},
-	},
+  palette: {
+    mode: 'light',
+    primary: {
+      main: tokens.colors.primary.main,
+      light: tokens.colors.primary.light,
+      dark: tokens.colors.primary.dark,
+      contrastText: tokens.colors.primary.contrastText,
+    },
+    secondary: {
+      main: tokens.colors.secondary.main,
+      light: tokens.colors.secondary.light,
+      dark: tokens.colors.secondary.dark,
+      contrastText: tokens.colors.secondary.contrastText,
+    },
+    background: {
+      default: tokens.colors.background.default,
+      paper: tokens.colors.background.paper,
+    },
+    text: {
+      primary: tokens.colors.text.primary,
+      secondary: tokens.colors.text.secondary,
+      disabled: tokens.colors.text.disabled,
+    },
+    divider: tokens.colors.divider,
+    error: {
+      main: tokens.colors.error.main,
+      light: tokens.colors.error.light,
+    },
+    success: {
+      main: tokens.colors.success.main,
+      light: tokens.colors.success.light,
+    },
+    warning: {
+      main: tokens.colors.warning.main,
+      light: tokens.colors.warning.light,
+    },
+    info: {
+      main: tokens.colors.info.main,
+      light: tokens.colors.info.light,
+    },
+  },
+  typography: {
+    fontFamily: tokens.typography.fontFamilies.body,
+    h1: {
+      fontFamily: tokens.typography.fontFamilies.heading,
+      fontWeight: tokens.typography.weights.extrabold,
+      fontSize: tokens.typography.sizes.h1,
+      lineHeight: tokens.typography.lineHeights.h1,
+      color: tokens.colors.text.primary,
+    },
+    h2: {
+      fontFamily: tokens.typography.fontFamilies.heading,
+      fontWeight: tokens.typography.weights.bold,
+      fontSize: tokens.typography.sizes.h2,
+      lineHeight: tokens.typography.lineHeights.h2,
+      color: tokens.colors.text.primary,
+    },
+    h3: {
+      fontFamily: tokens.typography.fontFamilies.heading,
+      fontWeight: tokens.typography.weights.bold,
+      fontSize: tokens.typography.sizes.h3,
+      lineHeight: tokens.typography.lineHeights.h3,
+      color: tokens.colors.text.primary,
+    },
+    h4: {
+      fontFamily: tokens.typography.fontFamilies.heading,
+      fontWeight: tokens.typography.weights.semibold,
+      fontSize: tokens.typography.sizes.h4,
+      lineHeight: tokens.typography.lineHeights.h4,
+      color: tokens.colors.text.primary,
+    },
+    h5: {
+      fontFamily: tokens.typography.fontFamilies.heading,
+      fontWeight: tokens.typography.weights.semibold,
+      fontSize: tokens.typography.sizes.h5,
+      lineHeight: tokens.typography.lineHeights.h5,
+      color: tokens.colors.text.primary,
+    },
+    h6: {
+      fontFamily: tokens.typography.fontFamilies.heading,
+      fontWeight: tokens.typography.weights.semibold,
+      fontSize: tokens.typography.sizes.h6,
+      lineHeight: tokens.typography.lineHeights.h6,
+      color: tokens.colors.text.primary,
+    },
+    subtitle1: {
+      fontFamily: tokens.typography.fontFamilies.body,
+      fontWeight: tokens.typography.weights.semibold,
+      fontSize: tokens.typography.sizes.subtitle1,
+      lineHeight: tokens.typography.lineHeights.subtitle1,
+      color: tokens.colors.text.primary,
+    },
+    subtitle2: {
+      fontFamily: tokens.typography.fontFamilies.body,
+      fontWeight: tokens.typography.weights.medium,
+      fontSize: tokens.typography.sizes.subtitle2,
+      lineHeight: tokens.typography.lineHeights.subtitle2,
+      color: tokens.colors.text.secondary,
+    },
+    body1: {
+      fontFamily: tokens.typography.fontFamilies.body,
+      fontWeight: tokens.typography.weights.regular,
+      fontSize: tokens.typography.sizes.body1,
+      lineHeight: tokens.typography.lineHeights.body1,
+      color: tokens.colors.text.primary,
+    },
+    body2: {
+      fontFamily: tokens.typography.fontFamilies.body,
+      fontWeight: tokens.typography.weights.regular,
+      fontSize: tokens.typography.sizes.body2,
+      lineHeight: tokens.typography.lineHeights.body2,
+      color: tokens.colors.text.secondary,
+    },
+    button: {
+      fontFamily: tokens.typography.fontFamilies.heading,
+      fontWeight: tokens.typography.weights.semibold,
+      fontSize: tokens.typography.sizes.button,
+      lineHeight: tokens.typography.lineHeights.button,
+      textTransform: 'none',
+    },
+    caption: {
+      fontFamily: tokens.typography.fontFamilies.body,
+      fontWeight: tokens.typography.weights.medium,
+      fontSize: tokens.typography.sizes.caption,
+      lineHeight: tokens.typography.lineHeights.caption,
+      color: tokens.colors.text.secondary,
+    },
+  },
+  shape: {
+    borderRadius: parseInt(tokens.borderRadius.md),
+  },
+  shadows: [
+    'none',
+    tokens.shadows.sm,
+    tokens.shadows.md,
+    tokens.shadows.lg,
+    tokens.shadows.xl,
+    ...Array(20).fill('none'),
+  ],
+  components: {
+    MuiButton: {
+      defaultProps: {
+        disableElevation: true,
+      },
+      styleOverrides: {
+        root: {
+          borderRadius: tokens.borderRadius.md,
+          padding: '10px 24px',
+          fontSize: tokens.typography.sizes.button,
+          fontWeight: tokens.typography.weights.semibold,
+          transition: 'all 0.2s ease-in-out',
+          '&:hover': {
+            transform: 'translateY(-1px)',
+            boxShadow: '0 4px 12px rgba(10, 10, 10, 0.15)',
+          },
+          '&:active': {
+            transform: 'translateY(0)',
+          },
+        },
+        containedPrimary: {
+          backgroundColor: tokens.colors.primary.main,
+          color: tokens.colors.primary.contrastText,
+          '&:hover': {
+            backgroundColor: tokens.colors.primary.light,
+          },
+        },
+        containedSecondary: {
+          backgroundColor: tokens.colors.secondary.main,
+          color: tokens.colors.secondary.contrastText,
+          '&:hover': {
+            backgroundColor: tokens.colors.secondary.dark,
+          },
+        },
+        outlinedPrimary: {
+          borderColor: tokens.colors.divider,
+          color: tokens.colors.primary.main,
+          '&:hover': {
+            backgroundColor: 'rgba(10, 10, 10, 0.04)',
+            borderColor: tokens.colors.primary.main,
+          },
+        },
+        textPrimary: {
+          color: tokens.colors.primary.main,
+          '&:hover': {
+            backgroundColor: 'rgba(10, 10, 10, 0.04)',
+          },
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: tokens.borderRadius.lg,
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02), 0 1px 3px rgba(0, 0, 0, 0.01)',
+          border: `1px solid ${tokens.colors.background.default}`,
+          overflow: 'hidden',
+        },
+      },
+    },
+    MuiTextField: {
+      defaultProps: {
+        variant: 'outlined',
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: tokens.borderRadius.md,
+          backgroundColor: tokens.colors.background.default,
+          transition: 'all 0.2s ease-in-out',
+          '& fieldset': {
+            borderColor: tokens.colors.divider,
+            borderWidth: '1px',
+          },
+          '&:hover fieldset': {
+            borderColor: tokens.colors.text.disabled,
+          },
+          '&.Mui-focused fieldset': {
+            borderColor: tokens.colors.primary.main,
+            borderWidth: '2px',
+          },
+          '&.Mui-error fieldset': {
+            borderColor: tokens.colors.error.main,
+          },
+        },
+        input: {
+          padding: '12px 16px',
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: tokens.borderRadius.sm,
+          fontWeight: tokens.typography.weights.semibold,
+          backgroundColor: tokens.colors.background.default,
+          color: tokens.colors.text.secondary,
+          border: `1px solid ${tokens.colors.divider}`,
+          transition: 'all 0.2s ease',
+          '&.MuiChip-colorPrimary': {
+            backgroundColor: 'rgba(10, 10, 10, 0.08)',
+            color: tokens.colors.primary.main,
+            borderColor: 'rgba(10, 10, 10, 0.2)',
+          },
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundColor: tokens.colors.background.paper,
+          color: tokens.colors.text.primary,
+          borderBottom: tokens.navbar.borderBottom,
+          boxShadow: 'none',
+        },
+      },
+    },
+  },
 });
 
 export default theme;

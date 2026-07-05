@@ -28,7 +28,71 @@ const Opening = () => {
 	const { setUserID, setUserName, setIsTeacher, setIsStudent, setFirstName, setLastName,
 		setIsRegistered, setRoles, setEmail, setDescription, setCustomerStripeID, setPaymentMethodID } = useStore()
 
+	const handleGoogleLoginResponse = async (response) => {
+		setIsLoading(true);
+		try {
+			const res = await axios.post(`user/google-login`, {
+				credential: response.credential,
+				role: 'student'
+			});
+			const userDoc = res.data;
+			if (userDoc._id) {
+				localStorage.setItem("persist", true);
+				setPersist(true);
+				const accessToken = userDoc?.accessToken;
+				const roles = userDoc?.roles;
+				setAuth({ userName: userDoc.userName, accessToken, roles, isEmailVerified: userDoc.isEmailVerified });
+				setRoles(roles);
+				setUserID(userDoc._id);
+				setUserName(userDoc.userName);
+				setIsTeacher(userDoc.isTeacher);
+				setIsStudent(userDoc.isStudent);
+				setFirstName(userDoc.firstName);
+				setLastName(userDoc.lastName);
+				setEmail(userDoc.email);
+				setIsRegistered(true);
+				setCustomerStripeID(userDoc.customerStripeID);
+				setPaymentMethodID(userDoc.paymentMethodID);
+
+				const from = location.state?.from?.pathname;
+				if (from) {
+					navigate(from, { replace: true });
+				} else if (userDoc.isTeacher) {
+					navigate(`/teachers/${userDoc.userName}`);
+				} else {
+					navigate(`/explore`);
+				}
+			} else {
+				setIsLoading(false);
+				setIsWrong(true);
+			}
+		} catch (err) {
+			console.error('Error logging in user via Google:', err);
+			setIsLoading(false);
+		}
+	};
+
 	useEffect(() => {
+		let googleBtnTimeout;
+		const initGoogleBtn = () => {
+			if (window.google?.accounts?.id) {
+				window.google.accounts.id.initialize({
+					client_id: '812674900898-fakeclientid.apps.googleusercontent.com',
+					callback: handleGoogleLoginResponse
+				});
+				const btnElem = document.getElementById("googleBtn");
+				if (btnElem) {
+					window.google.accounts.id.renderButton(
+						btnElem,
+						{ theme: "outline", size: "large", width: "100%" }
+					);
+				}
+			} else {
+				googleBtnTimeout = setTimeout(initGoogleBtn, 200);
+			}
+		};
+		googleBtnTimeout = setTimeout(initGoogleBtn, 100);
+
 		manageKeyboard('fieldGrid') // hide bottomnav when mobile keyboard showing and scroll fieldGrid into view
 		if (auth?.accessToken) {
 			if (auth.roles?.includes(205)) {
@@ -37,7 +101,8 @@ const Opening = () => {
 				navigate('/explore')
 			}
 		}
-	}, [auth, navigate])
+		return () => clearTimeout(googleBtnTimeout);
+	}, [auth, navigate]);
 
 	const handleChangeEmail = (event) => {
 		event.preventDefault()
@@ -65,7 +130,7 @@ const Opening = () => {
 				setPersist(thisPersist)
 				const accessToken = userDoc?.accessToken
 				const roles = userDoc?.roles
-				setAuth({ userName: userDoc.userName, accessToken, roles })
+				setAuth({ userName: userDoc.userName, accessToken, roles, isEmailVerified: userDoc.isEmailVerified })
 				setRoles(roles)
 				setUserID(userDoc._id)
 				setUserName(userDoc.userName)
@@ -192,6 +257,12 @@ const Opening = () => {
 							>
 								Login
 							</Button>
+
+							{/* Google Sign-In */}
+							<Box sx={{ my: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+								<Typography variant="body2" color="text.secondary">or</Typography>
+							</Box>
+							<div id="googleBtn" style={{ width: '100%', minHeight: '40px' }}></div>
 
 							{/* Secondary Action: Sign Up */}
 							<Box sx={{ mt: 4, textAlign: 'center' }}>

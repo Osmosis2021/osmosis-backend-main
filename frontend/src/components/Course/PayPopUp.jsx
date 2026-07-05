@@ -299,7 +299,7 @@ export default function PayPopUp(props) {
 
                     <Box sx={{ px: 1 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4 }}>
-                        By confirming your reservation, you agree to the Osmosis Guest Policy and host's cancellation terms.
+                        By confirming your reservation, you agree to the Studio Time Guest Policy and host's cancellation terms.
                       </Typography>
                     </Box>
                   </Stack>

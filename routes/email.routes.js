@@ -20,7 +20,7 @@ router.get('/sendResetCode/:email', async (req, res, next) => {
                 <p>Here's your reset code:</p>
                 <p>${resetCode}</p>
                 <p>Cheers,</p>
-                <p>The Osmosis Team</p>
+                <p>The Studio Time Team</p>
             `
             await emailService.sendEmail({
                 subject,
@@ -60,7 +60,14 @@ router.get('/verifyResetCode/:email/:resetCode', async (req, res, next) => {
 
 router.patch('/updatePassword/:email/:resetCode', async (req, res, next) => {
     try {
-        const { email, password, resetCode } = req.body
+        const email = req.body.email || req.params.email;
+        const resetCode = req.body.resetCode || req.params.resetCode;
+        const { password } = req.body;
+        
+        if (!password) {
+            return res.status(400).json({ result: 'Password is required' });
+        }
+
         const hashedPassword = await bcrypt.hash(password, bcryptSalt);
         const updatedUser = await User.findOneAndUpdate(
             { email: email, resetCode: resetCode },

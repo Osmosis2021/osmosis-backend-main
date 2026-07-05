@@ -1,8 +1,8 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.getosmosis.osmosis',
-  appName: 'osmosis',
+  appId: 'io.studiotime',
+  appName: 'Studio Time',
   webDir: 'build',
   server: {
     androidScheme: 'https'

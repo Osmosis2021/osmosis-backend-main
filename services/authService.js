@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const cloudinary = require('cloudinary');
 const env = require('../config/env');
 const stripe = require('./stripeClient');
+const emailService = require('./emailService');
 
 const bcryptSalt = bcrypt.genSaltSync(7);
 const jwtSecret = env.ACCESS_TOKEN_SECRET;
@@ -78,7 +79,7 @@ class AuthService {
                 email: email,
                 business_type: 'individual',
                 business_profile: {
-                    url: `https://getosmosis.io/teachers/${userName}`,
+                    url: `https://studiotime.app/teachers/${userName}`,
                 },
                 individual: {
                     first_name: firstName,
@@ -98,7 +99,7 @@ class AuthService {
                 email: email,
                 business_type: 'individual',
                 business_profile: {
-                    url: `https://getosmosis.io/teachers/${userName}`,
+                    url: `https://studiotime.app/teachers/${userName}`,
                 },
                 individual: {
                     first_name: firstName,
@@ -118,11 +119,14 @@ class AuthService {
             customerID = customer.id;
         }
 
+        const verificationCode = emailService.makePasswordResetCode();
         const userInfo = {
             ...userData,
             password: bcrypt.hashSync(userData.password, bcryptSalt),
             stripeID: accountID,
-            customerStripeID: customerID
+            customerStripeID: customerID,
+            isEmailVerified: false,
+            emailVerificationCode: verificationCode
         };
 
         // Clean up undefined
@@ -131,7 +135,33 @@ class AuthService {
         });
 
         await User.create(userInfo);
-        return { success: true, message: 'Successfully saved a new user.' };
+
+        try {
+            const subject = "Verify your email address - Studio Time";
+            const message = `
+                <h3>Welcome to Studio Time!</h3>
+                <p>Please verify your email address to complete your registration.</p>
+                <br/>
+                <p>Here is your 6-digit verification code:</p>
+                <p style="font-size: 24px; font-weight: bold; letter-spacing: 2px;">${verificationCode}</p>
+                <br/>
+                <p>Cheers,</p>
+                <p>The Studio Time Team</p>
+            `;
+            await emailService.sendEmail({
+                subject,
+                message,
+                sendTo: email,
+                sentFrom: env.EMAIL_USER,
+                replyTo: email
+            });
+            console.log(`Verification email sent to ${email} with code ${verificationCode}`);
+        } catch (emailError) {
+            console.error("Failed to send verification email:", emailError);
+            console.log(`[DEV FALLBACK] Verification code for ${email} is: ${verificationCode}`);
+        }
+
+        return { success: true, message: 'Successfully saved a new user.', email };
     }
 
     async refresh(refreshToken) {

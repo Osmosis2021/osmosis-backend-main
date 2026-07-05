@@ -51,7 +51,7 @@ const SimpleBottomNavigation = () => {
     >
 
       <BottomNavigationAction onClick={() => navigate(`${isRegistered ? '/explore' : '/'}`)} value="home" icon={<HomeIcon sx={{ fontSize: 34 }} />} />
-      <BottomNavigationAction onClick={() => navigate('/MapOpen')} value="search" icon={<ExploreRoundedIcon sx={{ fontSize: 34 }} />} />
+      <BottomNavigationAction onClick={() => navigate('/explore')} value="search" icon={<ExploreRoundedIcon sx={{ fontSize: 34 }} />} />
 
       <BottomNavigationAction onClick={notificationFunction} value="messages" icon={
         <Badge badgeContent={notification.length} color="primary">

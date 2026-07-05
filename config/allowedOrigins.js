@@ -6,8 +6,8 @@
 const env = require('./env');
 
 const allowedOrigins = [
-    'https://getosmosis.io',
-    'https://www.getosmosis.io',
+    'https://studiotime.app',
+    'https://www.studiotime.app',
     'http://localhost',
     'capacitor://localhost'
 ];
