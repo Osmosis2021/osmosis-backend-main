@@ -100,14 +100,25 @@ app.use('/stripe', stripe)
 app.use('/email', emailRoute)
 
 if (env.NODE_ENV === 'production') {
-    // Exprees will serve up production assets
-    app.use(express.static('frontend/build'));
-
-    // Express serve up index.html file if it doesn't recognize route
+    const fs = require('fs');
     const path = require('path');
-    app.get('*', (req, res) => {
-        res.sendFile(path.resolve(__dirname, 'frontend', 'build', 'index.html'));
-    });
+    const buildPath = path.resolve(__dirname, 'frontend', 'build');
+    const indexPath = path.join(buildPath, 'index.html');
+
+    if (fs.existsSync(indexPath)) {
+        // Express will serve up production assets
+        app.use(express.static(buildPath));
+
+        // Express serve up index.html file if it doesn't recognize route
+        app.get('*', (req, res) => {
+            res.sendFile(indexPath);
+        });
+    } else {
+        // Fallback for API-only server (e.g. deployed on Railway with frontend on Netlify)
+        app.get('/', (req, res) => {
+            res.json({ message: 'Osmosis API is running' });
+        });
+    }
 }
 
 const errorHandler = require('./middleware/errorHandler');

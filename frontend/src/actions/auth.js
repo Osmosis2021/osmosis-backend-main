@@ -17,6 +17,8 @@ import {
 	LOGOUT,
 } from './types';
 
+const API_URL = process.env.REACT_APP_API_URL || '';
+
 export const load_user = () => async (dispatch) => {
 	if (localStorage.getItem('access')) {
 		const config = {
@@ -29,7 +31,7 @@ export const load_user = () => async (dispatch) => {
 
 		try {
 			const res = await axios.get(
-				`${process.env.REACT_APP_API_URL}/auth/users/me/`,
+				`${API_URL}/auth/users/me/`,
 				config
 			);
 
@@ -63,7 +65,7 @@ export const checkAuthenticated = () => async (dispatch) => {
 
 		try {
 			const res = await axios.post(
-				`${process.env.REACT_APP_API_URL}/auth/jwt/verify/`,
+				`${API_URL}/auth/jwt/verify/`,
 				body,
 				config
 			);
@@ -100,7 +102,7 @@ export const login = (email, password) => async (dispatch) => {
 
 	try {
 		const res = await axios.post(
-			`${process.env.REACT_APP_API_URL}/auth/jwt/create/`,
+			`${API_URL}/auth/jwt/create/`,
 			body,
 			config
 		);
@@ -136,7 +138,7 @@ export const signup =
 
 		try {
 			const res = await axios.post(
-				`${process.env.REACT_APP_API_URL}/auth/users/`,
+				`${API_URL}/auth/users/`,
 				body,
 				config
 			);
@@ -163,7 +165,7 @@ export const verify = (uid, accessToken) => async (dispatch) => {
 
 	try {
 		await axios.post(
-			`${process.env.REACT_APP_API_URL}/auth/users/activation/`,
+			`${API_URL}/auth/users/activation/`,
 			body,
 			config
 		);
@@ -189,7 +191,7 @@ export const reset_password = (email) => async (dispatch) => {
 
 	try {
 		await axios.post(
-			`${process.env.REACT_APP_API_URL}/auth/users/reset_password/`,
+			`${API_URL}/auth/users/reset_password/`,
 			body,
 			config
 		);
@@ -216,7 +218,7 @@ export const reset_password_confirm =
 
 		try {
 			await axios.post(
-				`${process.env.REACT_APP_API_URL}/auth/users/reset_password_confirm/`,
+				`${API_URL}/auth/users/reset_password_confirm/`,
 				body,
 				config
 			);
