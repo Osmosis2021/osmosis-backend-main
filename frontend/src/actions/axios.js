@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const getBaseUrl = () => {
-    let url = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? 'https://getstudiotime.com/' : 'http://localhost:8126/');
+    let url = process.env.REACT_APP_API_URL
     if (url && !url.endsWith('/')) {
         url += '/';
     }
