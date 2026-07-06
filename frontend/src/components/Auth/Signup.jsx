@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link as LinkRouter } from "react-router-dom";
-import { 
-  Container, 
-  Typography, 
-  TextField, 
-  Grid, 
-  Button, 
-  CircularProgress, 
-  Box, 
-  Stack,
-  IconButton,
-  InputAdornment,
-  Snackbar,
-  Alert
+import {
+    Container,
+    Typography,
+    TextField,
+    Grid,
+    Button,
+    CircularProgress,
+    Box,
+    Stack,
+    IconButton,
+    InputAdornment,
+    Snackbar,
+    Alert
 } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -47,7 +47,7 @@ const Signup = props => {
     // Validation feedback states
     const [usernameError, setUsernameError] = useState('');
     const [usernameSuccess, setUsernameSuccess] = useState('');
-    
+
     // Toast Feedback state
     const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
 
@@ -71,22 +71,22 @@ const Signup = props => {
                 headers: { 'Content-Type': 'application/json' },
             });
             const userDoc = await res.json();
-            
+
             if (userDoc._id) {
                 localStorage.setItem("persist", true);
                 setPersist(true);
                 const accessToken = userDoc?.accessToken;
                 const roles = userDoc?.roles;
                 setAuth({ userName: userDoc.userName, accessToken, roles, isEmailVerified: userDoc.isEmailVerified });
-                
+
                 setFirstName(userDoc.firstName);
                 setLastName(userDoc.lastName);
                 setUserName(userDoc.userName);
                 setIsTeacher(userDoc.isTeacher);
                 setIsStudent(userDoc.isStudent);
-                
+
                 showToast('Successfully registered and logged in!', 'success');
-                
+
                 setTimeout(() => {
                     if (userDoc.isTeacher) {
                         navigate(`/teachers/${userDoc.userName}`);
@@ -110,7 +110,7 @@ const Signup = props => {
         const initGoogleSignupBtn = () => {
             if (window.google?.accounts?.id) {
                 window.google.accounts.id.initialize({
-                    client_id: '812674900898-fakeclientid.apps.googleusercontent.com',
+                    process.env.GOOGLE_CLIENT_ID: '812674900898-fakeclientid.apps.googleusercontent.com',
                     callback: handleGoogleSignupResponse
                 });
                 const btnElem = document.getElementById("googleSignupBtn");
@@ -140,13 +140,13 @@ const Signup = props => {
     const changeUserName = e => {
         const newName = e.target.value;
         setTempUserName(newName);
-        
+
         if (newName.length === 0) {
             setUsernameError('');
             setUsernameSuccess('');
             return;
         }
-        
+
         if (newName.length < 5) {
             setUsernameError('Username must be at least 5 characters.');
             setUsernameSuccess('');
@@ -178,12 +178,12 @@ const Signup = props => {
 
     const handleUserRegistration = async (e) => {
         e.preventDefault();
-        
+
         if (!role) {
             showToast("Please select if you are an Artist or a Guest.", "warning");
             return;
         }
-        
+
         if (tempPassword !== repeatedTempPassword) {
             showToast("Passwords do not match. Please verify.", "error");
             return;
@@ -227,7 +227,7 @@ const Signup = props => {
 
             setIsLoading(false);
             showToast('Successfully registered! Redirecting to login...', 'success');
-            
+
             setTimeout(() => {
                 navigate('/');
             }, 1800);
@@ -471,15 +471,15 @@ const Signup = props => {
             </Box>
 
             {/* Snackbar feedback */}
-            <Snackbar 
-                open={toast.open} 
-                autoHideDuration={4000} 
+            <Snackbar
+                open={toast.open}
+                autoHideDuration={4000}
                 onClose={() => setToast({ ...toast, open: false })}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
-                <Alert 
-                    onClose={() => setToast({ ...toast, open: false })} 
-                    severity={toast.severity} 
+                <Alert
+                    onClose={() => setToast({ ...toast, open: false })}
+                    severity={toast.severity}
                     variant="filled"
                     sx={{ width: '100%', borderRadius: '12px', fontWeight: 600, boxShadow: 3 }}
                 >

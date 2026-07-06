@@ -197,7 +197,7 @@ export default function Settings() {
       const initGoogleLinkBtn = () => {
         if (window.google?.accounts?.id) {
           window.google.accounts.id.initialize({
-            client_id: '812674900898-fakeclientid.apps.googleusercontent.com',
+            client_id: process.env.GOOGLE_CLIENT_ID,
             callback: handleGoogleLinkResponse,
           });
           const btnElem = document.getElementById("googleLinkBtn");
