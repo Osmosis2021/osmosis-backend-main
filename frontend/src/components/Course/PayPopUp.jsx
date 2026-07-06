@@ -33,7 +33,7 @@ export default function PayPopUp(props) {
   const [open, setOpen] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [bookingID, setBookingID] = useState(null);
-  const { userID, backendURL, userName, chats, setChats, setSelectedChat } = useStore();
+  const { userID, userName, chats, setChats, setSelectedChat } = useStore();
   const axiosPrivate = useAxiosPrivate();
   const navigate = useNavigate();
 
@@ -49,7 +49,7 @@ export default function PayPopUp(props) {
       return;
     }
     try {
-      const { data } = await axiosPrivate.get(`${backendURL}chat/accessChats/${props.teacherID}?userID=${userID}`);
+      const { data } = await axiosPrivate.get(`chat/accessChats/${props.teacherID}?userID=${userID}`);
       if (!chats.find((c) => c._id === data._id)) {
         setChats([data, ...chats]);
       }
@@ -76,7 +76,7 @@ export default function PayPopUp(props) {
       date: props.selectedDateAndTime.startDate
     }
 
-    const bookingResponse = await axiosPrivate.post(`${backendURL}booking/createBooking`, bookingObj);
+    const bookingResponse = await axiosPrivate.post(`booking/createBooking`, bookingObj);
     return bookingResponse;
   }
 

@@ -33,7 +33,7 @@ function SingleBookingPage() {
     useEffect(() => {
         setIsLoading(true);
         setError(null);
-        axiosPrivate.get(`${backendURL}booking/studentBookingInfo/${id}`)
+        axiosPrivate.get(`booking/studentBookingInfo/${id}`)
             .then(response => {
                 const data = response.data;
                 // Backend returns a single object now, but handle array just in case
@@ -66,7 +66,7 @@ function SingleBookingPage() {
         if (targetUserId === userID) return; // safety: never message yourself
 
         try {
-            const { data } = await axiosPrivate.get(`${backendURL}chat/accessChats/${targetUserId}?userID=${userID}`);
+            const { data } = await axiosPrivate.get(`chat/accessChats/${targetUserId}?userID=${userID}`);
             const { chats, setChats, setSelectedChat } = useStore.getState();
             if (!chats.find((c) => c._id === data._id)) {
                 setChats([data, ...chats]);

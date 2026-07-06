@@ -4,7 +4,13 @@ import { Capacitor } from '@capacitor/core'
 const useStore = create(set => ({
     platform: Capacitor.getPlatform() || 'ios',  //  'web', 'ios' or 'android'
 
-    backendURL: process.env.NODE_ENV === 'production' ? 'https://getstudiotime.com/' : 'http://localhost:8126/',
+    backendURL: (() => {
+        let url = process.env.REACT_APP_API_URL;
+        if (url) {
+            return url.endsWith('/') ? url : url + '/';
+        }
+        return process.env.NODE_ENV === 'production' ? 'https://getstudiotime.com/' : 'http://localhost:8126/';
+    })(),
 
     firstName: '',
     setFirstName: firstName => set({ firstName }),

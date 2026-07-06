@@ -8,16 +8,16 @@ import { PremiumCard } from '../../ui/PremiumCard';
 
 const MyChats = () => {
     const axiosPrivate = useAxiosPrivate()
-    const { backendURL, selectedChat, setSelectedChat, chats, setChats, userID, notification } = useStore();
+    const { selectedChat, setSelectedChat, chats, setChats, userID, notification } = useStore();
 
     const fetchChats = useCallback(async (userID) => {
         try {
-            const { data } = await axiosPrivate.get(`${backendURL}chat/fetchChats/${userID}`)
+            const { data } = await axiosPrivate.get(`chat/fetchChats/${userID}`)
             setChats(data)
         } catch (err) {
             console.error('Error while accessing chat:', err.message);
         }
-    }, [axiosPrivate, backendURL, setChats]);
+    }, [axiosPrivate, setChats]);
 
     const getSender = (userID, users) => {
         const sender = users[0]._id === userID ? users[1] : users[0];

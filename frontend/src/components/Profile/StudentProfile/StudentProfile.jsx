@@ -37,7 +37,7 @@ const StudentProfile = () => {
   const [tabValue, setTabValue] = useState(0);
   const [userInfo, setUserInfo] = useState({});
   const [bookings, setBookings] = useState([]);
-  const { backendURL, userID, userName } = useStore();
+  const { userID, userName } = useStore();
   const pageUserName = useParams()?.userName;
 
   useEffect(() => {
@@ -47,8 +47,7 @@ const StudentProfile = () => {
   }, [pageUserName, axiosPrivate]);
 
   useEffect(() => {
-    const currentBackendURL = useStore.getState().backendURL;
-    axiosPrivate.get(`${currentBackendURL}user/getUserInfo/${pageUserName}`)
+    axiosPrivate.get(`user/getUserInfo/${pageUserName}`)
       .then((res) => setUserInfo(res.data))
       .catch((err) => console.log("Error getting user info:", err));
   }, [pageUserName, axiosPrivate]);
@@ -167,7 +166,7 @@ const StudentProfile = () => {
                     return;
                   }
                   try {
-                    const { data } = await axiosPrivate.get(`${backendURL}chat/accessChats/${booking.teacherID._id}?userID=${userID}`);
+                    const { data } = await axiosPrivate.get(`chat/accessChats/${booking.teacherID._id}?userID=${userID}`);
                     const { chats, setChats, setSelectedChat } = useStore.getState();
                     if (!chats.find((c) => c._id === data._id)) {
                       setChats([data, ...chats]);

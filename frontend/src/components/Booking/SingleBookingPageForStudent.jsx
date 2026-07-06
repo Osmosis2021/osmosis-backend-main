@@ -43,7 +43,7 @@ function SingleBookingPageForStudent() {
     useEffect(() => {
         setIsLoading(true);
         setError(null);
-        axiosPrivate.get(`${backendURL}booking/studentBookingInfo/${id}`)
+        axiosPrivate.get(`booking/studentBookingInfo/${id}`)
             .then(response => {
                 const data = response.data;
                 // Backend returns a single object now, but handle array just in case
@@ -71,7 +71,7 @@ function SingleBookingPageForStudent() {
         if (targetUserId === userID) return; // safety
 
         try {
-            const { data } = await axiosPrivate.get(`${backendURL}chat/accessChats/${targetUserId}?userID=${userID}`);
+            const { data } = await axiosPrivate.get(`chat/accessChats/${targetUserId}?userID=${userID}`);
             if (!chats.find((c) => c._id === data._id)) {
                 setChats([data, ...chats]);
             }

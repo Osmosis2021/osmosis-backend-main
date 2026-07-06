@@ -11,7 +11,7 @@ import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 
 const OrdersAndPayments = (props) => {
 
-    const { backendURL, userName, isTeacher, isStudent } = useStore();
+    const { userName, isTeacher, isStudent } = useStore();
     const axiosPrivate = useAxiosPrivate();
     const [userInfo, setUserInfo] = useState({});
     const [stripeInfo, setStripeInfo] = useState({});
@@ -69,7 +69,7 @@ const OrdersAndPayments = (props) => {
 
     const handleSavePaymentMethod = (paymentMethodID) => {
         // Save the payment method ID to your backend
-        axiosPrivate.post(`${backendURL}stripe/save-payment-method/${userInfo?.customerStripeID}`,
+        axiosPrivate.post(`stripe/save-payment-method/${userInfo?.customerStripeID}`,
             { paymentMethodID: paymentMethodID }
         ).then((response) => {
             const { attachedPaymentMethod, retrievePaymentMethod } = response.data;

@@ -88,7 +88,7 @@ export default function Settings() {
 
   const handleGoogleLinkResponse = useCallback(async (response) => {
     try {
-      const result = await axiosPrivate.post(`${backendURL}user/link-google`, {
+      const result = await axiosPrivate.post(`user/link-google`, {
         credential: response.credential
       });
       if (result.data.success) {
@@ -102,11 +102,11 @@ export default function Settings() {
       console.error(err);
       showToast(err.response?.data?.message || 'Error linking Google account.', 'error');
     }
-  }, [axiosPrivate, backendURL, setAuth, showToast]);
+  }, [axiosPrivate, setAuth, showToast]);
 
   const handleUnlinkGoogle = async () => {
     try {
-      const result = await axiosPrivate.post(`${backendURL}user/unlink-google`);
+      const result = await axiosPrivate.post(`user/unlink-google`);
       if (result.data.success) {
         showToast('Google account unlinked successfully.', 'success');
         setUserInfo(prev => ({ ...prev, googleId: '' }));
@@ -190,21 +190,32 @@ export default function Settings() {
     }
   }, [userInfo, firstName_, lastName_, userName_, email_, description_, phoneNumber_]);
 
+  useEffect(() => {
+    window.google_active_callback = handleGoogleLinkResponse;
+  }, [handleGoogleLinkResponse]);
+
   // Initialize Google link button when account settings tab is active
   useEffect(() => {
     let googleBtnTimeout;
     if (activeTab === 'account' && !userInfo.googleId) {
       const initGoogleLinkBtn = () => {
         if (window.google?.accounts?.id) {
-          window.google.accounts.id.initialize({
-            client_id: process.env.GOOGLE_CLIENT_ID,
-            callback: handleGoogleLinkResponse,
-          });
+          if (!window.google_initialized) {
+            window.google.accounts.id.initialize({
+              client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID,
+              callback: (response) => {
+                if (typeof window.google_active_callback === 'function') {
+                  window.google_active_callback(response);
+                }
+              }
+            });
+            window.google_initialized = true;
+          }
           const btnElem = document.getElementById("googleLinkBtn");
           if (btnElem) {
             window.google.accounts.id.renderButton(
               btnElem,
-              { theme: "outline", size: "medium", text: "signin_with" }
+              { theme: "outline", size: "medium", width: 400, text: "signin_with" }
             );
           }
         } else {
@@ -215,7 +226,7 @@ export default function Settings() {
       googleBtnTimeout = setTimeout(initGoogleLinkBtn, 100);
     }
     return () => clearTimeout(googleBtnTimeout);
-  }, [activeTab, userInfo.googleId, handleGoogleLinkResponse]);
+  }, [activeTab, userInfo.googleId]);
 
   // Fetch Stripe Info (on Demand or Mount)
   useEffect(() => {
@@ -359,7 +370,7 @@ export default function Settings() {
   };
 
   const handleSavePaymentMethod = (paymentMethodID) => {
-    axiosPrivate.post(`${backendURL}stripe/save-payment-method/${userInfo?.customerStripeID}`,
+    axiosPrivate.post(`stripe/save-payment-method/${userInfo?.customerStripeID}`,
       { paymentMethodID: paymentMethodID }
     ).then((response) => {
       const { retrievePaymentMethod } = response.data;
@@ -385,7 +396,7 @@ export default function Settings() {
     }
 
     try {
-      const response = await axiosPrivate.put(`${backendURL}user/changePassword`, {
+      const response = await axiosPrivate.put(`user/changePassword`, {
         currentPassword: securityPass.current,
         newPassword: securityPass.new
       });
@@ -410,7 +421,7 @@ export default function Settings() {
   // Notification update handler
   const handleNotificationSave = async () => {
     try {
-      const response = await axiosPrivate.put(`${backendURL}user/updateProfile/${userID}`, {
+      const response = await axiosPrivate.put(`user/updateProfile/${userID}`, {
         newInfo: {
           smsEnabled: notifications.smsMessages
         }

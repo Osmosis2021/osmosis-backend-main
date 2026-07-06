@@ -9,7 +9,7 @@ import useAxiosPrivate from '../hooks/useAxiosPrivate';
 
 export const ArtistModule = ({ teacherInfo, userName, city }) => {
     const navigate = useNavigate();
-    const { userID, backendURL } = useStore();
+    const { userID } = useStore();
     const axiosPrivate = useAxiosPrivate();
     const [expanded, setExpanded] = useState(false);
     const description = teacherInfo?.description || `Hi, I'm ${teacherInfo?.firstName}! Welcome to my studio.`;
@@ -26,7 +26,7 @@ export const ArtistModule = ({ teacherInfo, userName, city }) => {
             return;
         }
         try {
-            const { data } = await axiosPrivate.get(`${backendURL}chat/accessChats/${teacherInfo._id}?userID=${userID}`);
+            const { data } = await axiosPrivate.get(`chat/accessChats/${teacherInfo._id}?userID=${userID}`);
             const { chats, setChats, setSelectedChat } = useStore.getState();
             if (!chats.find((c) => c._id === data._id)) {
                 setChats([data, ...chats]);

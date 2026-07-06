@@ -13,7 +13,7 @@ import CameraAltIcon from '@mui/icons-material/CameraAlt';
 export default function UploadProfilePicture(props) {
 
     const [image, setImage] = useState('');
-    const { userID, userName, backendURL } = useStore()
+    const { userID, userName } = useStore()
     const [userInfo, setUserInfo] = useState('');
     // const User = useParams();
 
@@ -48,7 +48,7 @@ export default function UploadProfilePicture(props) {
         e.preventDefault();
         if (!image) return;
 
-        axiosPrivate.put(`${backendURL}user/updateProfileImage/${userID}`, { image }, { withCredentials: true }
+        axiosPrivate.put(`user/updateProfileImage/${userID}`, { image }, { withCredentials: true }
         ).then(res => {
             if (props.showToast) {
                 props.showToast('Profile picture updated successfully!', 'success');

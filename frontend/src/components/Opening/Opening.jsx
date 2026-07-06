@@ -72,18 +72,29 @@ const Opening = () => {
 	}, [location.state?.from?.pathname, navigate, setAuth, setPersist, setRoles, setUserID, setUserName, setIsTeacher, setIsStudent, setFirstName, setLastName, setEmail, setIsRegistered, setCustomerStripeID, setPaymentMethodID]);
 
 	useEffect(() => {
+		window.google_active_callback = handleGoogleLoginResponse;
+	}, [handleGoogleLoginResponse]);
+
+	useEffect(() => {
 		let googleBtnTimeout;
 		const initGoogleBtn = () => {
 			if (window.google?.accounts?.id) {
-				window.google.accounts.id.initialize({
-					client_id: process.env.GOOGLE_CLIENT_ID,
-					callback: handleGoogleLoginResponse
-				});
+				if (!window.google_initialized) {
+					window.google.accounts.id.initialize({
+						client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID,
+						callback: (response) => {
+							if (typeof window.google_active_callback === 'function') {
+								window.google_active_callback(response);
+							}
+						}
+					});
+					window.google_initialized = true;
+				}
 				const btnElem = document.getElementById("googleBtn");
 				if (btnElem) {
 					window.google.accounts.id.renderButton(
 						btnElem,
-						{ theme: "outline", size: "large", width: "100%" }
+						{ theme: "outline", size: "large", width: 400 }
 					);
 				}
 			} else {
@@ -101,7 +112,7 @@ const Opening = () => {
 			}
 		}
 		return () => clearTimeout(googleBtnTimeout);
-	}, [auth, navigate, handleGoogleLoginResponse, manageKeyboard]);
+	}, [auth, navigate, manageKeyboard]);
 
 	const handleChangeEmail = (event) => {
 		event.preventDefault()

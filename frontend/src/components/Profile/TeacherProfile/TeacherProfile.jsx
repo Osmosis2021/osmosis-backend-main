@@ -25,6 +25,18 @@ import { PremiumCard } from "../../../ui/PremiumCard";
 import { PremiumButton } from "../../../ui/PremiumButton";
 import { PremiumSkeleton, PremiumEmptyState } from "../../../ui/PremiumFeedback";
 
+const handleJsonResponse = async (res) => {
+  if (!res.ok) {
+    throw new Error(`HTTP error! status: ${res.status}`);
+  }
+  const contentType = res.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    return res.json();
+  }
+  const text = await res.text();
+  throw new Error(`Expected JSON but received content-type: ${contentType}. Content: ${text.slice(0, 100)}`);
+};
+
 const TeacherProfile = (props) => {
   const navigate = useNavigate();
   const axiosPrivate = useAxiosPrivate();
@@ -68,7 +80,7 @@ const TeacherProfile = (props) => {
     fetch(`${backendURL}course/getCourses/${pageUserName}`, {
       signal: _controller.signal,
     })
-      .then((res) => res.json())
+      .then(handleJsonResponse)
       .then((data) => {
         let courses = Array.isArray(data) ? data : [data];
         setSessionCard(courses);
@@ -78,7 +90,7 @@ const TeacherProfile = (props) => {
       });
 
     fetch(`${backendURL}user/getUserInfo/${pageUserName}`)
-      .then((res) => res.json())
+      .then(handleJsonResponse)
       .then((data) => {
         setTeacherInfo(data);
         setIsLoading(false);
@@ -96,7 +108,7 @@ const TeacherProfile = (props) => {
   useEffect(() => {
     if (teacherInfo?.stripeID) {
       fetch(`${backendURL}stripe/retrieveStripeAccount/${teacherInfo.stripeID}`)
-        .then((res) => res.json())
+        .then(handleJsonResponse)
         .then((data) => {
           setIsOnboarded(data?.retrieveAccount?.payouts_enabled || false);
         })
@@ -171,7 +183,7 @@ const TeacherProfile = (props) => {
                         }
                         try {
                           const { data } = await axiosPrivate.get(
-                            `${backendURL}chat/accessChats/${teacherInfo._id}?userID=${userID}`
+                            `chat/accessChats/${teacherInfo._id}?userID=${userID}`
                           );
                           const { chats, setChats, setSelectedChat } = useStore.getState();
                           if (!chats.find((c) => c._id === data._id)) {

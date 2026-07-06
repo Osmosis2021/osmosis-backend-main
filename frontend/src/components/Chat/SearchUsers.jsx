@@ -31,7 +31,7 @@ const SearchUsers = () => {
             if (search) {
                 try {
                     setIsLoading(true);
-                    const response = await axiosPrivate.get(`${backendURL}chat/allUsers?search=${search}`, {withCredentials: true});
+                    const response = await axiosPrivate.get(`chat/allUsers?search=${search}`, {withCredentials: true});
                     const data = response.data;
                     setIsLoading(false);
                     setSearchResult(data);

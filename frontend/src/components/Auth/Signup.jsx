@@ -106,18 +106,29 @@ const Signup = props => {
     }, [role, backendURL, setPersist, setAuth, setFirstName, setLastName, setUserName, setIsTeacher, setIsStudent, navigate, showToast]);
 
     useEffect(() => {
+        window.google_active_callback = handleGoogleSignupResponse;
+    }, [handleGoogleSignupResponse]);
+
+    useEffect(() => {
         let googleBtnTimeout;
         const initGoogleSignupBtn = () => {
             if (window.google?.accounts?.id) {
-                window.google.accounts.id.initialize({
-                    client_id: process.env.GOOGLE_CLIENT_ID,
-                    callback: handleGoogleSignupResponse
-                });
+                if (!window.google_initialized) {
+                    window.google.accounts.id.initialize({
+                        client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID,
+                        callback: (response) => {
+                            if (typeof window.google_active_callback === 'function') {
+                                window.google_active_callback(response);
+                            }
+                        }
+                    });
+                    window.google_initialized = true;
+                }
                 const btnElem = document.getElementById("googleSignupBtn");
                 if (btnElem) {
                     window.google.accounts.id.renderButton(
                         btnElem,
-                        { theme: "outline", size: "large", width: "100%", text: "signup_with" }
+                        { theme: "outline", size: "large", width: 400, text: "signup_with" }
                     );
                 }
             } else {
@@ -128,7 +139,7 @@ const Signup = props => {
             googleBtnTimeout = setTimeout(initGoogleSignupBtn, 100);
         }
         return () => clearTimeout(googleBtnTimeout);
-    }, [isLoading, role, handleGoogleSignupResponse]);
+    }, [isLoading, role]);
 
     useEffect(() => {
         manageKeyboard('fieldGrid'); // consistent with Opening.jsx
