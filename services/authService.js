@@ -79,7 +79,7 @@ class AuthService {
                 email: email,
                 business_type: 'individual',
                 business_profile: {
-                    url: `https://studiotime.app/teachers/${userName}`,
+                    url: `https://getstudiotime.com/teachers/${userName}`,
                 },
                 individual: {
                     first_name: firstName,
@@ -99,7 +99,7 @@ class AuthService {
                 email: email,
                 business_type: 'individual',
                 business_profile: {
-                    url: `https://studiotime.app/teachers/${userName}`,
+                    url: `https://getstudiotime.com/teachers/${userName}`,
                 },
                 individual: {
                     first_name: firstName,

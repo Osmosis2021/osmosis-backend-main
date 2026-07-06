@@ -330,7 +330,7 @@ router.post('/google-login', async (req, res, next) => {
         }
 
         const { email, sub, given_name, family_name } = payload;
-        
+
         let userDoc = await User.findOne({ $or: [{ googleId: sub }, { email }] });
 
         if (userDoc) {
@@ -365,7 +365,7 @@ router.post('/google-login', async (req, res, next) => {
                         email: email,
                         business_type: 'individual',
                         business_profile: {
-                            url: `https://studiotime.app/teachers/${userName}`,
+                            url: `https://getstudiotime.com/teachers/${userName}`,
                         },
                         individual: {
                             first_name: firstName,
