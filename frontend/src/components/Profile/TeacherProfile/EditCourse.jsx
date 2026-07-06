@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { Button, ButtonGroup, Container, Grid, Input, IconButton, Skeleton, TextField, Typography, Box, Stack, Divider } from '@mui/material';
+import { Button, ButtonGroup, Container, Grid, IconButton, Skeleton, TextField, Typography, Box, Stack, Divider } from '@mui/material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import TopNavBar from '../../TopNavBar/TopNavBar';
@@ -33,7 +33,7 @@ const ToggleDays = lazy(() => import('../../SessionCreation/ToggleDays/ToggleDay
 // - Payment functionality
 
 const EditCourse = (props) => {
-	const { userName, isTeacher, setClassDays, capacity, newCourseTimeslots, setNewCourseTimeslots,
+	const { userName, isTeacher, newCourseTimeslots, setNewCourseTimeslots,
 		backendURL, timeslotsToRemove, setTimeslotsToRemove } = useStore();
 	const [isLoading, setIsLoading] = useState(true)
 	const [isAvailabilityVisible, setIsAvailabilityVisible] = useState(false)
@@ -42,7 +42,8 @@ const EditCourse = (props) => {
 	const { courseID } = useParams();
 
 	useEffect(() => {
-		fetch(`${backendURL}course/getCourse/${courseID}`)
+		const currentBackendURL = useStore.getState().backendURL;
+		fetch(`${currentBackendURL}course/getCourse/${courseID}`)
 			.then((res) => {
 				return res.json();
 			}).then((data) => {
@@ -52,7 +53,7 @@ const EditCourse = (props) => {
 			}).catch((err) => {
 				console.log('Error getting teacher info:\n', err);
 			});
-	}, [])
+	}, [courseID, setNewCourseTimeslots])
 
 	const updateCourse = async (e) => {
 		e.preventDefault();

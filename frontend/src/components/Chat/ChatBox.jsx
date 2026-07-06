@@ -1,11 +1,8 @@
 import React from 'react'
-import useStore from '../../store';
-import { Box } from '@mui/material';
 import SingleChat from './SingleChat';
 import { PremiumCard } from '../../ui/PremiumCard';
 
 const ChatBox = ({ fetchAgain, setFetchAgain }) => {
-    const { selectedChat } = useStore();
 
     return (
         <PremiumCard

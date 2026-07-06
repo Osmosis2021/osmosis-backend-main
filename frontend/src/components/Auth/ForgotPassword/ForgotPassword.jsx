@@ -11,7 +11,6 @@ import {
 } from '@mui/material';
 import { useNavigate, Link as LinkRouter } from 'react-router-dom';
 import './ForgotPassword.css';
-import useStore from "../../../store";
 import useKeyboard from '../../../hooks/useKeyboard';
 import axios from "../../../actions/axios";
 
@@ -31,7 +30,7 @@ const Forgot = () => {
 
     useEffect(() => {
         manageKeyboard('fieldGrid');
-    }, []);
+    }, [manageKeyboard]);
 
     const validateEmail = (email) => {
         return /\S+@\S+\.\S+/.test(email);

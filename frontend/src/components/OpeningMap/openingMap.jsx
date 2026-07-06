@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import ReactMapGL, { Marker, GeolocateControl, Popup } from 'react-map-gl';
-import { Avatar, Box, Button, Container, Stack, Typography, IconButton } from '@mui/material';
+import { Avatar, Box, Button, Stack, Typography, IconButton } from '@mui/material';
 import { Link } from 'react-router-dom';
 import CloseIcon from '@mui/icons-material/Close';
 import theme from '../../theme.js';
@@ -21,8 +21,8 @@ const MAPBOX_TOKEN =
 const OpeningMap = () => {
 	const mapRef = useRef(null);
 	const [selectedCourse, setSelectedCourse] = useState(null);
-	const { backendURL, platform } = useStore()
-	const [initialViewState, setInitialViewState] = useState({
+	const { platform } = useStore()
+	const [initialViewState] = useState({
 		zoom: 10,
 		latitude: 40.7076398,
 		longitude: -73.9596498,
@@ -31,8 +31,9 @@ const OpeningMap = () => {
 	const [teacherInfo, setTeacherInfo] = useState({});
 
 	useEffect(() => {
+		const currentBackendURL = useStore.getState().backendURL;
 		fetch(
-			`${backendURL}course/getCourses/${initialViewState.latitude}/${initialViewState.longitude}`
+			`${currentBackendURL}course/getCourses/${initialViewState.latitude}/${initialViewState.longitude}`
 		).then((res) => {
 			return res.json();
 		}).then((courses) => {
@@ -40,11 +41,12 @@ const OpeningMap = () => {
 		}).catch((err) => {
 			console.log('Error getting courses:\n', err);
 		});
-	}, []);
+	}, [initialViewState.latitude, initialViewState.longitude]);
 
 	useEffect(() => {
 		if (selectedCourse?.userName) {
-			fetch(`${backendURL}user/getUserInfo/${selectedCourse?.userName}`)
+			const currentBackendURL = useStore.getState().backendURL;
+			fetch(`${currentBackendURL}user/getUserInfo/${selectedCourse?.userName}`)
 				.then((res) => {
 					return res.json();
 				}).then((data) => {

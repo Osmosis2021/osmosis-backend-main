@@ -82,6 +82,7 @@ const Address = props => {
             newCourseAddressState && newCourseLatitude) {
             setShowFields(true)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- run only once on mount to initialize the geocoder and avoid duplicate geocoder inputs
     }, [])
 
     useEffect(() => {

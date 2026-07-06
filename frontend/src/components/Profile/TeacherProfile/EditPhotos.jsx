@@ -13,7 +13,8 @@ const EditPhotos = () => {
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
-		fetch(`${backendURL}course/getCourses/${userName}`)
+		const currentBackendURL = useStore.getState().backendURL;
+		fetch(`${currentBackendURL}course/getCourses/${userName}`)
 			.then((res) => {
 				return res.json();
 			}).then((data) => {

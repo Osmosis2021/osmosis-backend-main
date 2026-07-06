@@ -5,7 +5,6 @@ import PeopleIcon from '@mui/icons-material/People';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { PremiumCard } from '../../ui/PremiumCard';
 import { PremiumChip } from '../../ui/PremiumChip';
-import TERMS from '../../constants/terms';
 
 function SessionCard(props) {
     const {

@@ -6,14 +6,12 @@ import useStore from '../../../store';
 
 const StripeOnboarding = () => {
 
-    const { userName, backendURL } = useStore();
     const [userInfo, setUserInfo] = useState({});
-    const [stripeInfo, setStripeInfo] = useState({});
     const [accountLink, setAccountLink] = useState();
-    const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
+        const { userName, backendURL } = useStore.getState();
 
         // GET USER INFO WITH STRIPE ID
         fetch(`${backendURL}user/getUserInfo/${userName}`)
@@ -31,13 +29,11 @@ const StripeOnboarding = () => {
                     .then(res => res.json())
                     .then(data => {
                         setAccountLink(data.url)
-                        setIsLoading(false)
 
                         // GET USER INFO WITH STRIPE ID
                         fetch(`${backendURL}stripe/retrieveStripeAccount/${stripeID}`)
                             .then(res => res.json())
                             .then(data => {
-                                setStripeInfo(data)
                                 console.log(data)
                             })
                             .catch(err => {

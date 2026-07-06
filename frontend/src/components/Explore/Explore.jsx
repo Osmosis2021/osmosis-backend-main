@@ -1,4 +1,4 @@
-import { Container, Grid, Box, Button, Typography, Stack, Fade } from '@mui/material';
+import { Container, Grid, Box, Button } from '@mui/material';
 import React, { useState, useEffect } from 'react';
 import SessionCard from '../SessionCard/SessionCard';
 import axios from 'axios';

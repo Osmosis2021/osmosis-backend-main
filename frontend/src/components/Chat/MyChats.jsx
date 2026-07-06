@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useCallback } from 'react'
 import useStore from '../../store';
 import { styled } from '@mui/material/styles';
-import { Badge, Box, Typography, Avatar, Stack, List, ListItem, ListItemAvatar, ListItemText, ListItemButton, Divider } from '@mui/material';
+import { Badge, Box, Typography, Avatar, List, ListItem, ListItemAvatar, ListItemText, ListItemButton, Divider } from '@mui/material';
 import SideDrawer from './SearchUsers';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 import { PremiumCard } from '../../ui/PremiumCard';
@@ -10,14 +10,14 @@ const MyChats = () => {
     const axiosPrivate = useAxiosPrivate()
     const { backendURL, selectedChat, setSelectedChat, chats, setChats, userID, notification } = useStore();
 
-    const fetchChats = async (userID) => {
+    const fetchChats = useCallback(async (userID) => {
         try {
             const { data } = await axiosPrivate.get(`${backendURL}chat/fetchChats/${userID}`)
             setChats(data)
         } catch (err) {
             console.error('Error while accessing chat:', err.message);
         }
-    }
+    }, [axiosPrivate, backendURL, setChats]);
 
     const getSender = (userID, users) => {
         const sender = users[0]._id === userID ? users[1] : users[0];
@@ -26,7 +26,7 @@ const MyChats = () => {
 
     useEffect(() => {
         fetchChats(userID);
-    }, [userID])
+    }, [userID, fetchChats])
 
     const hasNotification = (chatId) => {
         return notification.some(n => n.chat._id === chatId);

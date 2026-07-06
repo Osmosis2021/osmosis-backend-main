@@ -1,7 +1,6 @@
 import {
     Button,
     Container,
-    Grid,
     Stack,
     TextField,
     Typography,
@@ -80,7 +79,7 @@ function EditProfile() {
 
     useEffect(() => {
         manageKeyboard('editProfileFieldGrid'); // hide bottomnav when mobile keyboard showing
-    }, []);
+    }, [manageKeyboard]);
 
     useEffect(() => {
         let isMounted = true;
@@ -110,7 +109,7 @@ function EditProfile() {
             isMounted = false;
             controller.abort();
         };
-    }, [userName]);
+    }, [userName, axiosPrivate, description_, email_, firstName_, lastName_, location, navigate, userName_]);
 
     const changeFirstName = e => setFirstName_(e.target.value);
     const changeLastName = e => setLastName_(e.target.value);

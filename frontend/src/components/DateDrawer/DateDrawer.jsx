@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Button, Box, Container, Drawer, Grid, Paper, styled, Typography, IconButton, Stack, Skeleton } from '@mui/material/';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Button, Box, Drawer, Grid, Paper, styled, Typography, IconButton, Stack, Skeleton } from '@mui/material/';
 import CloseIcon from '@mui/icons-material/Close';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
@@ -36,7 +36,7 @@ export default function DateDrawer(props) {
     const [isScheduleLoading, setIsScheduleLoading] = useState(true)
     const [schedule, setSchedule] = useState(props.schedule || [])
 
-    const fetchSchedule = () => {
+    const fetchSchedule = useCallback(() => {
         if (!props.schedule) return;
         const today = new Date()
         today.setHours(0, 0, 0, 0);
@@ -51,11 +51,11 @@ export default function DateDrawer(props) {
         })
         setSchedule(presentAndFutureCourses)
         setIsScheduleLoading(false)
-    }
+    }, [props?.schedule]);
 
     useEffect(() => {
         fetchSchedule()
-    }, [props.schedule])
+    }, [fetchSchedule])
 
     const openSchedule = () => {
         setIsDrawerOpen(true)

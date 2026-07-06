@@ -1,7 +1,6 @@
 import { Button, IconButton, Stack, Box } from '@mui/material';
 import useStore from '../../store';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import Prof from './Prof';
 import { axiosPrivate } from '../../actions/axios';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
@@ -21,7 +20,8 @@ export default function UploadProfilePicture(props) {
     // HAS TO BE A BETTER WAY, WE MAKE THIS CALL IN EDIT PROFILE TOO, JUST TRYING TO GET AND DISPLAY THEIR ORIGINAL PROFILE IMAGE 
 
     useEffect(() => {
-        fetch(`${backendURL}user/getUserInfo/${userName}`)
+        const currentBackendURL = useStore.getState().backendURL;
+        fetch(`${currentBackendURL}user/getUserInfo/${userName}`)
             .then((res) => {
                 return res.json();
             }).then((data) => {

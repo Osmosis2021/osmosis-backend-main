@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { Avatar, Container, Card, Box, CardMedia, CardContent, Grid, Typography } from '@mui/material';
-import PersonIcon from '@mui/icons-material/Person';
+import { Avatar, Container, Card, Box, CardContent, Grid, Typography } from '@mui/material';
 import Courses from '../../assets/classes.json';
 
 import './GetClasses.css';
 
 const GetCourses = () => {
-    const [course, setCourse] = useState(Courses);
+    const course = Courses;
 
     return (
         // <Container className='container'>

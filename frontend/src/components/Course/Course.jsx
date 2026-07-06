@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Grid, Stack, Typography, Rating, Box, Divider, Skeleton, Avatar } from '@mui/material';
-import VerifiedIcon from '@mui/icons-material/Verified';
-import GavelIcon from '@mui/icons-material/Gavel';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { useParams } from 'react-router-dom';
 import ReactMapGL, { Marker } from 'react-map-gl';
 import TopNavBar from '../TopNavBar/TopNavBar';
 import useStore from '../../store';
-import TERMS from '../../constants/terms';
 import { PremiumHero } from '../../ui/PremiumHero';
 import { ArtistModule } from '../../ui/ArtistModule';
 import { ReserveModule } from '../../ui/ReserveModule';
@@ -23,7 +20,7 @@ const Course = () => {
 	const [courseData, setCourseData] = useState({})
 	const [selectedDateAndTime, setSelectedDateAndTime] = useState({})
 	const [selectedTimeslotID, setSelectedTimeslotID] = useState('')
-	const [selectedEnrolledStudents, setSelectedEnrolledStudents] = useState([])
+	const [, setSelectedEnrolledStudents] = useState([])
 	const [selectedEnrollment, setSelectedEnrollment] = useState(0)
 	const [isLoading, setIsLoading] = useState(true);
 	const [teacherInfo, setTeacherInfo] = useState();

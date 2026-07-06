@@ -2,12 +2,10 @@ import {
     CircularProgress,
     Container,
     Grid,
-    IconButton,
     Typography,
     Box,
     Stack,
     Button,
-    Divider,
     Fade
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
@@ -18,8 +16,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import useStore from '../../../store';
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
-import TERMS from '../../../constants/terms';
+import { Link } from 'react-router-dom';
 import CompletenessChecklist from '../CompletenessChecklist/CompletenessChecklist';
 import { PremiumSectionHeader } from '../../../ui/PremiumSectionHeader';
 import { PremiumCard } from '../../../ui/PremiumCard';
@@ -51,7 +48,6 @@ export const ConfirmSession = (props) => {
         newCourseTimeslots, setNewCourseTimeslots,
     } = useStore();
 
-    const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [teacherInfo, setTeacherInfo] = useState();
@@ -123,6 +119,7 @@ export const ConfirmSession = (props) => {
     }
 
     useEffect(() => {
+        const { backendURL, userName } = useStore.getState();
         fetch(`${backendURL}user/getUserInfo/${userName}`)
             .then((res) => res.json())
             .then((data) => {

@@ -16,7 +16,6 @@ const SearchUsers = () => {
     const [searchResult, setSearchResult] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [open, setOpen] = useState(false);
-    const [loadingChat, setLoadingChat] = useState(false);
     const { backendURL, setSelectedChat, chats, setChats, userID } = useStore();
 
     const handleModalOpen = () => {
@@ -50,11 +49,9 @@ const SearchUsers = () => {
     const accessChats = async (searchedUserID) => {
         // prevent from creating chat if no message is sent 
         try {
-            setLoadingChat(true)
             const {data} = await axios.get(`${backendURL}chat/accessChats/${searchedUserID}?userID=${userID}`, userID)
             if (!chats.find((c) => c._id === data._id)) setChats([data, ...chats]);
             setSelectedChat(data)
-            setLoadingChat(false)
             setOpen(false)
         } catch (err) {
             console.log('Error while accessing chat:', err.message); 

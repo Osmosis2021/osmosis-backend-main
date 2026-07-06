@@ -1,22 +1,14 @@
 import {
   Avatar,
-  AvatarGroup,
   Box,
   Button,
-  Card,
   Container,
   Grid,
-  Skeleton,
-  Rating,
-  TextField,
   Typography,
   Stack,
-  Divider,
-  IconButton,
-  useTheme,
-  useMediaQuery
+  IconButton
 } from "@mui/material";
-import { Link, Link as LinkRouter, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import SessionCard from "../../SessionCard/SessionCard";
 import React, { useState, useEffect } from "react";
 import AddIcon from "@mui/icons-material/Add";
@@ -24,44 +16,29 @@ import EditIcon from "@mui/icons-material/Edit";
 import VerifiedIcon from '@mui/icons-material/Verified';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MessageIcon from '@mui/icons-material/Message';
-import ShareIcon from '@mui/icons-material/Share';
 import useStore from "../../../store";
-import UserInfo from "../UserInfo";
 import "./TeacherProfile.css";
-import Prof from "../Prof";
-import axios from "../../../actions/axios";
 import useAxiosPrivate from "../../../hooks/useAxiosPrivate";
 import useLogout from "../../../hooks/useLogout";
-import CalendarViewButton from "../CalendarViewButton";
-import TERMS from "../../../constants/terms";
 import { PremiumSectionHeader } from "../../../ui/PremiumSectionHeader";
 import { PremiumCard } from "../../../ui/PremiumCard";
 import { PremiumButton } from "../../../ui/PremiumButton";
 import { PremiumSkeleton, PremiumEmptyState } from "../../../ui/PremiumFeedback";
 
-import { PremiumBackButton } from "../../../ui/PremiumBackButton";
-
 const TeacherProfile = (props) => {
-  const theme = useTheme();
   const navigate = useNavigate();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const axiosPrivate = useAxiosPrivate();
   const logout = useLogout();
   const [teacherInfo, setTeacherInfo] = useState({ profileImage: {} });
   const [sessionCard, setSessionCard] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [bookings, setBookings] = useState([]);
-  const [unratedAndUnreviewedBooking, setUnratedAndUnreviewedBooking] =
-    useState([]);
-  const [bookingsTakenAsStudent, setBookingsTakenAsStudent] = useState([]);
-  const [classHappened, setClassHappened] = useState([]);
-  const { backendURL, userID, userName, isStudent } = useStore();
+  const { backendURL, userID, userName } = useStore();
   const pageUserName = useParams()?.userName;
 
   useEffect(() => {
     let isMounted = true;
     const controller = new AbortController();
-    const _today = new Date();
 
     const getTeacherBookings = async () => {
       try {
@@ -69,52 +46,22 @@ const TeacherProfile = (props) => {
           `booking/teacherBookings/${pageUserName}`,
           { signal: controller.signal }
         );
-        const teacherClassHappened = resp.data.filter((booking) => {
-          const slotDate = new Date(booking.date);
-          return slotDate <= _today;
-        });
         if (isMounted) {
           setBookings(resp.data);
           console.log("Teacher bookings:", resp.data);
-          setClassHappened(teacherClassHappened);
         }
       } catch (err) {
         console.error("Error fetching teacher bookings:", err);
       }
     };
 
-    const getStudentBookings = async () => {
-      try {
-        if (isStudent) {
-          const studentResp = await axiosPrivate.get(
-            `booking/bookings/${pageUserName}`,
-            { signal: controller.signal }
-          );
-          if (studentResp.data) {
-            const bookingHappenedAndNotReviewed = studentResp.data.filter(
-              (booking) => {
-                const slotDate = new Date(booking.date);
-                return slotDate <= _today && !booking.ratedAndReviewed;
-              }
-            );
-            if (isMounted) {
-              setUnratedAndUnreviewedBooking(bookingHappenedAndNotReviewed);
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Error fetching student bookings:", err);
-      }
-    };
-
     getTeacherBookings();
-    getStudentBookings();
 
     return () => {
       isMounted = false;
       controller.abort();
     };
-  }, [pageUserName, isStudent, axiosPrivate]);
+  }, [pageUserName, axiosPrivate]);
 
   useEffect(() => {
     const _controller = new AbortController();
@@ -143,39 +90,6 @@ const TeacherProfile = (props) => {
       _controller.abort();
     };
   }, [pageUserName, backendURL]);
-
-  const handleWrittenReview = (event, booking) => {
-    const writtenReview = event.target.value;
-    setUnratedAndUnreviewedBooking((prevBookings) => {
-      return prevBookings.map((prevBooking) => {
-        if (prevBooking._id === booking._id) {
-          return { ...prevBooking, writtenReview };
-        }
-        return prevBooking;
-      });
-    });
-  };
-
-  const sendRating = (event, booking) => {
-    event.preventDefault();
-    const { rating, writtenReview } = booking;
-    if (rating && writtenReview) {
-      fetch(`${backendURL}course/sendReview/${booking._id}`, {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          feedback: { rating, writtenReview, userID },
-        }),
-      }).then(() => {
-        setUnratedAndUnreviewedBooking((prevBookings) =>
-          prevBookings.filter((prevBooking) => prevBooking._id !== booking._id)
-        );
-      });
-    } else {
-      alert("Please both rate and review your class");
-    }
-  };
 
   const [isOnboarded, setIsOnboarded] = useState(false);
 

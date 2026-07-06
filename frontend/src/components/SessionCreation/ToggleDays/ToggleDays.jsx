@@ -58,7 +58,6 @@ const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
     },
 }));
 
-const StyledToggle = styled(ToggleButton)({});
 
 const generateDays = () => {
     const keyMap = {
@@ -153,6 +152,7 @@ const ToggleDays = (props) => {
                 if (slot) insertNewTimeslotElements(slot, i);
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- only runs once on mount to populate initial timeslots and avoid duplicates
     }, [])
 
     const handleSave = (index, isRepeating, dayKey) => {
@@ -225,7 +225,7 @@ const ToggleDays = (props) => {
                             onChange={handleChange}
                         >
                             {(Array.isArray(days) ? days : []).map((day, index) => (
-                                <StyledToggle
+                                <ToggleButton
                                     key={day?.key ?? index}
                                     value={index}
                                     aria-label={day?.key}
@@ -234,7 +234,7 @@ const ToggleDays = (props) => {
                                         <Typography variant="caption" sx={{ lineHeight: 1, color: 'text.secondary', fontSize: '0.65rem' }}>{day?.month} {day?.dayNum}</Typography>
                                         <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1, fontSize: '0.9rem' }}>{isMobile ? day?.label : day?.key}</Typography>
                                     </Stack>
-                                </StyledToggle>
+                                </ToggleButton>
                             ))}
                         </StyledToggleButtonGroup>
                     </Box>

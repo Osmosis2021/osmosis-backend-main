@@ -6,31 +6,25 @@ import {
     Grid,
     Avatar,
     Divider,
-    IconButton,
     Button,
-    Chip,
-    Paper
+    Chip
 } from '@mui/material'
 import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import TopNavBar from '../TopNavBar/TopNavBar';
 import MessageIcon from '@mui/icons-material/Message';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import useStore from '../../store';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
-import TERMS from '../../constants/terms';
 import { PremiumCard } from '../../ui/PremiumCard';
-import { PremiumButton } from '../../ui/PremiumButton';
 import { PremiumSectionHeader } from '../../ui/PremiumSectionHeader';
 import { PremiumBackButton } from '../../ui/PremiumBackButton';
 
 function SingleBookingPage() {
     const axiosPrivate = useAxiosPrivate();
     const { id } = useParams()
-    const { backendURL, userName, chats, setChats, setSelectedChat, userID } = useStore();
+    const { backendURL, userID } = useStore();
     const [booking, setBooking] = useState(null);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(true);

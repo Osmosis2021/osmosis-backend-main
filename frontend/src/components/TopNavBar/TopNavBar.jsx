@@ -1,10 +1,8 @@
 import * as React from 'react';
 import { AppBar, Box, Toolbar, Container, Typography } from '@mui/material';
 import { PremiumBackButton } from '../../ui/PremiumBackButton';
-import useStore from "../../store";
 
 export default function TopNavBar(props) {
-  const { platform } = useStore();
 
   return (
     <AppBar

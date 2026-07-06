@@ -17,12 +17,12 @@ const OrdersAndPayments = (props) => {
     const [stripeInfo, setStripeInfo] = useState({});
     const [cardInfo, setCardInfo] = useState({});
     const [accountLink, setAccountLink] = useState();
-    const [isOnboarded, setIsOnboarded] = useState(false);
     const [stripePromise, setStripePromise] = useState('')
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
+        const { backendURL, userName } = useStore.getState();
 
         fetch(`${backendURL}stripe/config`).then(async (res) => {
             const { publishableKey } = await res.json();
@@ -49,7 +49,6 @@ const OrdersAndPayments = (props) => {
                 const stripeAccountResponse = await fetch(`${backendURL}stripe/retrieveStripeAccount/${stripeID}`)
                 const stripeAccountData = await stripeAccountResponse?.json()
                 setStripeInfo(stripeAccountData)
-                setIsOnboarded(stripeAccountData?.retrieveAccount?.payouts_enabled || false)
 
                 // RETRIEVE CUSTOMER
                 const stripeCustomerFetch = await fetch(`${backendURL}stripe/retrieveStripeCustomerAccount/${userData?.customerStripeID}`)

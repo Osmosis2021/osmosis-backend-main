@@ -6,25 +6,21 @@ import {
     Grid,
     Avatar,
     Divider,
-    IconButton,
     Button,
     Chip,
-    Rating,
-    Paper
+    Rating
 } from '@mui/material'
 import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import TopNavBar from '../TopNavBar/TopNavBar';
 import MessageIcon from '@mui/icons-material/Message';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import useStore from '../../store';
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
-import TERMS from '../../constants/terms';
 import { PremiumCard } from '../../ui/PremiumCard';
 import { PremiumSectionHeader } from '../../ui/PremiumSectionHeader';
 import { PremiumBackButton } from '../../ui/PremiumBackButton';
-import { PremiumButton } from '../../ui/PremiumButton';
 
 function SingleBookingPageForStudent() {
     const axiosPrivate = useAxiosPrivate();

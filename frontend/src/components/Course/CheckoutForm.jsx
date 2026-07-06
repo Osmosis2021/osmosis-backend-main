@@ -1,11 +1,9 @@
 import { useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
-import { useState, useEffect } from "react";
-import useStore from "../../store";
+import { useState } from "react";
 import {
   Box,
   Typography,
   CircularProgress,
-  Button,
   Stack,
   Alert,
   Fade
@@ -20,7 +18,6 @@ export default function CheckoutForm({ clientSecret, bookThisCourse, onBookingSu
   const [message, setMessage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const { backendURL, customerStripeID } = useStore();
 
   async function handleSubmit(e) {
     e.preventDefault();

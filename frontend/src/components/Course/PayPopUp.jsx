@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import {
   Button,
   Dialog,
-  AppBar,
-  Toolbar,
   IconButton,
   Typography,
   Container,
@@ -17,7 +15,6 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import MessageIcon from '@mui/icons-material/Message';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import LockIcon from '@mui/icons-material/Lock';
 import { Link, useNavigate } from 'react-router-dom';

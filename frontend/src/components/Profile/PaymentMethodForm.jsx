@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
-import { Button, Typography } from '@mui/material';
+import { Button } from '@mui/material';
 import './PaymentMethodForm.css';
 
 const PaymentMethodForm = (props) => {

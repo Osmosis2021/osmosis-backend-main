@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import {
-	Button,
 	Box,
 	IconButton,
 	Stack,
@@ -9,10 +8,8 @@ import {
 	Container,
 	Fade
 } from '@mui/material';
-import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
-import TERMS from '../../../../constants/terms';
 import useStore from '../../../../store';
 import { PremiumSectionHeader } from '../../../../ui/PremiumSectionHeader';
 import { PremiumCard } from '../../../../ui/PremiumCard';

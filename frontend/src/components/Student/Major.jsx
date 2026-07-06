@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, CardGroup, Card, Typography, Container } from '@mui/material';
+import { Typography, Container } from '@mui/material';
 import GetClasses from './GetClasses';
 
 import './Major.css';

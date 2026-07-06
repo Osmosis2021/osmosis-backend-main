@@ -11,8 +11,7 @@ import {
   Divider,
   IconButton,
   Button,
-  useTheme,
-  useMediaQuery
+  useTheme
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import MessageIcon from '@mui/icons-material/Message';
@@ -24,18 +23,15 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import useStore from "../../../store";
 import useAxiosPrivate from "../../../hooks/useAxiosPrivate";
 import useLogout from "../../../hooks/useLogout";
-import TERMS from "../../../constants/terms";
 import { PremiumCard } from "../../../ui/PremiumCard";
 import { PremiumButton } from "../../../ui/PremiumButton";
 import { PremiumSectionHeader } from "../../../ui/PremiumSectionHeader";
 import PremiumEmptyState from "../../../ui/PremiumEmptyState";
-import { PremiumBackButton } from "../../../ui/PremiumBackButton";
 
 const StudentProfile = () => {
   const logout = useLogout();
   const axiosPrivate = useAxiosPrivate();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
 
   const [tabValue, setTabValue] = useState(0);
@@ -48,13 +44,14 @@ const StudentProfile = () => {
     axiosPrivate.get(`booking/bookings/${pageUserName}`).then((response) => {
       setBookings(response.data);
     });
-  }, [pageUserName]);
+  }, [pageUserName, axiosPrivate]);
 
   useEffect(() => {
-    axiosPrivate.get(`${backendURL}user/getUserInfo/${pageUserName}`)
+    const currentBackendURL = useStore.getState().backendURL;
+    axiosPrivate.get(`${currentBackendURL}user/getUserInfo/${pageUserName}`)
       .then((res) => setUserInfo(res.data))
       .catch((err) => console.log("Error getting user info:", err));
-  }, [pageUserName]);
+  }, [pageUserName, axiosPrivate]);
 
   const sortedBookings = useMemo(() => {
     const today = new Date();

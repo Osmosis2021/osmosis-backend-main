@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Grid,
@@ -80,7 +80,13 @@ export default function Settings() {
   const [description_, setDescription_] = useState(description || '');
   const [phoneNumber_, setPhoneNumber_] = useState('');
 
-  const handleGoogleLinkResponse = async (response) => {
+  // Feedback toast state
+  const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
+  const showToast = useCallback((message, severity = 'success') => {
+    setToast({ open: true, message, severity });
+  }, []);
+
+  const handleGoogleLinkResponse = useCallback(async (response) => {
     try {
       const result = await axiosPrivate.post(`${backendURL}user/link-google`, {
         credential: response.credential
@@ -96,7 +102,7 @@ export default function Settings() {
       console.error(err);
       showToast(err.response?.data?.message || 'Error linking Google account.', 'error');
     }
-  };
+  }, [axiosPrivate, backendURL, setAuth, showToast]);
 
   const handleUnlinkGoogle = async () => {
     try {
@@ -141,12 +147,6 @@ export default function Settings() {
 
   // Help/Contact State
   const [helpContact, setHelpContact] = useState({ subject: '', message: '' });
-
-  // Feedback toast state
-  const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
-  const showToast = (message, severity = 'success') => {
-    setToast({ open: true, message, severity });
-  };
 
   useEffect(() => {
     manageKeyboard('settingsFieldGrid'); // hide bottomnav when mobile keyboard showing

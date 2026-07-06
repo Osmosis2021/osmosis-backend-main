@@ -1,9 +1,7 @@
 import {
     Box,
-    FormControl,
     CircularProgress,
     Typography,
-    TextField,
     Stack,
     Avatar,
     IconButton,
@@ -12,10 +10,9 @@ import {
     useTheme,
     useMediaQuery
 } from '@mui/material'
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import useStore from '../../store';
 import ScrollableChat from './ScrollableChat';
-import io from 'socket.io-client';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate'; // Task 1
 import SendIcon from '@mui/icons-material/Send';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -29,9 +26,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     const [messages, setMessages] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [newMessage, setNewMessage] = useState('');
-    const [isSocketConnected, setIsSocketConnected] = useState(false);
-    const { backendURL, userID, selectedChat, setSelectedChat, notification, setNotification, socket } = useStore(); // Get socket from store
-    const scrollRef = useRef();
+    const { userID, selectedChat, setSelectedChat, socket } = useStore(); // Get socket from store
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const axiosPrivate = useAxiosPrivate(); // Task 1: Use hook
@@ -43,7 +38,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         return (users?.[0]?._id === userID ? users?.[1] : users?.[0])
     }
 
-    const fetchMessages = async () => {
+    const fetchMessages = useCallback(async () => {
         if (!selectedChat?._id) return;
 
         const chatId = selectedChat._id;
@@ -70,7 +65,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 setIsLoading(false);
             }
         }
-    }
+    }, [axiosPrivate, socket, selectedChat?._id]);
 
     const sendMessage = async (e) => {
         if (e.type === 'click' || (e.key === 'Enter' && !e.shiftKey)) {
@@ -108,7 +103,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             setIsLoading(true);
             fetchMessages();
         }
-    }, [selectedChat?._id]); // Task 3: Dependency only ID
+    }, [selectedChat?._id, selectedChat, fetchMessages]); // Task 3: Dependency only ID
 
     // Removed the separate socket.on('messageReceived') effect block to avoid re-binding loops
 

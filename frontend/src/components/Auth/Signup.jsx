@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link as LinkRouter } from "react-router-dom";
 import { 
   Container, 
@@ -51,11 +51,11 @@ const Signup = props => {
     // Toast Feedback state
     const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
 
-    const showToast = (message, severity = 'success') => {
+    const showToast = useCallback((message, severity = 'success') => {
         setToast({ open: true, message, severity });
-    };
+    }, []);
 
-    const handleGoogleSignupResponse = async (response) => {
+    const handleGoogleSignupResponse = useCallback(async (response) => {
         if (!role) {
             showToast("Please select if you are an Artist or a Guest before continuing.", "warning");
             return;
@@ -103,7 +103,7 @@ const Signup = props => {
             console.error('Error registering user via Google:\n', error);
             setIsLoading(false);
         }
-    };
+    }, [role, backendURL, setPersist, setAuth, setFirstName, setLastName, setUserName, setIsTeacher, setIsStudent, navigate, showToast]);
 
     useEffect(() => {
         let googleBtnTimeout;
@@ -128,11 +128,11 @@ const Signup = props => {
             googleBtnTimeout = setTimeout(initGoogleSignupBtn, 100);
         }
         return () => clearTimeout(googleBtnTimeout);
-    }, [isLoading, role]);
+    }, [isLoading, role, handleGoogleSignupResponse]);
 
     useEffect(() => {
         manageKeyboard('fieldGrid'); // consistent with Opening.jsx
-    }, []);
+    }, [manageKeyboard]);
 
     const changeFirstName = e => setTempFirstName(e.target.value);
     const changeLastName = e => setTempLastName(e.target.value);

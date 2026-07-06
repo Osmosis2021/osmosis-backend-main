@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Grid, Typography, Stack, Button, useTheme } from '@mui/material';
+import { Box, Grid, Typography, Stack, Button } from '@mui/material';
 import useStore from '../../../store';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
@@ -72,7 +72,6 @@ const templates = [
 ];
 
 export default function StudioTemplates(props) {
-    const theme = useTheme();
     const {
         setCourseTitle,
         setCourseDescription,

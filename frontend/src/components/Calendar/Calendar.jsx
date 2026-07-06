@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Button, Grid, Typography, Drawer, Card } from "@mui/material";
-import { useParams } from "react-router-dom";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
-import axios from "axios";
 import useStore from "../../store";
 import TERMS from "../../constants/terms";
 
@@ -14,11 +12,8 @@ import styles from "./calendar.module.css";
 const Calendar = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [anchorEl, setAnchorEl] = useState(null);
-  const pageUserName = useParams()?.userName;
   const axiosPrivate = useAxiosPrivate();
   const { userName, isTeacher } = useStore();
-  const [teacherBookings, setTeacherBookings] = useState([]);
-  const [studentBookings, setStudentBookings] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [selectedBooking, setSelectedBooking] = useState(null);
 
@@ -37,8 +32,6 @@ const Calendar = () => {
           console.log("Teacher bookings:", teacherResponse.data);
           console.log("Student bookings:", studentResponse.data);
 
-          setTeacherBookings(teacherResponse.data);
-          setStudentBookings(studentResponse.data);
           setBookings(isTeacher ? teacherResponse.data : studentResponse.data);
         } else {
           console.error(
@@ -53,7 +46,7 @@ const Calendar = () => {
     };
 
     getBookingInfo();
-  }, [userName]);
+  }, [userName, axiosPrivate, isTeacher]);
 
   const hasBookingsForDay = (day) => {
     return bookings?.some((booking) => {

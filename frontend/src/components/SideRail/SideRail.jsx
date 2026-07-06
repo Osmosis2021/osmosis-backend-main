@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Stack, IconButton, Typography, Tooltip, Avatar } from '@mui/material';
+import { Box, Stack, Typography, Tooltip, Avatar } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 import HomeIcon from '@mui/icons-material/Home';
 import SearchIcon from '@mui/icons-material/Search';
@@ -47,7 +47,7 @@ const NavItem = ({ to, icon, label, isActive }) => (
 
 const SideRail = () => {
     const location = useLocation();
-    const { userID, userName, platform, isTeacher } = useStore();
+    const { userName, isTeacher } = useStore();
 
     const profileLink = userName ? `/${isTeacher ? 'teachers' : 'students'}/${userName}` : '/sign-up';
 

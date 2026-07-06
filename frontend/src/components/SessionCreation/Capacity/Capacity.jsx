@@ -1,7 +1,6 @@
 import {
 	Typography,
 	Grid,
-	Button,
 	Stack,
 	Box,
 	TextField,
@@ -10,7 +9,6 @@ import {
 } from '@mui/material';
 import React, { useEffect } from 'react';
 import useStore from '../../../store';
-import TERMS from '../../../constants/terms';
 import { PremiumCard } from '../../../ui/PremiumCard';
 import { PremiumSectionHeader } from '../../../ui/PremiumSectionHeader';
 

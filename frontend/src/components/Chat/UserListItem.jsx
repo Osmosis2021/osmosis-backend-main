@@ -1,6 +1,5 @@
 import React from 'react'
-import useStore from '../../store'
-import { Avatar, Card, Grid, IconButton, Typography } from '@mui/material'
+import { Avatar, Card, Grid, Typography } from '@mui/material'
 
 
 

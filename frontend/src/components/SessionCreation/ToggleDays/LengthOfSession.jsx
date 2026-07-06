@@ -2,7 +2,6 @@ import { Typography, ToggleButton, ToggleButtonGroup, Box, Stack } from '@mui/ma
 import React, { useEffect } from 'react';
 import { withStyles } from '@mui/styles';
 import useStore from '../../../store';
-import TERMS from '../../../constants/terms';
 
 const StyledToggle = withStyles({
     root: {
@@ -33,7 +32,7 @@ function LengthOfSession() {
 
     useEffect(() => {
         if (!newCourseDuration) setNewCourseDuration(60);
-    }, []);
+    }, [newCourseDuration, setNewCourseDuration]);
 
     return (
         <Box sx={{ mb: 4 }}>

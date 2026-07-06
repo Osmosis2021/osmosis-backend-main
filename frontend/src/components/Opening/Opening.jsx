@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link as LinkRouter, useNavigate, useLocation } from 'react-router-dom';
 import useStore from "../../store";
 import logo from '../../assets/studio_time_logo.png';
 import './Opening.css';
-import { TextField, Container, Grid, Button, Typography, CircularProgress, Box, Stack } from '@mui/material';
+import { TextField, Container, Button, Typography, CircularProgress, Box, Stack } from '@mui/material';
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
-import Bubbles from '../Bubbles/Bubbles'
 import useAuth from '../../hooks/useAuth'
 import useKeyboard from '../../hooks/useKeyboard'
 import axios from '../../actions/axios'
@@ -24,11 +23,11 @@ const Opening = () => {
 	const [showPassword, setShowPassword] = useState('')
 	const [isWrong, setIsWrong] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
-	const [thisPersist, setThisPersist] = useState(true)
+	const [thisPersist] = useState(true)
 	const { setUserID, setUserName, setIsTeacher, setIsStudent, setFirstName, setLastName,
 		setIsRegistered, setRoles, setEmail, setDescription, setCustomerStripeID, setPaymentMethodID } = useStore()
 
-	const handleGoogleLoginResponse = async (response) => {
+	const handleGoogleLoginResponse = useCallback(async (response) => {
 		setIsLoading(true);
 		try {
 			const res = await axios.post(`user/google-login`, {
@@ -70,7 +69,7 @@ const Opening = () => {
 			console.error('Error logging in user via Google:', err);
 			setIsLoading(false);
 		}
-	};
+	}, [location.state?.from?.pathname, navigate, setAuth, setPersist, setRoles, setUserID, setUserName, setIsTeacher, setIsStudent, setFirstName, setLastName, setEmail, setIsRegistered, setCustomerStripeID, setPaymentMethodID]);
 
 	useEffect(() => {
 		let googleBtnTimeout;
@@ -102,14 +101,12 @@ const Opening = () => {
 			}
 		}
 		return () => clearTimeout(googleBtnTimeout);
-	}, [auth, navigate]);
+	}, [auth, navigate, handleGoogleLoginResponse, manageKeyboard]);
 
 	const handleChangeEmail = (event) => {
 		event.preventDefault()
 		setEmail_(event.target.value)
 	}
-
-	const toggleThisPersist = e => setThisPersist(!thisPersist)
 
 	const handleChangePassword = (event) => {
 		event.preventDefault()

@@ -1,6 +1,5 @@
 import React from "react";
 import { Avatar, Stack, Typography, Grid } from "@mui/material";
-import StarIcon from "@mui/icons-material/Star";
 
 // TO DO:
 // - Change source to users uploaded photo

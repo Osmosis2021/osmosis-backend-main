@@ -279,16 +279,14 @@ function LandingPage() {
                         <Grid item xs={6}>
                             <Typography variant='h5' style={{ color: "#000000" }}>Studio Time</Typography>
                             <List style={{ paddingTop: '25px' }}>
-                                <ListItem><a style={{ textDecoration: 'none', color: 'white' }}>About</a></ListItem>
-                                <ListItem><a style={{ textDecoration: 'none', color: 'white' }}>Features</a></ListItem>
-                                <ListItem><a style={{ textDecoration: 'none', color: 'white' }}>How it works</a></ListItem>
-                                <ListItem><a style={{ textDecoration: 'none', color: 'white' }}>Where to teach</a></ListItem>
-                                <ListItem><a style={{ textDecoration: 'none', color: 'white' }}>Contact</a></ListItem>
-                                <ListItem><a style={{ textDecoration: 'none', color: 'white' }}>What to teach</a></ListItem>
-                                <ListItem><a style={{ textDecoration: 'none', color: 'white' }}>Privacy</a></ListItem>
-                                <ListItem><a style={{ textDecoration: 'none', color: 'white' }}>Terms</a></ListItem>
-
-
+                                <ListItem><button style={{ background: 'none', border: 'none', color: 'white', textDecoration: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', textAlign: 'left' }}>About</button></ListItem>
+                                <ListItem><button style={{ background: 'none', border: 'none', color: 'white', textDecoration: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', textAlign: 'left' }}>Features</button></ListItem>
+                                <ListItem><button style={{ background: 'none', border: 'none', color: 'white', textDecoration: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', textAlign: 'left' }}>How it works</button></ListItem>
+                                <ListItem><button style={{ background: 'none', border: 'none', color: 'white', textDecoration: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', textAlign: 'left' }}>Where to teach</button></ListItem>
+                                <ListItem><button style={{ background: 'none', border: 'none', color: 'white', textDecoration: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', textAlign: 'left' }}>Contact</button></ListItem>
+                                <ListItem><button style={{ background: 'none', border: 'none', color: 'white', textDecoration: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', textAlign: 'left' }}>What to teach</button></ListItem>
+                                <ListItem><LinkRouter to="/privacy" style={{ textDecoration: 'none', color: 'white' }}>Privacy</LinkRouter></ListItem>
+                                <ListItem><LinkRouter to="/termsofservice" style={{ textDecoration: 'none', color: 'white' }}>Terms</LinkRouter></ListItem>
                             </List>
                         </Grid>
 

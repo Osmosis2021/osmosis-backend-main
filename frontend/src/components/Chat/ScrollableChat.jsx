@@ -10,8 +10,8 @@ const ScrollableChat = ({ messages }) => {
         return (
             i < messages?.length - 1 && (
                 messages[i + 1]?.sender?._id !== m?.sender?._id ||
-                messages[i + 1]?.sender?._id === undefined &&
-                messages[i + 1]?.sender?._id !== userID
+                (messages[i + 1]?.sender?._id === undefined &&
+                messages[i + 1]?.sender?._id !== userID)
             )
         )
     }
@@ -23,10 +23,6 @@ const ScrollableChat = ({ messages }) => {
             messages[messages?.length - 1]?.sender?._id
         )
     }
-
-    const isSameUser = (messages, m, i) => {
-        return i > 0 && messages[i - 1]?.sender?._id === m?.sender?._id;
-    };
 
     const formatTime = (timestamp) => {
         if (!timestamp) return '';

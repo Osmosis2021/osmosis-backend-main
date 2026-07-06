@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
-	Button,
 	Container,
 	Typography,
-	Grid,
 	TextField,
 	Box,
 	IconButton,
@@ -12,11 +10,8 @@ import {
 	InputAdornment
 } from '@mui/material';
 import useStore from "../../../store"
-import TERMS from "../../../constants/terms"
 import './SessionTag.css';
-import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import AddIcon from '@mui/icons-material/Add';
-import { PremiumCard } from '../../../ui/PremiumCard';
 import { PremiumChip } from '../../../ui/PremiumChip';
 
 const SUGGESTED_VIBES = ['Quiet', 'Focused', 'High-energy', 'Experimental', 'Chill', 'Social', 'Collaborative', 'Industrial'];
