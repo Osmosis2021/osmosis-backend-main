@@ -1,24 +1,24 @@
-import { 
-  Button, 
-  Container, 
-  Grid, 
-  Stack, 
-  TextField, 
-  Typography, 
-  IconButton, 
-  InputAdornment, 
-  Box, 
-  Card, 
-  CardContent, 
-  Divider, 
-  Drawer, 
-  List, 
-  ListItem, 
-  ListItemButton, 
-  ListItemIcon, 
-  ListItemText,
-  Snackbar,
-  Alert
+import {
+    Button,
+    Container,
+    Grid,
+    Stack,
+    TextField,
+    Typography,
+    IconButton,
+    InputAdornment,
+    Box,
+    Card,
+    CardContent,
+    Divider,
+    Drawer,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    Snackbar,
+    Alert
 } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -52,12 +52,12 @@ function EditProfile() {
     const navigate = useNavigate();
     const location = useLocation();
     const logout = useLogout();
-    
-    const { 
+
+    const {
         userID, userName, setUserName, isTeacher, firstName, setFirstName, lastName, setLastName,
         email, setEmail, description, setDescription, backendURL
     } = useStore();
-    
+
     const [userInfo, setUserInfo] = useState({});
     const [firstName_, setFirstName_] = useState(firstName || '');
     const [lastName_, setLastName_] = useState(lastName || '');
@@ -139,7 +139,7 @@ function EditProfile() {
             showToast('There are no updates to make.', 'info');
             return;
         }
-        
+
         const updateObj = { auth, newInfo, userID };
         try {
             await fetch(`${backendURL}user/updateProfile/${userID}`, {
@@ -198,8 +198,8 @@ function EditProfile() {
 
     return (
         <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 8 }}>
-            <TopNavBar 
-                title="Edit Profile" 
+            <TopNavBar
+                title="Edit Profile"
                 back={isTeacher ? `/teachers/${userName}` : `/students/${userName}`}
                 rightAction={
                     <IconButton onClick={() => setIsDrawerOpen(true)} color="inherit" sx={{ p: 1 }}>
@@ -207,7 +207,7 @@ function EditProfile() {
                     </IconButton>
                 }
             />
-            
+
             <Container maxWidth="sm" sx={{ mt: 4, px: 2 }}>
                 <Stack spacing={4}>
                     {/* Profile Picture Card */}
@@ -233,7 +233,7 @@ function EditProfile() {
                                         Personal Information
                                     </Typography>
                                     <Divider sx={{ mb: 2.5 }} />
-                                    
+
                                     <Stack spacing={2.5}>
                                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                                             <Box sx={{ flex: 1 }}>
@@ -248,7 +248,7 @@ function EditProfile() {
                                             </Box>
                                             <Box sx={{ flex: 1 }}>
                                                 <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>Last Name</Typography>
-                                                <TextField 
+                                                <TextField
                                                     onChange={changeLastName}
                                                     placeholder={lastName || 'Enter last name'}
                                                     value={lastName_}
@@ -257,14 +257,14 @@ function EditProfile() {
                                                 />
                                             </Box>
                                         </Stack>
-                                        
+
                                         <Box>
                                             <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>Bio</Typography>
-                                            <TextField 
-                                                multiline 
+                                            <TextField
+                                                multiline
                                                 rows={3}
-                                                fullWidth 
-                                                placeholder={description || 'Tell students about your studio/skills...'} 
+                                                fullWidth
+                                                placeholder={description || 'Tell students about your studio/skills...'}
                                                 value={description_}
                                                 onChange={changeDescription}
                                             />
@@ -280,24 +280,24 @@ function EditProfile() {
                                         Account Details
                                     </Typography>
                                     <Divider sx={{ mb: 2.5 }} />
-                                    
+
                                     <Stack spacing={2.5}>
                                         <Box>
                                             <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>Username</Typography>
-                                            <TextField 
-                                                id='userNameInput' 
-                                                fullWidth 
-                                                placeholder={userName} 
+                                            <TextField
+                                                id='userNameInput'
+                                                fullWidth
+                                                placeholder={userName}
                                                 value={userName_}
                                                 onChange={changeUserName}
                                             />
                                         </Box>
                                         <Box>
                                             <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>Email Address</Typography>
-                                            <TextField 
+                                            <TextField
                                                 type="email"
-                                                fullWidth 
-                                                placeholder={email || 'your-email@domain.com'} 
+                                                fullWidth
+                                                placeholder={email || 'your-email@domain.com'}
                                                 value={email_}
                                                 onChange={changeEmail}
                                             />
@@ -307,11 +307,11 @@ function EditProfile() {
                             </Card>
 
                             {/* Primary Action Buttons */}
-                            <Button 
-                                type="submit" 
-                                variant="contained" 
-                                color="primary" 
-                                size="large" 
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                color="primary"
+                                size="large"
                                 startIcon={<SaveRoundedIcon />}
                                 sx={{ py: 1.5, fontSize: '1rem', borderRadius: '12px' }}
                                 fullWidth
@@ -332,10 +332,10 @@ function EditProfile() {
                                                     Permanently delete your account and all associated data. This action is irreversible.
                                                 </Typography>
                                             </Box>
-                                            <Button 
-                                                onClick={openDeletionFields} 
-                                                color='error' 
-                                                variant="outlined" 
+                                            <Button
+                                                onClick={openDeletionFields}
+                                                color='error'
+                                                variant="outlined"
                                                 startIcon={<DeleteForeverRoundedIcon />}
                                                 sx={{ mt: 1, borderRadius: '8px', textTransform: 'none' }}
                                             >
@@ -355,26 +355,26 @@ function EditProfile() {
                                                     </Typography>
                                                 </Box>
                                             </Box>
-                                            
+
                                             <Box>
                                                 <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }} color="error">Confirm Username</Typography>
-                                                <TextField 
-                                                    id='confirmUserNameInput' 
-                                                    fullWidth 
-                                                    placeholder={userName} 
+                                                <TextField
+                                                    id='confirmUserNameInput'
+                                                    fullWidth
+                                                    placeholder={userName}
                                                     value={confirmUserName}
                                                     onChange={changeConfirmUserName}
                                                 />
                                             </Box>
-                                    
+
                                             <Box>
                                                 <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }} color="error">Enter Password</Typography>
-                                                <TextField 
-                                                    id='confirmPasswordInput' 
+                                                <TextField
+                                                    id='confirmPasswordInput'
                                                     type={showPassword ? "text" : "password"}
-                                                    placeholder='Enter your account password' 
+                                                    placeholder='Enter your account password'
                                                     value={confirmPassword}
-                                                    onChange={changeConfirmPassword} 
+                                                    onChange={changeConfirmPassword}
                                                     fullWidth
                                                     InputProps={{
                                                         endAdornment: (
@@ -387,21 +387,21 @@ function EditProfile() {
                                                     }}
                                                 />
                                             </Box>
-                                    
+
                                             <Stack direction="row" spacing={2} sx={{ pt: 1 }}>
-                                                <Button 
-                                                    onClick={() => setDeleteSequence(false)} 
-                                                    type='button' 
-                                                    variant="outlined" 
+                                                <Button
+                                                    onClick={() => setDeleteSequence(false)}
+                                                    type='button'
+                                                    variant="outlined"
                                                     sx={{ flex: 1, borderRadius: '8px' }}
                                                 >
                                                     Cancel
                                                 </Button>
-                                                <Button 
-                                                    onClick={deleteProfile} 
-                                                    type='submit' 
-                                                    color='error' 
-                                                    variant="contained" 
+                                                <Button
+                                                    onClick={deleteProfile}
+                                                    type='submit'
+                                                    color='error'
+                                                    variant="contained"
                                                     sx={{ flex: 1, borderRadius: '8px' }}
                                                     disabled={!((userName === confirmUserName) && (confirmPassword.length > 0))}
                                                 >
@@ -418,9 +418,9 @@ function EditProfile() {
             </Container>
 
             {/* Modern Settings Drawer */}
-            <Drawer 
-                anchor='bottom' 
-                open={isDrawerOpen} 
+            <Drawer
+                anchor='bottom'
+                open={isDrawerOpen}
                 onClose={() => setIsDrawerOpen(false)}
                 PaperProps={{
                     sx: {
@@ -440,13 +440,13 @@ function EditProfile() {
                         Account Settings
                     </Typography>
                     <Divider sx={{ mb: 2 }} />
-                    
+
                     <List sx={{ width: '100%', px: 1 }}>
                         {SettingOptions.map(setting => (
                             <ListItem key={setting.key} disablePadding>
-                                <ListItemButton 
-                                    component={setting.func ? 'button' : Link} 
-                                    to={setting.link} 
+                                <ListItemButton
+                                    component={setting.func ? 'button' : Link}
+                                    to={setting.link}
                                     onClick={() => {
                                         setIsDrawerOpen(false);
                                         if (setting.func) setting.func();
@@ -463,9 +463,9 @@ function EditProfile() {
                                     <ListItemIcon sx={{ minWidth: 44, color: 'text.secondary', transition: 'color 0.2s' }}>
                                         {setting.icon}
                                     </ListItemIcon>
-                                    <ListItemText 
-                                        primary={setting.name} 
-                                        primaryTypographyProps={{ sx: { fontWeight: 600, fontSize: '0.95rem' } }} 
+                                    <ListItemText
+                                        primary={setting.name}
+                                        primaryTypographyProps={{ sx: { fontWeight: 600, fontSize: '0.95rem' } }}
                                     />
                                 </ListItemButton>
                             </ListItem>
@@ -475,15 +475,15 @@ function EditProfile() {
             </Drawer>
 
             {/* Non-intrusive Snackbar Alert Toast */}
-            <Snackbar 
-                open={toast.open} 
-                autoHideDuration={4000} 
+            <Snackbar
+                open={toast.open}
+                autoHideDuration={4000}
                 onClose={() => setToast({ ...toast, open: false })}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
-                <Alert 
-                    onClose={() => setToast({ ...toast, open: false })} 
-                    severity={toast.severity} 
+                <Alert
+                    onClose={() => setToast({ ...toast, open: false })}
+                    severity={toast.severity}
                     variant="filled"
                     sx={{ width: '100%', borderRadius: '12px', fontWeight: 600, boxShadow: 3 }}
                 >

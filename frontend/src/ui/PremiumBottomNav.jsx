@@ -6,8 +6,6 @@ import {
     useTheme,
     useMediaQuery,
     Box,
-    Stack,
-    IconButton,
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import SearchIcon from '@mui/icons-material/Search';

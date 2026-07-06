@@ -10,7 +10,6 @@ import {
     Alert
 } from '@mui/material';
 import { useNavigate, Link as LinkRouter } from 'react-router-dom';
-import TopNavBar from '../../TopNavBar/TopNavBar';
 import './ForgotPassword.css';
 import useStore from "../../../store";
 import useKeyboard from '../../../hooks/useKeyboard';
@@ -19,7 +18,6 @@ import axios from "../../../actions/axios";
 const Forgot = () => {
     const navigate = useNavigate();
     const manageKeyboard = useKeyboard();
-    const { backendURL } = useStore();
 
     const [email, setEmail] = useState('');
     const [stage, setStage] = useState('email'); // email, resetCode, newPassword, success
@@ -143,7 +141,7 @@ const Forgot = () => {
         }}>
             <Container maxWidth="xs" sx={{ p: 0 }}>
                 <Stack spacing={4} sx={{ bgcolor: 'background.paper', p: 4, borderRadius: '24px', boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.05)', animation: 'fadeIn 0.4s ease-out' }}>
-                    
+
                     {stage === 'email' && (
                         <Box component="form" onSubmit={handleSendCode}>
                             <Stack spacing={3}>

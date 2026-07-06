@@ -11,9 +11,10 @@ const Layout = () => {
     const location = useLocation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-    const { userID, backendURL, socket, setSocket } = useStore();
+    const { userID, setSocket } = useStore();
 
     useEffect(() => {
+        const { socket, backendURL } = useStore.getState();
         if (userID && !socket) {
             const newSocket = io(backendURL);
             newSocket.emit("setup", userID);
@@ -24,7 +25,7 @@ const Layout = () => {
                 setSocket(null);
             }
         }
-    }, [userID]);
+    }, [userID, setSocket]);
 
     return (
         <Box

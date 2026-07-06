@@ -1,13 +1,9 @@
 import * as React from 'react';
-import { useTheme } from '@mui/material/styles';
 import {
   Button,
   Box,
   Container,
-  Stack,
-  Typography,
-  IconButton,
-  useMediaQuery
+  Stack
 } from '@mui/material';
 import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
@@ -15,7 +11,6 @@ import SessionTag from '../SessionCreation/SessionTag/SessionTag';
 import ToggleDays from '../SessionCreation/ToggleDays/ToggleDays';
 import Address from '../SessionCreation/Address/Address';
 import Capacity from '../SessionCreation/Capacity/Capacity';
-import Cost from '../SessionCreation/Cost/Cost';
 import UploadPhotos from '../SessionCreation/PhotoHandling/UploadPhotos/UploadPhotos';
 import { ConfirmSession } from '../SessionCreation/ConfirmSession/ConfirmSession';
 import StudioTemplates from '../SessionCreation/StudioTemplates/StudioTemplates';
@@ -25,8 +20,6 @@ import { useState } from 'react';
 const steps = ['Templates', 'Tags', 'Capacity & Pricing', 'Availability', 'Location', 'Photos', 'Confirmation']
 
 export default function UpdatedProgressBar() {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [activeStep, setActiveStep] = useState(0);
   const [isNextDisabled, setIsNextDisabled] = useState(false)
   const [hideFooter, setHideFooter] = useState(false);

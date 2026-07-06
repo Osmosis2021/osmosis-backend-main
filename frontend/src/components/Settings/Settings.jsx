@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Container, 
-  Grid, 
-  List, 
-  ListItem, 
-  ListItemButton, 
-  ListItemIcon, 
+import {
+  Container,
+  Grid,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
   ListItemText,
   Typography,
   Box,
@@ -23,7 +23,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails
-} from '@mui/material'; 
+} from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import './Settings.css';
@@ -62,15 +62,15 @@ export default function Settings() {
   const navigate = useNavigate();
   const muiTheme = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
-  
+
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'account';
 
-  const { 
+  const {
     userID, userName, setUserName, isTeacher, isStudent, firstName, setFirstName, lastName, setLastName,
     email, setEmail, description, setDescription, backendURL
   } = useStore();
-  
+
   // Account Information States
   const [userInfo, setUserInfo] = useState({});
   const [firstName_, setFirstName_] = useState(firstName || '');
@@ -79,7 +79,7 @@ export default function Settings() {
   const [email_, setEmail_] = useState(email || '');
   const [description_, setDescription_] = useState(description || '');
   const [phoneNumber_, setPhoneNumber_] = useState('');
-  
+
   const handleGoogleLinkResponse = async (response) => {
     try {
       const result = await axiosPrivate.post(`${backendURL}user/link-google`, {
@@ -228,7 +228,7 @@ export default function Settings() {
       try {
         const userInfoResponse = await fetch(`${backendURL}user/getUserInfo/${userName}`);
         const userData = await userInfoResponse?.json();
-        
+
         if (userData?.stripeID !== undefined) {
           const stripeID = userData.stripeID;
           const accountLinkResponse = await fetch(`${backendURL}stripe/accountLink/${stripeID}`);
@@ -283,7 +283,7 @@ export default function Settings() {
       showToast('There are no updates to make.', 'info');
       return;
     }
-    
+
     const updateObj = { auth, newInfo, userID };
     try {
       const res = await fetch(`${backendURL}user/updateProfile/${userID}`, {
@@ -292,23 +292,23 @@ export default function Settings() {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.message || 'Update failed');
       }
-      
+
       const data = await res.json();
       if (data.user) {
         setUserInfo(data.user);
         if (data.user.phoneNumber !== undefined) setPhoneNumber_(data.user.phoneNumber || '');
-        
+
         // If email changed, backend sets isEmailVerified to false
         if (newInfo.email) {
-          setAuth(prev => ({ 
-            ...prev, 
-            isEmailVerified: false, 
-            email: data.user.email 
+          setAuth(prev => ({
+            ...prev,
+            isEmailVerified: false,
+            email: data.user.email
           }));
           setEmail(data.user.email);
           showToast('Profile updated. Please verify your new email.', 'warning');
@@ -316,7 +316,7 @@ export default function Settings() {
           return;
         }
       }
-      
+
       newInfo?.firstName && setFirstName(newInfo.firstName);
       newInfo?.lastName && setLastName(newInfo.lastName);
       newInfo?.userName && setUserName(newInfo.userName);
@@ -383,7 +383,7 @@ export default function Settings() {
       showToast('Password must be at least 6 characters long', 'error');
       return;
     }
-    
+
     try {
       const response = await axiosPrivate.put(`${backendURL}user/changePassword`, {
         currentPassword: securityPass.current,
@@ -473,7 +473,7 @@ export default function Settings() {
                 Manage your public profile description and account details.
               </Typography>
             </Box>
-            
+
             <Divider />
 
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 2 }}>
@@ -519,11 +519,11 @@ export default function Settings() {
                   <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, fontFamily: 'Inter' }}>
                     Biography
                   </Typography>
-                  <TextField 
-                    multiline 
+                  <TextField
+                    multiline
                     rows={3}
-                    fullWidth 
-                    placeholder={description || 'Tell students about your studio/skills...'} 
+                    fullWidth
+                    placeholder={description || 'Tell students about your studio/skills...'}
                     value={description_}
                     onChange={changeDescription}
                   />
@@ -533,10 +533,10 @@ export default function Settings() {
                   <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, fontFamily: 'Inter' }}>
                     Username
                   </Typography>
-                  <TextField 
-                    id='userNameInput' 
-                    fullWidth 
-                    placeholder={userName} 
+                  <TextField
+                    id='userNameInput'
+                    fullWidth
+                    placeholder={userName}
                     value={userName_}
                     onChange={changeUserName}
                   />
@@ -564,10 +564,10 @@ export default function Settings() {
                       )}
                     </Box>
                   </Box>
-                  <TextField 
+                  <TextField
                     type="email"
-                    fullWidth 
-                    placeholder={email || 'your-email@domain.com'} 
+                    fullWidth
+                    placeholder={email || 'your-email@domain.com'}
                     value={email_}
                     onChange={changeEmail}
                   />
@@ -577,20 +577,20 @@ export default function Settings() {
                   <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, fontFamily: 'Inter' }}>
                     Phone Number
                   </Typography>
-                  <TextField 
+                  <TextField
                     type="tel"
-                    fullWidth 
-                    placeholder="Enter phone number" 
+                    fullWidth
+                    placeholder="Enter phone number"
                     value={phoneNumber_}
                     onChange={(e) => setPhoneNumber_(e.target.value)}
                   />
                 </Box>
 
-                <Button 
-                  type="submit" 
-                  variant="contained" 
-                  color="primary" 
-                  size="large" 
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  size="large"
                   startIcon={<SaveRoundedIcon />}
                   sx={{ py: 1.5, fontSize: '0.95rem', borderRadius: '12px', mt: 1 }}
                 >
@@ -613,9 +613,9 @@ export default function Settings() {
                       Manage your third-party account connections for authentication.
                     </Typography>
                   </Box>
-                  
+
                   <Divider />
-                  
+
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1 }}>
                     <Box>
                       <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>Google Sign-In</Typography>
@@ -629,7 +629,7 @@ export default function Settings() {
                         </Typography>
                       )}
                     </Box>
-                    
+
                     {userInfo.googleId ? (
                       <Button variant="outlined" color="error" size="small" onClick={handleUnlinkGoogle} sx={{ borderRadius: '8px', textTransform: 'none' }}>
                         Disconnect
@@ -657,10 +657,10 @@ export default function Settings() {
                         Permanently delete your account and all associated data. This action is irreversible.
                       </Typography>
                     </Box>
-                    <Button 
-                      onClick={openDeletionFields} 
-                      color='error' 
-                      variant="outlined" 
+                    <Button
+                      onClick={openDeletionFields}
+                      color='error'
+                      variant="outlined"
                       startIcon={<DeleteForeverRoundedIcon />}
                       sx={{ mt: 1, borderRadius: '8px', textTransform: 'none' }}
                     >
@@ -680,30 +680,30 @@ export default function Settings() {
                         </Typography>
                       </Box>
                     </Box>
-                    
+
                     <Box>
                       <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }} color="error">
                         Confirm Username
                       </Typography>
-                      <TextField 
-                        id='confirmUserNameInput' 
-                        fullWidth 
-                        placeholder={userName} 
+                      <TextField
+                        id='confirmUserNameInput'
+                        fullWidth
+                        placeholder={userName}
                         value={confirmUserName}
                         onChange={changeConfirmUserName}
                       />
                     </Box>
-            
+
                     <Box>
                       <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }} color="error">
                         Enter Password
                       </Typography>
-                      <TextField 
-                        id='confirmPasswordInput' 
+                      <TextField
+                        id='confirmPasswordInput'
                         type={showPassword ? "text" : "password"}
-                        placeholder='Enter your account password' 
+                        placeholder='Enter your account password'
                         value={confirmPassword}
-                        onChange={changeConfirmPassword} 
+                        onChange={changeConfirmPassword}
                         fullWidth
                         InputProps={{
                           endAdornment: (
@@ -716,21 +716,21 @@ export default function Settings() {
                         }}
                       />
                     </Box>
-            
+
                     <Stack direction="row" spacing={2} sx={{ pt: 1 }}>
-                      <Button 
-                        onClick={() => setDeleteSequence(false)} 
-                        type='button' 
-                        variant="outlined" 
+                      <Button
+                        onClick={() => setDeleteSequence(false)}
+                        type='button'
+                        variant="outlined"
                         sx={{ flex: 1, borderRadius: '8px' }}
                       >
                         Cancel
                       </Button>
-                      <Button 
-                        onClick={deleteProfile} 
-                        type='submit' 
-                        color='error' 
-                        variant="contained" 
+                      <Button
+                        onClick={deleteProfile}
+                        type='submit'
+                        color='error'
+                        variant="contained"
                         sx={{ flex: 1, borderRadius: '8px' }}
                         disabled={!((userName === confirmUserName) && (confirmPassword.length > 0))}
                       >
@@ -755,7 +755,7 @@ export default function Settings() {
                 Configure stripe payouts, billing, and credit card profiles.
               </Typography>
             </Box>
-            
+
             <Divider />
 
             {paymentsLoading ? (
@@ -860,14 +860,14 @@ export default function Settings() {
                 Last updated May 24, 2026. View details about data collections.
               </Typography>
             </Box>
-            
+
             <Divider />
 
-            <Box 
-              className="privacy-scroll-container" 
-              sx={{ 
-                maxHeight: '520px', 
-                overflowY: 'auto', 
+            <Box
+              className="privacy-scroll-container"
+              sx={{
+                maxHeight: '520px',
+                overflowY: 'auto',
                 pr: 1.5,
                 '& p': { mb: 2, fontSize: '0.95rem', lineHeight: 1.6 },
                 '& li': { fontSize: '0.95rem', mb: 1 }
@@ -877,7 +877,7 @@ export default function Settings() {
               <Typography>
                 Studio Time (“Studio Time,” “we” or “us”) is committed to respecting the privacy of our customers. Unless we link to a different policy or state otherwise, this Privacy Notice applies when you visit or use any of our websites, our mobile applications, or related services (collectively the “Services”). By using the Services, you agree to the terms of this Privacy Notice. You shouldn’t use the Services if you don’t agree with this Privacy Notice.
               </Typography>
-              
+
               <Typography variant="h6" sx={{ fontWeight: 700, mt: 3, mb: 1.5 }}>Types of Information We Collect</Typography>
               <Typography>
                 <strong>Account Information:</strong> When you create or update your account, we collect and store the data you provide, such as your name, email address, password, profile photo, and account settings, and assign you a unique identifying number.
@@ -915,7 +915,7 @@ export default function Settings() {
                 Update passwords and lock down authorization rules.
               </Typography>
             </Box>
-            
+
             <Divider />
 
             <Box component="form" onSubmit={handleSecuritySave}>
@@ -924,7 +924,7 @@ export default function Settings() {
                   <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, fontFamily: 'Inter' }}>
                     Current Password
                   </Typography>
-                  <TextField 
+                  <TextField
                     type={showSecPassword.current ? "text" : "password"}
                     placeholder="Enter your current password"
                     value={securityPass.current}
@@ -947,7 +947,7 @@ export default function Settings() {
                   <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, fontFamily: 'Inter' }}>
                     New Password
                   </Typography>
-                  <TextField 
+                  <TextField
                     type={showSecPassword.new ? "text" : "password"}
                     placeholder="Enter new password (min 6 chars)"
                     value={securityPass.new}
@@ -970,7 +970,7 @@ export default function Settings() {
                   <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, fontFamily: 'Inter' }}>
                     Confirm New Password
                   </Typography>
-                  <TextField 
+                  <TextField
                     type={showSecPassword.confirm ? "text" : "password"}
                     placeholder="Retype new password"
                     value={securityPass.confirm}
@@ -989,10 +989,10 @@ export default function Settings() {
                   />
                 </Box>
 
-                <Button 
-                  type="submit" 
-                  variant="contained" 
-                  color="primary" 
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
                   sx={{ py: 1.5, borderRadius: '12px', mt: 1 }}
                 >
                   Change Password
@@ -1013,7 +1013,7 @@ export default function Settings() {
                 Decide how and when you want to receive booking confirmations and class schedules.
               </Typography>
             </Box>
-            
+
             <Divider />
 
             <Stack spacing={3}>
@@ -1022,8 +1022,8 @@ export default function Settings() {
                   <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>Email Alerts</Typography>
                   <Typography variant="body2" color="text.secondary">Receive message replies, session receipts and booking approvals via email.</Typography>
                 </Box>
-                <Switch 
-                  checked={notifications.emailAlerts} 
+                <Switch
+                  checked={notifications.emailAlerts}
                   onChange={() => handleNotificationChange('emailAlerts')}
                   color="primary"
                 />
@@ -1042,9 +1042,9 @@ export default function Settings() {
                     </span>
                   </Typography>
                 </Box>
-                <Switch 
+                <Switch
                   disabled={true}
-                  checked={notifications.smsMessages} 
+                  checked={notifications.smsMessages}
                   onChange={() => handleNotificationChange('smsMessages')}
                   color="primary"
                 />
@@ -1057,8 +1057,8 @@ export default function Settings() {
                   <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>In-App Push Alerts</Typography>
                   <Typography variant="body2" color="text.secondary">Enable badge icons and pop-ups on mobile apps when bookings occur.</Typography>
                 </Box>
-                <Switch 
-                  checked={notifications.inAppAlerts} 
+                <Switch
+                  checked={notifications.inAppAlerts}
                   onChange={() => handleNotificationChange('inAppAlerts')}
                   color="primary"
                 />
@@ -1071,15 +1071,15 @@ export default function Settings() {
                   <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>Weekly Activty Digest</Typography>
                   <Typography variant="body2" color="text.secondary">Receive a Sunday review summarizing classes completed and payout tallies.</Typography>
                 </Box>
-                <Switch 
-                  checked={notifications.weeklySummary} 
+                <Switch
+                  checked={notifications.weeklySummary}
                   onChange={() => handleNotificationChange('weeklySummary')}
                   color="primary"
                 />
               </Box>
 
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 color="primary"
                 onClick={handleNotificationSave}
                 sx={{ py: 1.5, alignSelf: 'flex-start', borderRadius: '12px', mt: 2 }}
@@ -1101,7 +1101,7 @@ export default function Settings() {
                 Technical properties and legal definitions.
               </Typography>
             </Box>
-            
+
             <Divider sx={{ width: '100%' }} />
 
             <Stack spacing={2} sx={{ width: '100%' }}>
@@ -1145,14 +1145,14 @@ export default function Settings() {
                 Search FAQs or submit a customer support query.
               </Typography>
             </Box>
-            
+
             <Divider />
 
             <Stack spacing={3}>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, fontFamily: 'Outfit' }}>
                 Frequently Asked Questions
               </Typography>
-              
+
               <Box>
                 <Accordion variant="outlined" sx={{ mb: 1, borderRadius: '8px' }}>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -1193,7 +1193,7 @@ export default function Settings() {
               <Typography variant="subtitle1" sx={{ fontWeight: 700, fontFamily: 'Outfit' }}>
                 Contact Support Desk
               </Typography>
-              
+
               <Box component="form" onSubmit={handleHelpSubmit}>
                 <Stack spacing={2} sx={{ maxWidth: '480px' }}>
                   <Typography variant="body2">
@@ -1201,7 +1201,7 @@ export default function Settings() {
                   </Typography>
                   <Box>
                     <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>Subject</Typography>
-                    <TextField 
+                    <TextField
                       placeholder="e.g. Billing Issue, Booking Bug"
                       value={helpContact.subject}
                       onChange={(e) => setHelpContact(p => ({ ...p, subject: e.target.value }))}
@@ -1211,7 +1211,7 @@ export default function Settings() {
                   </Box>
                   <Box>
                     <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>Message Detail</Typography>
-                    <TextField 
+                    <TextField
                       multiline
                       rows={3}
                       placeholder="Describe what occurred or what help you require..."
@@ -1221,9 +1221,9 @@ export default function Settings() {
                       required
                     />
                   </Box>
-                  <Button 
-                    type="submit" 
-                    variant="contained" 
+                  <Button
+                    type="submit"
+                    variant="contained"
                     color="primary"
                     sx={{ py: 1.2, borderRadius: '12px', alignSelf: 'flex-start' }}
                   >
@@ -1252,13 +1252,13 @@ export default function Settings() {
       return (
         <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 6 }}>
           {/* Mobile Back Header */}
-          <Box sx={{ 
-            borderBottom: 1, 
-            borderColor: 'divider', 
-            px: 2, 
-            py: 1.5, 
-            display: 'flex', 
-            alignItems: 'center', 
+          <Box sx={{
+            borderBottom: 1,
+            borderColor: 'divider',
+            px: 2,
+            py: 1.5,
+            display: 'flex',
+            alignItems: 'center',
             gap: 1,
             bgcolor: 'background.paper',
             position: 'sticky',
@@ -1281,15 +1281,15 @@ export default function Settings() {
             </Card>
           </Container>
 
-          <Snackbar 
-            open={toast.open} 
-            autoHideDuration={4000} 
+          <Snackbar
+            open={toast.open}
+            autoHideDuration={4000}
             onClose={() => setToast({ ...toast, open: false })}
             anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
           >
-            <Alert 
-              onClose={() => setToast({ ...toast, open: false })} 
-              severity={toast.severity} 
+            <Alert
+              onClose={() => setToast({ ...toast, open: false })}
+              severity={toast.severity}
               variant="filled"
               sx={{ width: '100%', borderRadius: '12px', fontWeight: 600, boxShadow: 3 }}
             >
@@ -1312,7 +1312,7 @@ export default function Settings() {
             <List sx={{ width: '100%', p: 1 }}>
               {menuItems.map(item => (
                 <ListItem key={item.key} disablePadding>
-                  <ListItemButton 
+                  <ListItemButton
                     onClick={() => handleTabChange(item.key)}
                     className="settings-menu-item"
                   >
@@ -1327,7 +1327,7 @@ export default function Settings() {
               <Divider sx={{ my: 1 }} />
 
               <ListItem disablePadding>
-                <ListItemButton 
+                <ListItemButton
                   onClick={() => logout("/")}
                   className="settings-menu-item settings-logout-item"
                 >
@@ -1348,7 +1348,7 @@ export default function Settings() {
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 8 }}>
       <TopNavBar back={`/${isTeacher ? 'teachers' : 'students'}/${userName}`} />
-      
+
       <Container maxWidth="lg" sx={{ mt: 5, px: { xs: 2, md: 4 } }}>
         <Typography variant="h3" sx={{ mb: 3, fontWeight: 800, fontFamily: 'Outfit' }}>
           Settings
@@ -1364,7 +1364,7 @@ export default function Settings() {
                     const isActive = activeTab === item.key;
                     return (
                       <ListItem key={item.key} disablePadding>
-                        <ListItemButton 
+                        <ListItemButton
                           onClick={() => handleTabChange(item.key)}
                           className={`settings-menu-item ${isActive ? 'active-item' : ''}`}
                         >
@@ -1380,7 +1380,7 @@ export default function Settings() {
                   <Divider sx={{ my: 2 }} />
 
                   <ListItem disablePadding>
-                    <ListItemButton 
+                    <ListItemButton
                       onClick={() => logout("/")}
                       className="settings-menu-item settings-logout-item"
                     >
@@ -1405,15 +1405,15 @@ export default function Settings() {
       </Container>
 
       {/* Snackbar alerts */}
-      <Snackbar 
-        open={toast.open} 
-        autoHideDuration={4000} 
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={4000}
         onClose={() => setToast({ ...toast, open: false })}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert 
-          onClose={() => setToast({ ...toast, open: false })} 
-          severity={toast.severity} 
+        <Alert
+          onClose={() => setToast({ ...toast, open: false })}
+          severity={toast.severity}
           variant="filled"
           sx={{ width: '100%', borderRadius: '12px', fontWeight: 600, boxShadow: 3 }}
         >

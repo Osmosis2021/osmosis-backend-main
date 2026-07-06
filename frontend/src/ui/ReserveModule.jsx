@@ -1,7 +1,5 @@
 import React, { useMemo } from 'react';
 import { Box, Typography, Stack, Divider, useMediaQuery, useTheme, Chip, Button } from '@mui/material';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import PeopleIcon from '@mui/icons-material/People';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { PremiumButton } from './PremiumButton';
