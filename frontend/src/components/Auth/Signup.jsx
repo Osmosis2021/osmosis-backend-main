@@ -110,7 +110,7 @@ const Signup = props => {
         const initGoogleSignupBtn = () => {
             if (window.google?.accounts?.id) {
                 window.google.accounts.id.initialize({
-                    process.env.GOOGLE_CLIENT_ID: '812674900898-fakeclientid.apps.googleusercontent.com',
+                    client_id: process.env.GOOGLE_CLIENT_ID,
                     callback: handleGoogleSignupResponse
                 });
                 const btnElem = document.getElementById("googleSignupBtn");
