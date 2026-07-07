@@ -2,6 +2,7 @@ const router = require('express').Router()
 const User = require('../models/user')
 const env = require('../config/env');
 const authService = require('../services/authService');
+const emailService = require('../services/emailService');
 
 router.get('/config', (req, res) => {
     res.send({
@@ -307,6 +308,11 @@ router.post('/resend-verification', async (req, res, next) => {
         } catch (emailError) {
             console.error("Failed to resend verification email:", emailError);
             console.log(`[DEV FALLBACK] Verification code for ${email} is: ${verificationCode}`);
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to send verification email. Please check your SMTP settings and try again.',
+                error: emailError.message
+            });
         }
 
         res.status(200).json({ success: true, message: 'Verification code resent successfully.' });

@@ -1,3 +1,4 @@
+/* eslint-env jest */
 const request = require('supertest');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
@@ -201,6 +202,102 @@ describe('Auth Routes', () => {
 
             const updatedUser = await User.findById(userId);
             expect(updatedUser.profileImage.public_id).toBe('new_id');
+        });
+    });
+
+    describe('POST /auth/resend-verification', () => {
+        const emailService = require('../services/emailService');
+
+        it('should return 400 if email is missing', async () => {
+            const response = await request(app)
+                .post('/auth/resend-verification')
+                .send({});
+
+            expect(response.status).toBe(400);
+            expect(response.body.success).toBe(false);
+            expect(response.body.message).toBe('Email is required.');
+        });
+
+        it('should return 404 if user not found', async () => {
+            const response = await request(app)
+                .post('/auth/resend-verification')
+                .send({ email: 'nonexistent@example.com' });
+
+            expect(response.status).toBe(404);
+            expect(response.body.success).toBe(false);
+            expect(response.body.message).toBe('User not found.');
+        });
+
+        it('should return 200 if email is already verified', async () => {
+            await User.create({
+                email: 'verified@example.com',
+                password: 'hash',
+                userName: 'verifieduser',
+                firstName: 'Verified',
+                lastName: 'User',
+                isEmailVerified: true
+            });
+
+            const response = await request(app)
+                .post('/auth/resend-verification')
+                .send({ email: 'verified@example.com' });
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.message).toBe('Email is already verified.');
+        });
+
+        it('should resend verification code and return 200 on success', async () => {
+            await User.create({
+                email: 'unverified@example.com',
+                password: 'hash',
+                userName: 'unverifieduser',
+                firstName: 'Unverified',
+                lastName: 'User',
+                isEmailVerified: false
+            });
+
+            const sendEmailSpy = jest.spyOn(emailService, 'sendEmail').mockResolvedValue(true);
+
+            const response = await request(app)
+                .post('/auth/resend-verification')
+                .send({ email: 'unverified@example.com' });
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.message).toBe('Verification code resent successfully.');
+            expect(sendEmailSpy).toHaveBeenCalled();
+
+            const user = await User.findOne({ email: 'unverified@example.com' });
+            expect(user.emailVerificationCode).toBeDefined();
+            expect(user.emailVerificationCode.length).toBe(6);
+
+            sendEmailSpy.mockRestore();
+        });
+
+        it('should return 500 error if email sending fails', async () => {
+            await User.create({
+                email: 'fail@example.com',
+                password: 'hash',
+                userName: 'failuser',
+                firstName: 'Fail',
+                lastName: 'User',
+                isEmailVerified: false
+            });
+
+            const sendEmailSpy = jest.spyOn(emailService, 'sendEmail').mockRejectedValue(new Error('SMTP failure'));
+
+            const response = await request(app)
+                .post('/auth/resend-verification')
+                .send({ email: 'fail@example.com' });
+
+            expect(response.status).toBe(500);
+            expect(response.body.success).toBe(false);
+            expect(response.body.message).toContain('Failed to send verification email');
+            expect(response.body.error).toBe('SMTP failure');
+            expect(sendEmailSpy).toHaveBeenCalled();
+
+            sendEmailSpy.mockRestore();
         });
     });
 });
