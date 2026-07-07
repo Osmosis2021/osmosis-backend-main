@@ -21,6 +21,7 @@ beforeAll(async () => {
     app = express();
     app.use(express.json());
     app.use('/auth', authRoutes);
+    app.use(require('../middleware/errorHandler'));
 });
 
 afterAll(async () => {
@@ -61,7 +62,7 @@ describe('Auth Routes', () => {
             expect(user.stripeID).toBeUndefined();
 
             expect(stripe.customers.create).toHaveBeenCalledWith({
-                name: 'JohnDoe',
+                name: 'John Doe',
                 email: 'student@example.com'
             });
         });

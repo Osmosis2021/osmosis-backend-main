@@ -14,6 +14,7 @@ router.post('/createBooking', async (req, res, next) => {
     jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
         console.log('userData', userData)
         try {
+            if (err) throw err;
             const booking = await reservationService.createReservation(req.body);
 
             res.json({
@@ -36,6 +37,7 @@ router.get('/bookings/:userName', async (req, res, next) => {
 
     jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
         try {
+            if (err) throw err;
             const studentBookings = await reservationService.getStudentReservations(userName);
             res.json(studentBookings)
         } catch (error) {

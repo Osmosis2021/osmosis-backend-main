@@ -29,7 +29,7 @@ describe('CORS Configuration', () => {
     });
 
     it('should allow requests from production origin', async () => {
-        const origin = 'https://getstudiotime.';
+        const origin = 'https://getstudiotime.com';
         const response = await request(app)
             .get('/test-cors')
             .set('Origin', origin);

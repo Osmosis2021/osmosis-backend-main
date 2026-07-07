@@ -224,9 +224,9 @@ const Signup = props => {
             });
             const data = await response.json();
 
-            if (data?.message?.startsWith('Unsuccessful')) {
+            if (!response.ok || data?.success === false || data?.message?.startsWith('Unsuccessful')) {
                 setIsLoading(false);
-                showToast(data.message, "error");
+                showToast(data?.message || 'Registration failed, please try again.', "error");
                 return;
             }
 

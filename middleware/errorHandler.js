@@ -2,20 +2,20 @@ const env = require('../config/env');
 
 const errorHandler = (err, req, res, next) => {
     // Log the error for server-side debugging
-    console.error(`[Error] ${err.message}`);
-    if (env.NODE_ENV !== 'production') {
+    console.error(`[Error] ${err.message || err}`);
+    if (env.NODE_ENV !== 'production' && err.stack) {
         console.error(err.stack);
     }
 
-    // Determine status code: use existing if set and not 200, otherwise 500
-    const statusCode = res.statusCode && res.statusCode !== 200 ? res.statusCode : 500;
+    // Determine status code: prioritize err.status or err.statusCode if available, otherwise res.statusCode or 500
+    const statusCode = err.status || err.statusCode || (res.statusCode && res.statusCode !== 200 ? res.statusCode : 500);
 
     res.status(statusCode);
 
     res.json({
         success: false,
         message: err.message || 'Internal Server Error',
-        ...(env.NODE_ENV !== 'production' && { stack: err.stack }),
+        ...(env.NODE_ENV !== 'production' && err.stack && { stack: err.stack }),
     });
 };
 

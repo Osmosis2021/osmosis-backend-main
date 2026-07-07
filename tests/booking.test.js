@@ -31,7 +31,7 @@ describe('Booking Routes', () => {
             .send({ courseTimeslotID: 'ts-id', courseID: 'c-id', teacherID: 't-id', numberOfGuests: 1 })
             .expect(200);
 
-        expect(res.body.message).toBe('stored a courseTimeslotUpdate');
+        expect(res.body.message).toBe('Booking created successfully');
     });
 
     test('POST /api/bookings/createBooking - unauthorized', async () => {
