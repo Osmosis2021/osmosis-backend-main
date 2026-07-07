@@ -16,6 +16,8 @@ const envSchema = z.object({
     EMAIL_PORT: z.string().transform(Number).optional(),
     EMAIL_USER: z.string().optional(),
     EMAIL_PASS: z.string().optional(),
+    RESEND_API_KEY: z.string().optional(),
+    RESEND_FROM_EMAIL: z.string().optional(),
 });
 
 const processEnv = {
@@ -34,6 +36,8 @@ const processEnv = {
     EMAIL_PORT: process.env.EMAIL_PORT,
     EMAIL_USER: process.env.EMAIL_USER,
     EMAIL_PASS: process.env.EMAIL_PASS,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
 };
 
 const parsed = envSchema.safeParse(processEnv);

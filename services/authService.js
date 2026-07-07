@@ -177,24 +177,7 @@ class AuthService {
         }
 
         try {
-            const subject = "Verify your email address - Studio Time";
-            const message = `
-                <h3>Welcome to Studio Time!</h3>
-                <p>Please verify your email address to complete your registration.</p>
-                <br/>
-                <p>Here is your 6-digit verification code:</p>
-                <p style="font-size: 24px; font-weight: bold; letter-spacing: 2px;">${verificationCode}</p>
-                <br/>
-                <p>Cheers,</p>
-                <p>The Studio Time Team</p>
-            `;
-            await emailService.sendEmail({
-                subject,
-                message,
-                sendTo: email,
-                sentFrom: env.EMAIL_USER,
-                replyTo: email
-            });
+            await emailService.sendVerificationEmail(email, verificationCode);
             console.log(`[Signup] Verification email sent to ${email} with code ${verificationCode}`);
         } catch (emailError) {
             console.error("[Signup] Failed to send verification email:", emailError);

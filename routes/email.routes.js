@@ -7,56 +7,47 @@ const bcryptSalt = bcrypt.genSaltSync(7);
 
 router.get('/sendResetCode/:email', async (req, res, next) => {
     try {
-        const { email } = req.params
-        const resetCode = emailService.makePasswordResetCode()
-        const foundUser = await User.findOneAndUpdate({ email }, { $set: { resetCode } })
+        const { email } = req.params;
+        const resetCode = emailService.makePasswordResetCode();
+        const foundUser = await User.findOneAndUpdate({ email }, { $set: { resetCode } });
 
         if (foundUser) {
-            const subject = "Password Reset"
-            const message = `
-                <h3>Forgot your password?</h3>
-                <p>It's okay we all forget things sometimes</p>
-                <br/>
-                <p>Here's your reset code:</p>
-                <p>${resetCode}</p>
-                <p>Cheers,</p>
-                <p>The Studio Time Team</p>
-            `
-            await emailService.sendEmail({
-                subject,
-                message,
-                sendTo: email,
-                sentFrom: env.EMAIL_USER,
-                replyTo: email
-            })
-            res.status(200).json({
-                success: true, message: "Email Sent"
-            })
+            try {
+                await emailService.sendPasswordResetEmail(email, resetCode);
+                res.status(200).json({
+                    success: true, message: "Email Sent"
+                });
+            } catch (emailError) {
+                console.error("Failed to send reset email:", emailError);
+                res.status(500).json({ success: false, result: 'Failed to send email', error: emailError.message });
+            }
         } else {
-            res.json({ result: 'Email not found' })
+            res.status(404).json({ success: false, result: 'Email not found' });
         }
     } catch (error) {
-        next(error);
+        console.error("Error in sendResetCode:", error);
+        res.status(500).json({ success: false, error: error.message });
     }
-})
+});
 
 router.get('/verifyResetCode/:email/:resetCode', async (req, res, next) => {
     try {
-        const { email, resetCode } = req.params
-        const foundUser = await User.findOne({ email })
+        const { email, resetCode } = req.params;
+        const foundUser = await User.findOne({ email });
         if (foundUser) {
             if (foundUser.resetCode === resetCode) {
-                res.json({ result: 'success' })
+                res.status(200).json({ result: 'success' });
             } else {
-                res.json({ result: 'Incorrect reset code' })
+                res.status(400).json({ result: 'Incorrect reset code' });
             }
         } else {
-            res.json({ result: 'Email not found' })
+            res.status(404).json({ result: 'Email not found' });
         }
     } catch (error) {
-        next(error);
+        console.error("Error in verifyResetCode:", error);
+        res.status(500).json({ success: false, error: error.message });
     }
-})
+});
 
 router.patch('/updatePassword/:email/:resetCode', async (req, res, next) => {
     try {
@@ -71,15 +62,17 @@ router.patch('/updatePassword/:email/:resetCode', async (req, res, next) => {
         const hashedPassword = await bcrypt.hash(password, bcryptSalt);
         const updatedUser = await User.findOneAndUpdate(
             { email: email, resetCode: resetCode },
-            { $set: { password: hashedPassword, resetCode: '' } })
+            { $set: { password: hashedPassword, resetCode: '' } }
+        );
         if (updatedUser) {
-            res.json({ result: 'success' })
+            res.status(200).json({ result: 'success' });
         } else {
-            res.json({ result: 'Password not updated' })
+            res.status(400).json({ result: 'Password not updated' });
         }
     } catch (error) {
-        next(error);
+        console.error("Error in updatePassword:", error);
+        res.status(500).json({ success: false, error: error.message });
     }
-})
+});
 
 module.exports = router;
