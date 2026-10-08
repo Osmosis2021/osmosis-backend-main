@@ -166,20 +166,17 @@ function EditProfile() {
     const deleteProfile = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch(`${backendURL}user/deleteProfile/${userInfo._id}/${confirmPassword}`, {
-                method: 'DELETE'
-            });
-            if (response.status === 401) {
-                showToast('Incorrect password, please try again', 'error');
-                setDeleteSequence(false);
-            } else if (response.status === 200) {
-                showToast('Successfully DELETED your profile', 'success');
-                setTimeout(() => {
-                    logout("/");
-                }, 1500);
-            }
+            await axiosPrivate.delete(`user/deleteProfile/${userInfo._id}`, { data: { password: confirmPassword } });
+            showToast('Successfully DELETED your profile', 'success');
+            setTimeout(() => {
+                logout("/");
+            }, 1500);
         } catch (err) {
-            showToast('DELETION failed, please try again later', 'error');
+            if (err.response?.status === 401) {
+                showToast('Incorrect password, please try again', 'error');
+            } else {
+                showToast('DELETION failed, please try again later', 'error');
+            }
             setDeleteSequence(false);
         }
     };

@@ -1,5 +1,6 @@
 const Booking = require('../models/booking');
 const CourseTimeslot = require('../models/courseTimeslot');
+const { PUBLIC_FIELDS } = require('../models/user');
 const { z } = require('zod');
 
 const reservationSchema = z.object({
@@ -92,15 +93,15 @@ const createReservation = async (rawData) => {
 };
 
 const getStudentReservations = async (userName) => {
-    return await Booking.find({ studentUserName: userName }).populate('courseID teacherID');
+    return await Booking.find({ studentUserName: userName }).populate('courseID').populate('teacherID', PUBLIC_FIELDS);
 };
 
 const getArtistReservations = async (userName) => {
-    return await Booking.find({ teacherUserName: userName }).populate('courseID studentID');
+    return await Booking.find({ teacherUserName: userName }).populate('courseID').populate('studentID', PUBLIC_FIELDS);
 };
 
 const getReservationById = async (id) => {
-    return await Booking.findById(id).populate('courseID studentID teacherID');
+    return await Booking.findById(id).populate('courseID').populate('studentID', PUBLIC_FIELDS).populate('teacherID', PUBLIC_FIELDS);
 };
 
 const updateReservationStatus = async (id, status, extraData = {}) => {

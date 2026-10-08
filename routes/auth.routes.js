@@ -1,8 +1,15 @@
 const router = require('express').Router()
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/user')
+const { pickPublicFields } = require('../models/user');
 const env = require('../config/env');
 const authService = require('../services/authService');
 const emailService = require('../services/emailService');
+const { verifyGoogleCredential } = require('../services/googleAuth');
+const attemptLimiter = require('../services/attemptLimiter');
+const { requireAuth, optionalAuth, getBearerToken, verifyAccessToken } = require('../middleware/auth');
 
 router.get('/config', (req, res) => {
     res.send({
@@ -60,7 +67,7 @@ router.post('/getTeacherData', async (req, res, next) => {
     try {
         const data = await User.findOne({ userName: req.body.userName });
         if (data) {
-            res.json(data)
+            res.json(pickPublicFields(data))
         } else {
             res.status(404).json({ message: "Could not get teacher's info." })
         }
@@ -81,12 +88,14 @@ router.get('/refresh', async (req, res, next) => {
 })
 
 // GET USER PROFILE (FOR BOTH TEACHER AND STUDENT)
-router.get('/getUserInfo/:userName', async (req, res, next) => {
+// The owner (signed in) gets their full profile; everyone else gets public fields only.
+router.get('/getUserInfo/:userName', optionalAuth, async (req, res, next) => {
     try {
         const { userName } = req.params
         const data = await User.findOne({ userName });
         if (data) {
-            res.json(data)
+            const isOwner = req.currentUser && String(req.currentUser._id) === String(data._id);
+            res.json(isOwner ? data : pickPublicFields(data))
         } else {
             res.status(404).json({ message: "Could not get user's info." })
         }
@@ -95,40 +104,76 @@ router.get('/getUserInfo/:userName', async (req, res, next) => {
     }
 })
 
+// Fields a user may change on their own profile. Everything else (roles, Stripe IDs,
+// verification state, password, tokens) is managed by the server.
+const EDITABLE_PROFILE_FIELDS = ['firstName', 'lastName', 'userName', 'description', 'email', 'phoneNumber', 'smsEnabled', 'industries', 'generalTags', 'specificTags'];
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 // UPDATE USER PROFILE
 router.put('/updateProfile/:id', async (req, res, next) => {
     try {
-        const accessToken = req.body?.auth?.accessToken || req.headers.authorization?.slice(7);
-        const data = req.body?.newInfo;
-        const jwtSecret = env.ACCESS_TOKEN_SECRET;
+        // Accepts the token from the Authorization header, or from the body (legacy Settings form).
+        const accessToken = getBearerToken(req) || req.body?.auth?.accessToken;
+        if (!accessToken) return res.status(401).json({ success: false, message: 'Please sign in to continue.' });
 
-        const jwt = require('jsonwebtoken');
-        jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
-            if (err) return res.sendStatus(401);
+        let tokenData;
+        try {
+            tokenData = await verifyAccessToken(accessToken);
+        } catch (err) {
+            return res.status(403).json({ success: false, message: 'Your session has expired. Please sign in again.' });
+        }
 
-            const currentUser = await User.findById(req.params.id);
-            if (!currentUser) return res.sendStatus(404);
+        const currentUser = await User.findOne({ userName: tokenData.userName });
+        if (!currentUser) return res.status(401).json({ success: false, message: 'Please sign in to continue.' });
+        if (String(currentUser._id) !== req.params.id) {
+            return res.status(403).json({ success: false, message: 'You can only update your own profile.' });
+        }
 
-            if (data.email && data.email !== currentUser.email) {
-                const emailExists = await User.findOne({ email: data.email });
-                if (emailExists && String(emailExists._id) !== req.params.id) {
-                    return res.status(400).json({ success: false, message: 'Email already registered by another account.' });
-                }
+        const newInfo = req.body?.newInfo || {};
+        const data = {};
+        EDITABLE_PROFILE_FIELDS.forEach((field) => {
+            if (newInfo[field] !== undefined) data[field] = newInfo[field];
+        });
 
-                const verificationCode = emailService.makePasswordResetCode();
-                data.isEmailVerified = false;
-                data.emailVerificationCode = verificationCode;
+        if (data.firstName !== undefined && !String(data.firstName).trim()) {
+            return res.status(400).json({ success: false, message: 'First name cannot be empty.' });
+        }
+        if (data.lastName !== undefined && !String(data.lastName).trim()) {
+            return res.status(400).json({ success: false, message: 'Last name cannot be empty.' });
+        }
 
-                try {
-                    await emailService.sendUpdatedEmailVerification(data.email, verificationCode);
-                } catch (emailError) {
-                    console.error("Failed to send verification email:", emailError);
-                }
+        if (data.userName !== undefined && data.userName !== currentUser.userName) {
+            if (!String(data.userName).trim()) {
+                return res.status(400).json({ success: false, message: 'Username cannot be empty.' });
+            }
+            const userNameTaken = await User.findOne({ userName: data.userName });
+            if (userNameTaken) {
+                return res.status(400).json({ success: false, message: 'That username is already taken.' });
+            }
+        }
+
+        if (data.email !== undefined && data.email !== currentUser.email) {
+            if (!EMAIL_PATTERN.test(String(data.email))) {
+                return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+            }
+            const emailExists = await User.findOne({ email: data.email });
+            if (emailExists && String(emailExists._id) !== req.params.id) {
+                return res.status(400).json({ success: false, message: 'Email already registered by another account.' });
             }
 
-            const updatedUser = await User.findOneAndUpdate({ _id: req.params.id }, { $set: data }, { new: true });
-            res.status(200).json({ success: true, user: updatedUser });
-        });
+            const verificationCode = emailService.makePasswordResetCode();
+            data.isEmailVerified = false;
+            data.emailVerificationCode = verificationCode;
+
+            try {
+                await emailService.sendUpdatedEmailVerification(data.email, verificationCode);
+            } catch (emailError) {
+                console.error("Failed to send verification email:", emailError);
+            }
+        }
+
+        const updatedUser = await User.findOneAndUpdate({ _id: req.params.id }, { $set: data }, { new: true });
+        res.status(200).json({ success: true, user: updatedUser });
     } catch (error) {
         next(error);
     }
@@ -152,28 +197,25 @@ router.put('/updateProfileImage/:id', async (req, res, next) => {
 });
 
 // DELETE USER
-router.delete('/deleteProfile/:id/:password', async (req, res, next) => {
+// The password is sent in the request body (never in the URL, where it would end up in logs).
+router.delete('/deleteProfile/:id', requireAuth, async (req, res, next) => {
     try {
-        const foundUser = await User.findById(req.params.id);
-        if (!foundUser) return res.sendStatus(404);
-
-        const bcrypt = require('bcryptjs');
-        const passOk = bcrypt.compareSync(req.params.password, foundUser.password)
-        if (!passOk) return res.sendStatus(401)
-
-        const cloudinary = require('cloudinary');
-        if (foundUser.profileImage?.url !== '') {
-            const profileImage = foundUser.profileImage.public_id;
-            if (profileImage) {
-                await cloudinary.uploader.destroy(profileImage)
-            }
+        const foundUser = req.currentUser;
+        if (String(foundUser._id) !== req.params.id) {
+            return res.status(403).json({ success: false, message: 'You can only delete your own account.' });
         }
 
-        const removeUser = await User.findByIdAndDelete(req.params.id)
-        res.json({
-            success: true,
-            removeUser,
-        })
+        const passOk = bcrypt.compareSync(String(req.body?.password || ''), foundUser.password)
+        if (!passOk) return res.status(401).json({ success: false, message: 'Incorrect password.' })
+
+        const cloudinary = require('../config/cloudinary');
+        const profileImage = foundUser.profileImage?.public_id;
+        if (profileImage) {
+            await cloudinary.uploader.destroy(profileImage)
+        }
+
+        await User.findByIdAndDelete(foundUser._id)
+        res.json({ success: true })
     } catch (error) {
         next(error);
     }
@@ -186,31 +228,33 @@ router.put('/changePassword', async (req, res, next) => {
         const accessToken = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : req.body?.accessToken;
         if (!accessToken) return res.status(401).json({ success: false, message: 'Unauthorized. Access token is required.' });
 
-        const jwt = require('jsonwebtoken');
         jwt.verify(accessToken, env.ACCESS_TOKEN_SECRET, {}, async (err, userData) => {
-            if (err) return res.status(401).json({ success: false, message: 'Unauthorized. Invalid token.' });
+            try {
+                if (err) return res.status(401).json({ success: false, message: 'Unauthorized. Invalid token.' });
 
-            const { currentPassword, newPassword } = req.body;
-            if (!currentPassword || !newPassword) {
-                return res.status(400).json({ success: false, message: 'Current and new passwords are required.' });
+                const { currentPassword, newPassword } = req.body;
+                if (!currentPassword || !newPassword) {
+                    return res.status(400).json({ success: false, message: 'Current and new passwords are required.' });
+                }
+
+                const user = await User.findOne({ userName: userData.userName });
+                if (!user) {
+                    return res.status(404).json({ success: false, message: 'User not found.' });
+                }
+
+                const passOk = bcrypt.compareSync(currentPassword, user.password);
+                if (!passOk) {
+                    return res.status(400).json({ success: false, message: 'Incorrect current password.' });
+                }
+
+                const bcryptSalt = bcrypt.genSaltSync(7);
+                user.password = bcrypt.hashSync(newPassword, bcryptSalt);
+                await user.save();
+
+                res.status(200).json({ success: true, message: 'Password changed successfully.' });
+            } catch (innerError) {
+                next(innerError);
             }
-
-            const user = await User.findOne({ userName: userData.userName });
-            if (!user) {
-                return res.status(404).json({ success: false, message: 'User not found.' });
-            }
-
-            const bcrypt = require('bcryptjs');
-            const passOk = bcrypt.compareSync(currentPassword, user.password);
-            if (!passOk) {
-                return res.status(400).json({ success: false, message: 'Incorrect current password.' });
-            }
-
-            const bcryptSalt = bcrypt.genSaltSync(7);
-            user.password = bcrypt.hashSync(newPassword, bcryptSalt);
-            await user.save();
-
-            res.status(200).json({ success: true, message: 'Password changed successfully.' });
         });
     } catch (error) {
         next(error);
@@ -225,6 +269,11 @@ router.post('/verify-email', async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Email and verification code are required.' });
         }
 
+        const limiterKey = `verify-email:${email}`;
+        if (attemptLimiter.isLocked(limiterKey)) {
+            return res.status(429).json({ success: false, message: attemptLimiter.LOCKED_MESSAGE });
+        }
+
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found.' });
@@ -234,10 +283,12 @@ router.post('/verify-email', async (req, res, next) => {
             return res.status(200).json({ success: true, message: 'Email is already verified.' });
         }
 
-        if (user.emailVerificationCode !== code) {
+        if (!user.emailVerificationCode || user.emailVerificationCode !== String(code)) {
+            attemptLimiter.recordFailure(limiterKey);
             return res.status(400).json({ success: false, message: 'Invalid verification code.' });
         }
 
+        attemptLimiter.reset(limiterKey);
         user.isEmailVerified = true;
         user.emailVerificationCode = '';
         await user.save();
@@ -268,13 +319,17 @@ router.post('/resend-verification', async (req, res, next) => {
         const verificationCode = emailService.makePasswordResetCode();
         user.emailVerificationCode = verificationCode;
         await user.save();
+        // A fresh code resets the failed-attempt counter.
+        attemptLimiter.reset(`verify-email:${email}`);
 
         try {
             await emailService.sendResendVerificationEmail(email, verificationCode);
-            console.log(`Verification code resent to ${email}: ${verificationCode}`);
+            console.log(`Verification code resent to ${email}`);
         } catch (emailError) {
             console.error("Failed to resend verification email:", emailError);
-            console.log(`[DEV FALLBACK] Verification code for ${email} is: ${verificationCode}`);
+            if (env.NODE_ENV !== 'production') {
+                console.log(`[DEV FALLBACK] Verification code for ${email} is: ${verificationCode}`);
+            }
             return res.status(500).json({
                 success: false,
                 message: 'Failed to send verification email. Please try again.',
@@ -292,17 +347,9 @@ router.post('/resend-verification', async (req, res, next) => {
 router.post('/google-login', async (req, res, next) => {
     try {
         const { credential, role } = req.body;
-        if (!credential) {
-            return res.status(400).json({ success: false, message: 'Google credential token is required.' });
-        }
-
-        const jwt = require('jsonwebtoken');
-        const payload = jwt.decode(credential);
-        if (!payload || !payload.email) {
-            return res.status(400).json({ success: false, message: 'Invalid Google credential token.' });
-        }
-
-        const { email, sub, given_name, family_name } = payload;
+        // Throws (with an HTTP status) unless Google confirms the token is genuine,
+        // was issued for our client ID, and belongs to a verified email address.
+        const { email, sub, given_name, family_name } = await verifyGoogleCredential(credential);
 
         let userDoc = await User.findOne({ $or: [{ googleId: sub }, { email }] });
 
@@ -361,8 +408,7 @@ router.post('/google-login', async (req, res, next) => {
                 console.error("Stripe initialization failed for Google signup:", stripeErr);
             }
 
-            const bcrypt = require('bcryptjs');
-            const randomPassword = require('crypto').randomBytes(16).toString('hex');
+            const randomPassword = crypto.randomBytes(16).toString('hex');
             const bcryptSalt = bcrypt.genSaltSync(7);
 
             userDoc = await User.create({
@@ -428,66 +474,34 @@ router.post('/google-login', async (req, res, next) => {
 });
 
 // LINK GOOGLE ACCOUNT
-router.post('/link-google', async (req, res, next) => {
+router.post('/link-google', requireAuth, async (req, res, next) => {
     try {
-        const authHeader = req.headers.authorization;
-        const accessToken = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : req.body?.accessToken;
-        if (!accessToken) return res.status(401).json({ success: false, message: 'Unauthorized. Access token is required.' });
+        const { sub } = await verifyGoogleCredential(req.body?.credential);
 
-        const jwt = require('jsonwebtoken');
-        jwt.verify(accessToken, env.ACCESS_TOKEN_SECRET, {}, async (err, userData) => {
-            if (err) return res.status(401).json({ success: false, message: 'Unauthorized. Invalid token.' });
+        const existingUser = await User.findOne({ googleId: sub });
+        if (existingUser && String(existingUser._id) !== String(req.currentUser._id)) {
+            return res.status(400).json({ success: false, message: 'This Google account is already linked to another user.' });
+        }
 
-            const { credential } = req.body;
-            if (!credential) {
-                return res.status(400).json({ success: false, message: 'Google credential is required.' });
-            }
+        const user = req.currentUser;
+        user.googleId = sub;
+        user.isEmailVerified = true;
+        await user.save();
 
-            const payload = jwt.decode(credential);
-            if (!payload || !payload.email) {
-                return res.status(400).json({ success: false, message: 'Invalid Google credential.' });
-            }
-
-            const { sub } = payload;
-
-            const existingUser = await User.findOne({ googleId: sub });
-            if (existingUser && existingUser.userName !== userData.userName) {
-                return res.status(400).json({ success: false, message: 'This Google account is already linked to another user.' });
-            }
-
-            const user = await User.findOne({ userName: userData.userName });
-            if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
-
-            user.googleId = sub;
-            user.isEmailVerified = true;
-            await user.save();
-
-            res.status(200).json({ success: true, message: 'Google account linked successfully.', googleId: sub });
-        });
+        res.status(200).json({ success: true, message: 'Google account linked successfully.', googleId: sub });
     } catch (error) {
         next(error);
     }
 });
 
 // UNLINK GOOGLE ACCOUNT
-router.post('/unlink-google', async (req, res, next) => {
+router.post('/unlink-google', requireAuth, async (req, res, next) => {
     try {
-        const authHeader = req.headers.authorization;
-        const accessToken = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : req.body?.accessToken;
-        if (!accessToken) return res.status(401).json({ success: false, message: 'Unauthorized. Access token is required.' });
+        const user = req.currentUser;
+        user.googleId = '';
+        await user.save();
 
-        const jwt = require('jsonwebtoken');
-        jwt.verify(accessToken, env.ACCESS_TOKEN_SECRET, {}, async (err, userData) => {
-            if (err) return res.status(401).json({ success: false, message: 'Unauthorized. Invalid token.' });
-
-            const user = await User.findOne({ userName: userData.userName });
-            if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
-
-            user.googleId = '';
-            await user.save();
-
-            res.status(200).json({ success: true, message: 'Google account unlinked successfully.' });
-        });
+        res.status(200).json({ success: true, message: 'Google account unlinked successfully.' });
     } catch (error) {
         next(error);
     }

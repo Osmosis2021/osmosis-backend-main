@@ -3,11 +3,10 @@ import React, { useState } from 'react'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
-import axios from 'axios';
 import useStore from '../../store';
 import UserListItem from './UserListItem';
 import UsersLoading from './UsersLoading';
-import { axiosPrivate } from '../../actions/axios';
+import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 
 
 const SearchUsers = () => {
@@ -16,7 +15,8 @@ const SearchUsers = () => {
     const [searchResult, setSearchResult] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [open, setOpen] = useState(false);
-    const { backendURL, setSelectedChat, chats, setChats, userID } = useStore();
+    const { setSelectedChat, chats, setChats } = useStore();
+    const axiosPrivate = useAxiosPrivate();
 
     const handleModalOpen = () => {
         setOpen(true);
@@ -49,7 +49,7 @@ const SearchUsers = () => {
     const accessChats = async (searchedUserID) => {
         // prevent from creating chat if no message is sent 
         try {
-            const {data} = await axios.get(`${backendURL}chat/accessChats/${searchedUserID}?userID=${userID}`, userID)
+            const {data} = await axiosPrivate.get(`chat/accessChats/${searchedUserID}`)
             if (!chats.find((c) => c._id === data._id)) setChats([data, ...chats]);
             setSelectedChat(data)
             setOpen(false)

@@ -1,6 +1,6 @@
 const Course = require('../models/course');
 const CourseTimeslot = require('../models/courseTimeslot');
-const cloudinary = require('cloudinary');
+const cloudinary = require('../config/cloudinary');
 const ObjectID = require("bson-objectid");
 const { z } = require('zod');
 
@@ -21,24 +21,6 @@ const experienceSchema = z.object({
     duration: z.any().optional(), // Can be string or number
     schedule: z.array(z.any()).optional(),
     images: z.array(z.string()).optional(),
-});
-
-// Cloudinary config is already set globally in index.js or course.routes.js?
-// In course.routes.js it was set. We should probably move it to a config file or init it here.
-// The previous file had hardcoded credentials. I should move them to env vars if possible, 
-// but for "ZERO behavior change" and "no new env vars unless necessary", I might have to copy them 
-// or rely on them being set elsewhere.
-// Ideally, I should create a config/cloudinary.js. 
-// But let's stick to the service file for now.
-
-const CLOUDINARY_CLOUD_NAME = "dx3om7soc";
-const CLOUDINARY_API_KEY = "923359711288174";
-const CLOUDINARY_API_SECRET = "GGR49H8I6KfS0k1fEglpTsYD7e8";
-
-cloudinary.config({
-    cloud_name: CLOUDINARY_CLOUD_NAME,
-    api_key: CLOUDINARY_API_KEY,
-    api_secret: CLOUDINARY_API_SECRET
 });
 
 const normalizeAddress = (addressInput) => {

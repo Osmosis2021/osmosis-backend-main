@@ -2,6 +2,7 @@ import { Button, Container, Stack, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useStore from '../../../store';
+import useAxiosPrivate from '../../../hooks/useAxiosPrivate';
 
 
 const StripeOnboarding = () => {
@@ -9,14 +10,14 @@ const StripeOnboarding = () => {
     const [userInfo, setUserInfo] = useState({});
     const [accountLink, setAccountLink] = useState();
     const navigate = useNavigate();
+    const axiosPrivate = useAxiosPrivate();
 
     useEffect(() => {
-        const { userName, backendURL } = useStore.getState();
+        const { userName } = useStore.getState();
 
         // GET USER INFO WITH STRIPE ID
-        fetch(`${backendURL}user/getUserInfo/${userName}`)
-            .then(res => res.json())
-            .then(data => {
+        axiosPrivate.get(`user/getUserInfo/${userName}`)
+            .then(({ data }) => {
                 setUserInfo(data)
                 if (data.stripeID === undefined) {
                     return;
@@ -25,15 +26,13 @@ const StripeOnboarding = () => {
                 console.log(stripeID)
 
                 // USE STRIPE ID TO ONBOARD USER 
-                fetch(`${backendURL}stripe/accountLink/${stripeID}`)
-                    .then(res => res.json())
-                    .then(data => {
+                axiosPrivate.get(`stripe/accountLink/${stripeID}`)
+                    .then(({ data }) => {
                         setAccountLink(data.url)
 
                         // GET USER INFO WITH STRIPE ID
-                        fetch(`${backendURL}stripe/retrieveStripeAccount/${stripeID}`)
-                            .then(res => res.json())
-                            .then(data => {
+                        axiosPrivate.get(`stripe/retrieveStripeAccount/${stripeID}`)
+                            .then(({ data }) => {
                                 console.log(data)
                             })
                             .catch(err => {
@@ -41,7 +40,8 @@ const StripeOnboarding = () => {
                             });
                     })
             })
-    }, [])
+            .catch(err => console.log('Error loading payout setup:\n', err));
+    }, [axiosPrivate])
 
     function stripeOnboarding() {
         navigate(window.location.assign(accountLink))

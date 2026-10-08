@@ -1,7 +1,7 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const cloudinary = require('cloudinary');
+const cloudinary = require('../config/cloudinary');
 const env = require('../config/env');
 const stripe = require('./stripeClient');
 const emailService = require('./emailService');
@@ -69,7 +69,7 @@ class AuthService {
         }
 
         return {
-            user: { ...userDoc._doc, roles, accessToken },
+            user: { ...userDoc.toJSON(), roles, accessToken },
             refreshToken
         };
     }
@@ -153,8 +153,14 @@ class AuthService {
         }
 
         const verificationCode = emailService.makePasswordResetCode();
+        // Only these fields come from the signup form; everything else is set by the server.
         const userInfo = {
-            ...userData,
+            firstName,
+            lastName,
+            userName,
+            email,
+            isStudent: Boolean(isStudent),
+            isTeacher: Boolean(isTeacher),
             password: bcrypt.hashSync(userData.password, bcryptSalt),
             stripeID: accountID,
             customerStripeID: customerID,
@@ -178,10 +184,12 @@ class AuthService {
 
         try {
             await emailService.sendVerificationEmail(email, verificationCode);
-            console.log(`[Signup] Verification email sent to ${email} with code ${verificationCode}`);
+            console.log(`[Signup] Verification email sent to ${email}`);
         } catch (emailError) {
             console.error("[Signup] Failed to send verification email:", emailError);
-            console.log(`[Signup] [DEV FALLBACK] Verification code for ${email} is: ${verificationCode}`);
+            if (env.NODE_ENV !== 'production') {
+                console.log(`[Signup] [DEV FALLBACK] Verification code for ${email} is: ${verificationCode}`);
+            }
         }
 
         return { success: true, message: 'Successfully saved a new user.', email };
@@ -209,7 +217,7 @@ class AuthService {
                     { expiresIn: '1d' }
                 );
 
-                resolve({ ...foundUser._doc, refreshToken: '', roles, accessToken });
+                resolve({ ...foundUser.toJSON(), roles, accessToken });
             });
         });
     }

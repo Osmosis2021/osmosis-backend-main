@@ -15,7 +15,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ShareIcon from '@mui/icons-material/Share';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import useStore from '../../../store';
-import axios from 'axios';
+import useAxiosPrivate from '../../../hooks/useAxiosPrivate';
 import { Link } from 'react-router-dom';
 import CompletenessChecklist from '../CompletenessChecklist/CompletenessChecklist';
 import { PremiumSectionHeader } from '../../../ui/PremiumSectionHeader';
@@ -23,7 +23,6 @@ import { PremiumCard } from '../../../ui/PremiumCard';
 
 export const ConfirmSession = (props) => {
     const {
-        backendURL,
         newCourseIndustry, setNewCourseIndustry,
         tags, setTags,
         images, setImages,
@@ -48,6 +47,7 @@ export const ConfirmSession = (props) => {
         newCourseTimeslots, setNewCourseTimeslots,
     } = useStore();
 
+    const axiosPrivate = useAxiosPrivate();
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [teacherInfo, setTeacherInfo] = useState();
@@ -83,7 +83,7 @@ export const ConfirmSession = (props) => {
                 whatToBring: whatToBring,
             }
 
-            const { data } = await axios.post(backendURL + 'course/registerCourse', courseInfo)
+            const { data } = await axiosPrivate.post('course/registerCourse', courseInfo)
             setIsLoading(false);
 
             if (data.success === true && data.course?._id) {

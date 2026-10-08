@@ -1,22 +1,36 @@
 const router = require('express').Router()
 const Course = require('../models/course')
-const CourseTimeslot = require('../models/courseTimeslot')
-const Image = require('../models/image')
-const cloudinary = require('cloudinary');
-const ObjectID = require("bson-objectid")
 const Booking = require('../models/booking');
 
-CLOUDINARY_CLOUD_NAME = "dx3om7soc"
-CLOUDINARY_API_KEY = "923359711288174"
-CLOUDINARY_API_SECRET = "GGR49H8I6KfS0k1fEglpTsYD7e8"
-
-cloudinary.config({
-    cloud_name: CLOUDINARY_CLOUD_NAME,
-    api_key: CLOUDINARY_API_KEY,
-    api_secret: CLOUDINARY_API_SECRET
-});
-
 const listingService = require('../services/listingService');
+const { requireAuth, requireTeacher } = require('../middleware/auth');
+
+// Loads a course and confirms the signed-in user is its host.
+// Sends the error response itself and returns null when access is denied.
+const loadOwnedCourse = async (req, res) => {
+    let course;
+    try {
+        course = await Course.findById(req.params.id);
+    } catch (err) {
+        course = null;
+    }
+    if (!course) {
+        res.status(404).json({ success: false, message: 'Studio time not found.' });
+        return null;
+    }
+    if (String(course.teacherID) !== String(req.currentUser._id)) {
+        res.status(403).json({ success: false, message: 'You can only change your own studio times.' });
+        return null;
+    }
+    return course;
+};
+
+// The host is always the signed-in user, never whatever the client sends.
+const withHostIdentity = (body, user) => ({
+    ...body,
+    teacherID: String(user._id),
+    userName: user.userName,
+});
 
 router.get('/getCourses/:latitude/:longitude', async (req, res, next) => {
     try {
@@ -90,9 +104,9 @@ const experienceService = require('../services/experienceService');
 
 //   REGISTER COURSE
 
-router.post('/registerCourse', async (req, res, next) => {
+router.post('/registerCourse', requireAuth, requireTeacher, async (req, res, next) => {
     try {
-        const course = await experienceService.createExperience(req.body);
+        const course = await experienceService.createExperience(withHostIdentity(req.body, req.currentUser));
         res.json({
             success: true,
             course
@@ -111,11 +125,23 @@ router.post('/registerCourse', async (req, res, next) => {
 // The prompt said "createExperience, updateExperience, deleteExperience, upload/attach photos".
 // It didn't explicitly say "reviews". I'll leave reviews here for now to minimize risk.
 
-router.put('/sendReview/:bookingID', async (req, res) => {
-    const { rating, writtenReview, userID } = req.body.feedback;
+router.put('/sendReview/:bookingID', requireAuth, async (req, res) => {
+    const { rating, writtenReview } = req.body.feedback || {};
+    const userID = req.currentUser._id;
     const bookingID = req.params.bookingID;
 
     try {
+        const booking = await Booking.findById(bookingID);
+        if (!booking) {
+            return res.status(404).json({ error: 'Booking not found.' });
+        }
+        if (booking.studentUserName !== req.currentUser.userName) {
+            return res.status(403).json({ error: 'You can only review your own bookings.' });
+        }
+        if (booking.ratedAndReviewed) {
+            return res.status(400).json({ error: 'You have already reviewed this booking.' });
+        }
+
         const updatedBooking = await Booking.findByIdAndUpdate(
             bookingID,
             {
@@ -152,9 +178,10 @@ router.put('/sendReview/:bookingID', async (req, res) => {
 
 // UPDATE COURSE 
 
-router.put('/updateCourse/:id', async (req, res, next) => {
+router.put('/updateCourse/:id', requireAuth, async (req, res, next) => {
     try {
-        const courseUpdate = await experienceService.updateExperience(req.params.id, req.body);
+        if (!(await loadOwnedCourse(req, res))) return;
+        const courseUpdate = await experienceService.updateExperience(req.params.id, withHostIdentity(req.body, req.currentUser));
         res.json({
             courseUpdate
         });
@@ -165,8 +192,9 @@ router.put('/updateCourse/:id', async (req, res, next) => {
 
 // DELETE ALREADY UPLOADED image FROM COURSE 
 
-router.put('/deletePhoto/:id', async (req, res, next) => {
+router.put('/deletePhoto/:id', requireAuth, async (req, res, next) => {
     try {
+        if (!(await loadOwnedCourse(req, res))) return;
         // req.body.image._id is the structure from original code
         const results = await experienceService.removePhoto(req.params.id, req.body.image._id);
         res.json(results);
@@ -178,8 +206,9 @@ router.put('/deletePhoto/:id', async (req, res, next) => {
 
 // UPLOAD PHOTOS 
 
-router.put('/updatePhoto/:id', async (req, res, next) => {
+router.put('/updatePhoto/:id', requireAuth, async (req, res, next) => {
     try {
+        if (!(await loadOwnedCourse(req, res))) return;
         const photoUpdate = await experienceService.addPhotos(req.params.id, req.body.images);
         res.json({
             photoUpdate
@@ -191,8 +220,9 @@ router.put('/updatePhoto/:id', async (req, res, next) => {
 
 
 // DELETE COURSE
-router.delete('/deleteCourse/:id', async (req, res, next) => {
+router.delete('/deleteCourse/:id', requireAuth, async (req, res, next) => {
     try {
+        if (!(await loadOwnedCourse(req, res))) return;
         const removeCourse = await experienceService.deleteExperience(req.params.id);
         res.json({
             success: true,
@@ -230,14 +260,14 @@ router.get('/user/:id', async (req, res, next) => {
 })
 
 // CREATE A CLASS
-router.post('/', async (req, res, next) => {
+router.post('/', requireAuth, requireTeacher, async (req, res, next) => {
     try {
         // This seems to be a simpler create endpoint. 
         // Does it handle images? The original code just did Course.create(req.body).
         // I'll map it to createExperience but without image processing if req.body.images is not present/array.
         // Or just use Course.create directly if it's "raw"?
         // experienceService.createExperience handles images if present.
-        const course = await experienceService.createExperience(req.body);
+        const course = await experienceService.createExperience(withHostIdentity(req.body, req.currentUser));
         res.status(201).json(course);
     } catch (error) {
         next(error);
@@ -246,8 +276,9 @@ router.post('/', async (req, res, next) => {
 
 // DELETE
 // Note: This matches /:id, so it must be after specific routes like /deleteCourse/:id
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', requireAuth, async (req, res, next) => {
     try {
+        if (!(await loadOwnedCourse(req, res))) return;
         // Original: Course.findOneAndDelete({ _id: id })
         // This is slightly different from deleteCourse/:id which cleans up timeslots and images.
         // Should I use the service? 

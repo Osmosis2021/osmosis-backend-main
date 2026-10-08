@@ -1,101 +1,74 @@
 const router = require('express').Router()
-const asyncHandler = require("express-async-handler");
+const mongoose = require('mongoose');
 const User = require('../models/user');
 const Chat = require('../models/chat');
-const jwt = require('jsonwebtoken');
 const Message = require('../models/message');
-const mongoose = require('mongoose');
-const env = require('../config/env');
-const jwtSecret = env.ACCESS_TOKEN_SECRET
+const { requireAuth } = require('../middleware/auth');
 
+// Returns the chat if the user is one of its participants, otherwise null.
+const findChatForMember = async (chatId, userId) => {
+    if (!mongoose.isValidObjectId(chatId)) return null;
+    return Chat.findOne({ _id: chatId, users: userId });
+};
 
 // SENDING MESSAGE
-router.post('/sendMessage', asyncHandler(async (req, res) => {
-    const { chatId, content, _id } = req.body;
-    const accessToken = req?.headers?.authorization?.slice(7);
-
-    if (!content || !chatId) {
-        console.log('Invalid data passed into request');
-        return res.sendStatus(400);
-    }
-
+// The sender is always the signed-in user (any `_id` in the body is ignored).
+router.post('/sendMessage', requireAuth, async (req, res, next) => {
     try {
-        // Start a Mongoose transaction
-        const session = await mongoose.startSession();
-        session.startTransaction();
+        const { chatId, content } = req.body;
 
-        jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
-            if (err) {
-                // Handle accessToken verification error (e.g., invalid accessToken)
-                res.status(401).json({ error: 'Unauthorized' });
-                return session.endSession(); // End the transaction
-            }
-
-            const newMessage = {
-                sender: _id,
-                content: content,
-                chat: chatId,
-            };
-
-            let message = await Message.create(newMessage);
-
-            // Populate data consistently
-            message = await message.populate("sender", 'userName profileImage')
-            message = await message.populate('chat')
-            message = await User.populate(message, {
-                path: 'chat.users',
-                select: '_id userName profileImage',
-            });
-
-            await Chat.findByIdAndUpdate(req.body.chatId, {
-                latestMessage: message,
-            });
-
-            // Commit the transaction
-            await session.commitTransaction();
-            session.endSession();
-
-            res.json(message);
-        });
-    } catch (err) {
-        res.status(400);
-        console.error(err);
-        res.json({ error: 'An error occurred' });
-
-        // Rollback the transaction in case of an error
-        if (session) {
-            await session.abortTransaction();
-            session.endSession();
+        if (!content || !String(content).trim() || !chatId) {
+            return res.status(400).json({ message: 'A message needs some text.' });
         }
+
+        const chat = await findChatForMember(chatId, req.currentUser._id);
+        if (!chat) {
+            return res.status(403).json({ message: 'You are not part of this conversation.' });
+        }
+
+        let message = await Message.create({
+            sender: req.currentUser._id,
+            content: String(content),
+            chat: chat._id,
+        });
+
+        // Populate data consistently
+        message = await message.populate("sender", 'userName profileImage')
+        message = await message.populate('chat')
+        message = await User.populate(message, {
+            path: 'chat.users',
+            select: '_id userName profileImage',
+        });
+
+        await Chat.findByIdAndUpdate(chat._id, {
+            latestMessage: message,
+        });
+
+        res.json(message);
+    } catch (err) {
+        next(err);
     }
-}));
+});
 
 
 
 // FETCHING MESSAGES
-router.get('/allMessages/:chatId', asyncHandler(async (req, res) => {
-    const { chatId } = req.params;
-    // const accessToken = req.headers.authorization
-    const accessToken = req?.headers?.authorization?.slice(7)
+router.get('/allMessages/:chatId', requireAuth, async (req, res, next) => {
+    try {
+        const { chatId } = req.params;
+        const chat = await findChatForMember(chatId, req.currentUser._id);
+        if (!chat) {
+            return res.status(403).json({ message: 'You are not part of this conversation.' });
+        }
 
-    // Verify the JWT accessToken to get user data
-    jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
-        if (err) {
-            // Handle accessToken verification error (e.g., invalid accessToken)
-            return res.status(401).json({ error: 'Unauthorized' });
-            console.log('error:', err)
-        }
-        try {
-            const messages = await Message.find({ chat: chatId }).populate(
-                'sender', 'userName profileImage')
-                .populate('chat');
-            res.json(messages)
-        } catch (error) {
-            res.status(400)
-            throw new Error(error.message)
-        }
-    })
-}))
+        const messages = await Message.find({ chat: chat._id })
+            .populate('sender', 'userName profileImage')
+            .populate('chat');
+        res.json(messages)
+    } catch (error) {
+        next(error);
+    }
+})
 
 
 module.exports = router;

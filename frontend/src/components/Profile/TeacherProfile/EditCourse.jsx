@@ -8,6 +8,7 @@ import EditPhotos from './EditPhotos';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PeopleAltRounded } from '@mui/icons-material';
 import TERMS from '../../../constants/terms';
+import useAxiosPrivate from '../../../hooks/useAxiosPrivate';
 import { PremiumCard } from '../../../ui/PremiumCard';
 
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
@@ -34,7 +35,8 @@ const ToggleDays = lazy(() => import('../../SessionCreation/ToggleDays/ToggleDay
 
 const EditCourse = (props) => {
 	const { userName, isTeacher, newCourseTimeslots, setNewCourseTimeslots,
-		backendURL, timeslotsToRemove, setTimeslotsToRemove } = useStore();
+		timeslotsToRemove, setTimeslotsToRemove } = useStore();
+	const axiosPrivate = useAxiosPrivate();
 	const [isLoading, setIsLoading] = useState(true)
 	const [isAvailabilityVisible, setIsAvailabilityVisible] = useState(false)
 	const [courseInfo, setCourseInfo] = useState({})
@@ -73,17 +75,11 @@ const EditCourse = (props) => {
 		const updatedCourseInfo = { ...courseInfo, timeslotsToAdd, timeslotsToRemove: _toRemove }
 		setCourseInfo(updatedCourseInfo)
 		try {
-			await fetch(`${backendURL}course/updateCourse/${courseInfo._id}`, {
-				body: JSON.stringify(updatedCourseInfo),
-				method: 'PUT',
-				credentials: 'include',
-				headers: { 'Content-Type': 'application/json' },
-			}).then(() => {
-				setIsLoading(false)
-				setTimeslotsToRemove([])
-				alert(`Successfully updated your ${TERMS.COURSE.toLowerCase()}`)
-				navigate(`/${isTeacher ? 'teachers' : 'students'}/${userName}`)
-			})
+			await axiosPrivate.put(`course/updateCourse/${courseInfo._id}`, updatedCourseInfo)
+			setIsLoading(false)
+			setTimeslotsToRemove([])
+			alert(`Successfully updated your ${TERMS.COURSE.toLowerCase()}`)
+			navigate(`/${isTeacher ? 'teachers' : 'students'}/${userName}`)
 		} catch (err) {
 			alert('Update failed, please try again later')
 			console.log('Error updating user:\n', err);
@@ -112,12 +108,9 @@ const EditCourse = (props) => {
 	const deleteCourse = async (e) => {
 		e.preventDefault();
 		try {
-			await fetch(`${backendURL}course/deleteCourse/${courseInfo._id}`, {
-				method: 'DELETE'
-			}).then(() => {
-				alert(`Successfully DELETED your ${TERMS.COURSE.toLowerCase()}`)
-				navigate(`/teachers/${userName}`)
-			})
+			await axiosPrivate.delete(`course/deleteCourse/${courseInfo._id}`)
+			alert(`Successfully DELETED your ${TERMS.COURSE.toLowerCase()}`)
+			navigate(`/teachers/${userName}`)
 		} catch (err) {
 			alert('DELETION failed, please try again later')
 			console.log('Error updating user:\n', err);

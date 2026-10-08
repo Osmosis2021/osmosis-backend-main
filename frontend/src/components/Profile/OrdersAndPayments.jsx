@@ -33,35 +33,31 @@ const OrdersAndPayments = (props) => {
         const fetchData = async () => {
 
             // GET USER INFO WITH STRIPE ID
-            const userInfoResponse = await fetch(`${backendURL}user/getUserInfo/${userName}`);
-            const userData = await userInfoResponse?.json();
+            const { data: userData } = await axiosPrivate.get(`user/getUserInfo/${userName}`);
             setUserInfo(userData);
             console.log(userData)
 
             // USE STRIPE ID TO ONBOARD USER 
             if (userData?.stripeID !== undefined) {
                 const stripeID = userData?.stripeID
-                const accountLinkResponse = await fetch(`${backendURL}stripe/accountLink/${stripeID}`)
-                const accountLinkData = await accountLinkResponse?.json()
+                const { data: accountLinkData } = await axiosPrivate.get(`stripe/accountLink/${stripeID}`)
                 setAccountLink(accountLinkData?.url)
 
                 // GET USER INFO WITH STRIPE ID
-                const stripeAccountResponse = await fetch(`${backendURL}stripe/retrieveStripeAccount/${stripeID}`)
-                const stripeAccountData = await stripeAccountResponse?.json()
+                const { data: stripeAccountData } = await axiosPrivate.get(`stripe/retrieveStripeAccount/${stripeID}`)
                 setStripeInfo(stripeAccountData)
 
                 // RETRIEVE CUSTOMER
-                const stripeCustomerFetch = await fetch(`${backendURL}stripe/retrieveStripeCustomerAccount/${userData?.customerStripeID}`)
-                const stripeCustomerData = await stripeCustomerFetch?.json()
+                const { data: stripeCustomerData } = await axiosPrivate.get(`stripe/retrieveStripeCustomerAccount/${userData?.customerStripeID}`)
                 setCardInfo(stripeCustomerData.card)
                 console.log(stripeCustomerData)
             }
         };
 
-        fetchData();
+        fetchData().catch((err) => console.error('Error loading payment settings:', err));
         setIsLoading(false);
 
-    }, [])
+    }, [axiosPrivate])
 
     function stripeOnboarding() {
         navigate(window.location.assign(accountLink))

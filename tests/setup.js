@@ -10,3 +10,4 @@ process.env.EMAIL_USER = 'test@test.com';
 process.env.EMAIL_PASS = 'testpass';
 process.env.PORT = '5000';
 process.env.NODE_ENV = 'test';
+process.env.GOOGLE_CLIENT_ID = 'test-client-id.apps.googleusercontent.com';

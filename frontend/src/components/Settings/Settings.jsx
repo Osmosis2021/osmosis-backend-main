@@ -237,22 +237,18 @@ export default function Settings() {
 
     const fetchStripeData = async () => {
       try {
-        const userInfoResponse = await fetch(`${backendURL}user/getUserInfo/${userName}`);
-        const userData = await userInfoResponse?.json();
+        const { data: userData } = await axiosPrivate.get(`user/getUserInfo/${userName}`);
 
         if (userData?.stripeID !== undefined) {
           const stripeID = userData.stripeID;
-          const accountLinkResponse = await fetch(`${backendURL}stripe/accountLink/${stripeID}`);
-          const accountLinkData = await accountLinkResponse?.json();
+          const { data: accountLinkData } = await axiosPrivate.get(`stripe/accountLink/${stripeID}`);
           setAccountLink(accountLinkData?.url);
 
-          const stripeAccountResponse = await fetch(`${backendURL}stripe/retrieveStripeAccount/${stripeID}`);
-          const stripeAccountData = await stripeAccountResponse?.json();
+          const { data: stripeAccountData } = await axiosPrivate.get(`stripe/retrieveStripeAccount/${stripeID}`);
           setStripeInfo(stripeAccountData);
           setIsOnboarded(stripeAccountData?.retrieveAccount?.payouts_enabled || false);
 
-          const stripeCustomerFetch = await fetch(`${backendURL}stripe/retrieveStripeCustomerAccount/${userData?.customerStripeID}`);
-          const stripeCustomerData = await stripeCustomerFetch?.json();
+          const { data: stripeCustomerData } = await axiosPrivate.get(`stripe/retrieveStripeCustomerAccount/${userData?.customerStripeID}`);
           setCardInfo(stripeCustomerData.card);
         }
       } catch (err) {
@@ -263,7 +259,7 @@ export default function Settings() {
     };
 
     fetchStripeData();
-  }, [userName, backendURL]);
+  }, [userName, backendURL, axiosPrivate]);
 
   // Handlers for Account Setting update
   const changeFirstName = e => setFirstName_(e.target.value);
@@ -342,20 +338,17 @@ export default function Settings() {
   const deleteProfile = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${backendURL}user/deleteProfile/${userInfo._id}/${confirmPassword}`, {
-        method: 'DELETE'
-      });
-      if (response.status === 401) {
-        showToast('Incorrect password, please try again', 'error');
-        setDeleteSequence(false);
-      } else if (response.status === 200) {
-        showToast('Successfully DELETED your profile', 'success');
-        setTimeout(() => {
-          logout("/");
-        }, 1500);
-      }
+      await axiosPrivate.delete(`user/deleteProfile/${userInfo._id}`, { data: { password: confirmPassword } });
+      showToast('Successfully DELETED your profile', 'success');
+      setTimeout(() => {
+        logout("/");
+      }, 1500);
     } catch (err) {
-      showToast('DELETION failed, please try again later', 'error');
+      if (err.response?.status === 401) {
+        showToast('Incorrect password, please try again', 'error');
+      } else {
+        showToast('DELETION failed, please try again later', 'error');
+      }
       setDeleteSequence(false);
     }
   };

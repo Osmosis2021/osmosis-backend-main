@@ -4,11 +4,12 @@ import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import DeleteIcon from '@mui/icons-material/Delete';
 import React, { useEffect, useState } from 'react'
 import useStore from '../../../store';
-import axios from 'axios';
+import useAxiosPrivate from '../../../hooks/useAxiosPrivate';
 
 
 const EditPhotos = () => {
-	const { backendURL, images, setImages, userName } = useStore();
+	const { images, setImages, userName } = useStore();
+	const axiosPrivate = useAxiosPrivate();
 	const [teacherData, setTeacherData] = useState({});
 	const [isLoading, setIsLoading] = useState(true);
 
@@ -47,7 +48,7 @@ const EditPhotos = () => {
 	const removeAlreadyUploadedImage = async (image) => {
 		// e.preventDefault();
 		console.log(image)
-		await axios.put(`${backendURL}course/deletePhoto/${teacherData._id}`, {
+		await axiosPrivate.put(`course/deletePhoto/${teacherData._id}`, {
 			image
 		}).then(res => {
 			alert('Uploaded Image was deleted?')
@@ -57,7 +58,7 @@ const EditPhotos = () => {
 
 	const addUploadedImage = async () => {
 		// e.preventDefault();
-		axios.put(`${backendURL}course/updatePhoto/${teacherData._id}`, {
+		axiosPrivate.put(`course/updatePhoto/${teacherData._id}`, {
 			images
 		}).then(res => {
 			alert('Image(s) uploaded successfully?')

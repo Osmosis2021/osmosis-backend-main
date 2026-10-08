@@ -86,7 +86,7 @@ const Forgot = () => {
             }
         } catch (err) {
             console.error('Error verifying code:', err);
-            setError('Error verifying reset code. Please try again.');
+            setError(err.response?.data?.result || 'Error verifying reset code. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -121,7 +121,7 @@ const Forgot = () => {
             }
         } catch (err) {
             console.error('Error updating password:', err);
-            setError('Failed to update password. Please try again later.');
+            setError(err.response?.data?.result || 'Failed to update password. Please try again later.');
         } finally {
             setIsLoading(false);
         }

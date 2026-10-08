@@ -15,7 +15,7 @@ const cookieParser = require('cookie-parser');
 const allowedOrigins = require('./config/allowedOrigins');
 const env = require('./config/env');
 const connectDB = require('./config/db');
-// const cloudinary = require('cloudinary').v2
+require('./config/cloudinary');
 const app = express();
 
 if (env.NODE_ENV === 'production') {

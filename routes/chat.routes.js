@@ -1,105 +1,96 @@
 const router = require('express').Router()
+const mongoose = require('mongoose');
 const User = require('../models/user');
+const { PUBLIC_FIELDS } = require('../models/user');
 const Chat = require('../models/chat');
-const jwt = require('jsonwebtoken');
-const env = require('../config/env');
-const jwtSecret = env.ACCESS_TOKEN_SECRET
+const { requireAuth } = require('../middleware/auth');
 
-router.get('/allUsers', async (req, res) => {
-    // const accessToken = req.cookies?.accessToken || req.cookies?.token
-    const accessToken = req?.headers?.authorization?.slice(7)  // slice(7) because it begins 'Bearer '
-    const keyword = req.query.search
-    // Verify the JWT accessToken to get user data
-    jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
-        if (err) {
-            // Handle accessToken verification error (e.g., invalid token)
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-        // Define the search filter based on the presence of the keyword
+const escapeRegex = (text) => String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Search other users by username or name. Email is not searchable, so addresses stay private.
+router.get('/allUsers', requireAuth, async (req, res, next) => {
+    try {
+        const keyword = req.query.search
         const filter = keyword
             ? {
                 $or: [
-                    { userName: { $regex: keyword, $options: 'i' } },
-                    { email: { $regex: keyword, $options: 'i' } }
+                    { userName: { $regex: escapeRegex(keyword), $options: 'i' } },
+                    { firstName: { $regex: escapeRegex(keyword), $options: 'i' } },
+                    { lastName: { $regex: escapeRegex(keyword), $options: 'i' } },
                 ],
             }
             : {};
         // Exclude the currently logged-in user from the search results
-        const users = await User.find({ ...filter, _id: { $ne: userData._id } });
+        const users = await User.find({ ...filter, _id: { $ne: req.currentUser._id } }).select(PUBLIC_FIELDS).limit(50);
         res.send(users)
-    });
+    } catch (err) {
+        next(err);
+    }
 });
 
 
-router.get('/accessChats/:searchedUserID', async (req, res) => {
-    const { searchedUserID } = req.params
-    const { userID } = req.query
+// Opens (or creates) the one-to-one chat between the signed-in user and another user.
+// The `userID` query parameter is ignored; the signed-in user is always one participant.
+router.get('/accessChats/:searchedUserID', requireAuth, async (req, res, next) => {
+    try {
+        const { searchedUserID } = req.params
+        const userID = req.currentUser._id
 
-    if (!userID) {
-        console.log('User id param not sent with request')
-        return res.sendStatus(400)
-    }
-
-    var isChat = await Chat.find({
-        $and: [
-            { users: { $elemMatch: { $eq: searchedUserID } } },
-            { users: { $elemMatch: { $eq: userID } } },
-        ],
-    }).populate("users", "-password").populate("latestMessage")
-
-    isChat = await User.populate(isChat, {
-        path: 'latestMessage.sender',
-        select: 'userName, profileImage, email'
-    });
-
-    if (isChat.length > 0) {
-        res.send(isChat[0]);
-    } else {
-        var chatData = {
-            chatName: 'sender',
-            users: [searchedUserID, userID],
+        if (!mongoose.isValidObjectId(searchedUserID) || String(searchedUserID) === String(userID)) {
+            return res.status(400).json({ message: 'Choose someone to message.' });
+        }
+        const otherUser = await User.exists({ _id: searchedUserID });
+        if (!otherUser) {
+            return res.status(404).json({ message: 'That user no longer exists.' });
         }
 
-        try {
+        var isChat = await Chat.find({
+            $and: [
+                { users: { $elemMatch: { $eq: searchedUserID } } },
+                { users: { $elemMatch: { $eq: userID } } },
+            ],
+        }).populate("users", PUBLIC_FIELDS).populate("latestMessage")
+
+        isChat = await User.populate(isChat, {
+            path: 'latestMessage.sender',
+            select: 'userName profileImage'
+        });
+
+        if (isChat.length > 0) {
+            res.send(isChat[0]);
+        } else {
+            var chatData = {
+                chatName: 'sender',
+                users: [searchedUserID, userID],
+            }
+
             const createdChat = await Chat.create(chatData);
-            const fullChat = await Chat.findOne({ _id: createdChat._id }).populate("users", "-password")
+            const fullChat = await Chat.findOne({ _id: createdChat._id }).populate("users", PUBLIC_FIELDS)
             res.status(200).send(fullChat)
-        } catch (err) {
-            res.status(400);
-            throw new Error(err.message);
         }
+    } catch (err) {
+        next(err);
     }
 });
 
-router.get('/fetchChats/:userID', async (req, res) => {
-    const { userID } = req.params
-    const accessToken = req?.headers?.authorization?.slice(7)
-    console.log(accessToken)
-    // Verify the JWT token to get user data
-    jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
-        if (err) {
-            // Handle token verification error (e.g., invalid token)
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
+// Lists the signed-in user's chats. The `:userID` path segment is kept for compatibility
+// but ignored; you can only list your own chats.
+router.get('/fetchChats/:userID', requireAuth, async (req, res, next) => {
+    try {
+        let results = await Chat.find({ users: { $elemMatch: { $eq: req.currentUser._id } } })
+            .populate("users", PUBLIC_FIELDS)
+            .populate("latestMessage")
+            .sort({ updatedAt: -1 });
 
-        try {
-            Chat.find({ users: { $elemMatch: { $eq: userID } } })
-                .populate("users", "-password")
-                .populate("latestMessage")
-                .sort({ updatedAt: -1 })
-                .then(async (results) => {
-                    results = await User.populate(results, {
-                        path: 'latestMessage.sender',
-                        select: 'userName, profileImage, email'
-                    });
+        results = await User.populate(results, {
+            path: 'latestMessage.sender',
+            select: 'userName profileImage'
+        });
 
-                    res.status(200).send(results);
-                });
-        } catch (err) {
-            res.status(400);
-            throw new Error(err.message);
-        }
-    })
+        res.status(200).send(results);
+    } catch (err) {
+        next(err);
+    }
 });
 
 

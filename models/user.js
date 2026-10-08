@@ -25,6 +25,9 @@ const UserSchema = new mongoose.Schema(
 			required: true,
 		},
 		resetCode: '',
+		resetCodeExpires: {
+			type: Date,
+		},
 		stripeID : {
 			type: String,
 		},
@@ -101,16 +104,35 @@ const UserSchema = new mongoose.Schema(
 		toJSON: {
 			virtuals: true,
 			transform: (_doc, ret) => {
-				delete ret.password;
+				PRIVATE_FIELDS.forEach((field) => delete ret[field]);
 				return ret;
 			},
 		},
 	}
 );
 
+// Never sent to any client, including the account owner.
+const PRIVATE_FIELDS = ['password', 'refreshToken', 'resetCode', 'resetCodeExpires', 'emailVerificationCode'];
+
+// Safe to show to other users (profile pages, listings, chats, bookings).
+const PUBLIC_FIELDS = '_id firstName lastName userName profileImage description industries generalTags specificTags stars isTeacher isStudent stripeID createdAt';
+
+const pickPublicFields = (userDoc) => {
+	if (!userDoc) return userDoc;
+	const json = typeof userDoc.toJSON === 'function' ? userDoc.toJSON() : { ...userDoc };
+	const publicJson = {};
+	PUBLIC_FIELDS.split(' ').forEach((field) => {
+		if (json[field] !== undefined) publicJson[field] = json[field];
+	});
+	return publicJson;
+};
+
 // export User Schema
 const User = mongoose.model('User', UserSchema);
 module.exports = User;
+module.exports.PRIVATE_FIELDS = PRIVATE_FIELDS;
+module.exports.PUBLIC_FIELDS = PUBLIC_FIELDS;
+module.exports.pickPublicFields = pickPublicFields;
 
 
 

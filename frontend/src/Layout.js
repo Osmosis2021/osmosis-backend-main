@@ -3,8 +3,9 @@ import useStore from "./store"
 import { Box, useTheme, useMediaQuery } from '@mui/material'
 import SideRail from './components/SideRail/SideRail';
 import './Layout.css'
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import io from 'socket.io-client';
+import useAuth from './hooks/useAuth';
 
 const Layout = () => {
     const { platform } = useStore();
@@ -12,15 +13,34 @@ const Layout = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const { userID, setSocket } = useStore();
+    const { auth } = useAuth();
+
+    // Keep the latest access token available to the socket without reconnecting on every refresh.
+    const accessTokenRef = useRef(auth?.accessToken);
+    useEffect(() => {
+        accessTokenRef.current = auth?.accessToken;
+    }, [auth?.accessToken]);
 
     useEffect(() => {
         const { socket, backendURL } = useStore.getState();
         if (userID && !socket) {
-            const newSocket = io(backendURL);
-            newSocket.emit("setup", userID);
+            // The server rejects connections without a valid token. `auth` is a function so each
+            // (re)connection attempt sends the current token.
+            const newSocket = io(backendURL, {
+                auth: (cb) => cb({ token: accessTokenRef.current }),
+            });
+            let retryTimeout;
+            newSocket.on('connect', () => newSocket.emit("setup"));
+            // An expired token is refused by the server and socket.io won't retry by itself;
+            // try again shortly, by which time the token has usually been refreshed.
+            newSocket.on('connect_error', () => {
+                clearTimeout(retryTimeout);
+                retryTimeout = setTimeout(() => newSocket.connect(), 5000);
+            });
             setSocket(newSocket);
 
             return () => {
+                clearTimeout(retryTimeout);
                 newSocket.disconnect();
                 setSocket(null);
             }

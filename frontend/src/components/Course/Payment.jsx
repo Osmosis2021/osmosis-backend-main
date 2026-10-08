@@ -3,6 +3,7 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import CheckoutForm from "./CheckoutForm";
 import useStore from "../../store";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 
 // Singleton to hold the Stripe promise to prevent unnecessary re-initialization
 let stripePromiseCache = null;
@@ -23,25 +24,16 @@ export default function Payment(props) {
     const [stripePromise, setStripePromise] = useState(null);
     const [clientSecret, setClientSecret] = useState("");
 
-    const { backendURL, customerStripeID, paymentMethodID, email } = useStore();
+    const { backendURL, paymentMethodID } = useStore();
+    const axiosPrivate = useAxiosPrivate();
 
-    // Build request body safely (and consistently)
-    const amountInCents = Math.round(Number(props?.item?.pricePerStudent || 0) * 100);
-
-    const requestBody = useMemo(() => {
-        const body = {
-            amount: amountInCents,
-            capacity: props?.item?.guests,
-            metadata: props?.paymentMetadata,
-            stripeID: props?.stripeID,
-            email,
-        };
-
-        if (paymentMethodID) body.paymentMethodID = paymentMethodID;
-        if (customerStripeID) body.customerStripeID = customerStripeID;
-
-        return body;
-    }, [amountInCents, props?.item?.guests, props?.paymentMetadata, props?.stripeID, email, paymentMethodID, customerStripeID]);
+    // The server looks up the price, the host's payout account and the guest's Stripe customer
+    // itself; we only say what is being booked. Built from primitives so a new PaymentIntent is
+    // only created when the booking actually changes.
+    const courseID = props?.item?.courseID;
+    const timeslotID = props?.item?.selectedTimeslotID;
+    const guests = props?.item?.guests;
+    const requestBody = useMemo(() => ({ courseID, timeslotID, guests }), [courseID, timeslotID, guests]);
 
     useEffect(() => {
         let isMounted = true;
@@ -59,13 +51,7 @@ export default function Payment(props) {
                 if (isMounted) setStripePromise(stripe);
 
                 // 2) Create payment intent
-                const intentRes = await fetch(`${backendURL}stripe/create-payment-intent`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(requestBody),
-                });
-
-                const intentData = await intentRes.json();
+                const { data: intentData } = await axiosPrivate.post(`stripe/create-payment-intent`, requestBody);
                 if (!intentData?.clientSecret) throw new Error("Missing clientSecret from /stripe/create-payment-intent");
 
                 if (isMounted) setClientSecret(intentData.clientSecret);
@@ -79,7 +65,7 @@ export default function Payment(props) {
         return () => {
             isMounted = false;
         };
-    }, [backendURL, props?.stripeID, requestBody]);
+    }, [backendURL, props?.stripeID, requestBody, axiosPrivate]);
 
     // ✅ Styling for PaymentElement lives HERE:
     const elementsOptions = useMemo(() => {

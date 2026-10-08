@@ -1,8 +1,9 @@
 const Course = require('../models/course');
 const CourseTimeslot = require('../models/courseTimeslot');
+const { PUBLIC_FIELDS } = require('../models/user');
 
 const getAllListings = async () => {
-    return await Course.find().populate('teacherID');
+    return await Course.find().populate('teacherID', PUBLIC_FIELDS);
 };
 
 const getListingsByLocation = async (latitude, longitude) => {
@@ -21,7 +22,7 @@ const getListingsByHost = async (userName) => {
 };
 
 const getListingById = async (id) => {
-    const listing = await Course.findById(id).populate('feedback.studentID');
+    const listing = await Course.findById(id).populate('feedback.studentID', PUBLIC_FIELDS);
     if (listing) {
         // This mutation of the mongoose document is from the original code.
         // Ideally we should lean on .lean() or toObject() but preserving behavior for now.
