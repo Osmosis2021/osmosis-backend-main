@@ -16,6 +16,7 @@ export const PremiumBackButton = ({ fallback = '/explore', sx = {} }) => {
 
     return (
         <IconButton
+            aria-label="Go back"
             onClick={handleBack}
             sx={{
                 width: 44,

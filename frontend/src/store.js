@@ -1,16 +1,11 @@
 import { create } from "zustand"
 import { Capacitor } from '@capacitor/core'
+import { API_BASE_URL } from './config/api'
 
 const useStore = create(set => ({
     platform: Capacitor.getPlatform() || 'ios',  //  'web', 'ios' or 'android'
 
-    backendURL: (() => {
-        let url = process.env.REACT_APP_API_URL;
-        if (url) {
-            return url.endsWith('/') ? url : url + '/';
-        }
-        return process.env.NODE_ENV === 'production' ? 'https://getstudiotime.com/' : 'http://localhost:8126/';
-    })(),
+    backendURL: API_BASE_URL,
 
     firstName: '',
     setFirstName: firstName => set({ firstName }),

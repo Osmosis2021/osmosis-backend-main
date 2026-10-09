@@ -1,175 +1,69 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link as LinkRouter, useNavigate, useLocation } from 'react-router-dom';
-import useStore from "../../store";
 import logo from '../../assets/studio_time_logo.png';
 import './Opening.css';
-import { TextField, Container, Button, Typography, CircularProgress, Box, Stack } from '@mui/material';
+import { Alert, TextField, Container, Button, Typography, CircularProgress, Box, Stack, Divider } from '@mui/material';
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import useAuth from '../../hooks/useAuth'
 import useKeyboard from '../../hooks/useKeyboard'
+import useSession, { getLandingPath } from '../../hooks/useSession'
+import useGoogleSignIn from '../../hooks/useGoogleSignIn'
+import { getAuthErrorMessage } from '../../utils/authErrors'
 import axios from '../../actions/axios'
+import GoogleSignInButton, { useGoogleSignInAvailable } from '../Auth/GoogleSignInButton'
+import RolePickerDialog from '../Auth/RolePickerDialog'
 
 
 const Opening = () => {
-	const { auth, setAuth, setPersist } = useAuth()
+	const { auth } = useAuth()
 	const manageKeyboard = useKeyboard()
 	const navigate = useNavigate()
 	const location = useLocation()
-	const [email_, setEmail_] = useState('')  // underscore to distinguish from those in the store
+	const startSession = useSession()
+	const from = location.state?.from?.pathname
+	const [identifier, setIdentifier] = useState('')
 	const [password, setPassword] = useState('')
-	const [showPassword, setShowPassword] = useState('')
-	const [isWrong, setIsWrong] = useState(false)
+	const [showPassword, setShowPassword] = useState(false)
+	const [error, setError] = useState('')
 	const [isLoading, setIsLoading] = useState(false)
-	const [thisPersist] = useState(true)
-	const { setUserID, setUserName, setIsTeacher, setIsStudent, setFirstName, setLastName,
-		setIsRegistered, setRoles, setEmail, setDescription, setCustomerStripeID, setPaymentMethodID } = useStore()
-
-	const handleGoogleLoginResponse = useCallback(async (response) => {
-		setIsLoading(true);
-		try {
-			const res = await axios.post(`user/google-login`, {
-				credential: response.credential,
-				role: 'student'
-			});
-			const userDoc = res.data;
-			if (userDoc._id) {
-				localStorage.setItem("persist", true);
-				setPersist(true);
-				const accessToken = userDoc?.accessToken;
-				const roles = userDoc?.roles;
-				setAuth({ userName: userDoc.userName, accessToken, roles, isEmailVerified: userDoc.isEmailVerified });
-				setRoles(roles);
-				setUserID(userDoc._id);
-				setUserName(userDoc.userName);
-				setIsTeacher(userDoc.isTeacher);
-				setIsStudent(userDoc.isStudent);
-				setFirstName(userDoc.firstName);
-				setLastName(userDoc.lastName);
-				setEmail(userDoc.email);
-				setIsRegistered(true);
-				setCustomerStripeID(userDoc.customerStripeID);
-				setPaymentMethodID(userDoc.paymentMethodID);
-
-				const from = location.state?.from?.pathname;
-				if (from) {
-					navigate(from, { replace: true });
-				} else if (userDoc.isTeacher) {
-					navigate(`/teachers/${userDoc.userName}`);
-				} else {
-					navigate(`/explore`);
-				}
-			} else {
-				setIsLoading(false);
-				setIsWrong(true);
-			}
-		} catch (err) {
-			console.error('Error logging in user via Google:', err);
-			setIsLoading(false);
-		}
-	}, [location.state?.from?.pathname, navigate, setAuth, setPersist, setRoles, setUserID, setUserName, setIsTeacher, setIsStudent, setFirstName, setLastName, setEmail, setIsRegistered, setCustomerStripeID, setPaymentMethodID]);
+	const google = useGoogleSignIn({ from })
+	const isGoogleAvailable = useGoogleSignInAvailable()
 
 	useEffect(() => {
-		window.google_active_callback = handleGoogleLoginResponse;
-	}, [handleGoogleLoginResponse]);
-
-	useEffect(() => {
-		let googleBtnTimeout;
-		const initGoogleBtn = () => {
-			if (window.google?.accounts?.id) {
-				if (!window.google_initialized) {
-					window.google.accounts.id.initialize({
-						client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID,
-						callback: (response) => {
-							if (typeof window.google_active_callback === 'function') {
-								window.google_active_callback(response);
-							}
-						}
-					});
-					window.google_initialized = true;
-				}
-				const btnElem = document.getElementById("googleBtn");
-				if (btnElem) {
-					window.google.accounts.id.renderButton(
-						btnElem,
-						{ theme: "outline", size: "large", width: 400 }
-					);
-				}
-			} else {
-				googleBtnTimeout = setTimeout(initGoogleBtn, 200);
-			}
-		};
-		googleBtnTimeout = setTimeout(initGoogleBtn, 100);
-
 		manageKeyboard('fieldGrid') // hide bottomnav when mobile keyboard showing and scroll fieldGrid into view
+	}, [manageKeyboard])
+
+	// Already signed in: skip the login page.
+	useEffect(() => {
 		if (auth?.accessToken) {
-			if (auth.roles?.includes(205)) {
-				navigate(`/teachers/${auth.userName}`)
-			} else {
-				navigate('/explore')
-			}
+			navigate(auth.roles?.includes(205) ? `/teachers/${auth.userName}` : '/explore', { replace: true })
 		}
-		return () => clearTimeout(googleBtnTimeout);
-	}, [auth, navigate, manageKeyboard]);
-
-	const handleChangeEmail = (event) => {
-		event.preventDefault()
-		setEmail_(event.target.value)
-	}
-
-	const handleChangePassword = (event) => {
-		event.preventDefault()
-		setPassword(event.target.value)
-	}
+	}, [auth, navigate])
 
 	const handleLogin = async (e) => {
 		e.preventDefault()
+		if (!identifier.trim() || !password) {
+			setError('Enter your email (or username) and password.')
+			return
+		}
 		setIsLoading(true)
+		setError('')
+		google.setError('')
 		try {
-			const response = await axios.post(`user/login`,
-				JSON.stringify({ email: email_, password, persist: thisPersist }),
-				{ headers: { 'Content-Type': 'application/json' }, withCredentials: true }
-			)
-			const userDoc = response.data
-			if (userDoc._id) {
-				localStorage.setItem("persist", thisPersist)
-				setPersist(thisPersist)
-				const accessToken = userDoc?.accessToken
-				const roles = userDoc?.roles
-				setAuth({ userName: userDoc.userName, accessToken, roles, isEmailVerified: userDoc.isEmailVerified })
-				setRoles(roles)
-				setUserID(userDoc._id)
-				setUserName(userDoc.userName)
-				setIsTeacher(userDoc.isTeacher)
-				setIsStudent(userDoc.isStudent)
-				setFirstName(userDoc.firstName)
-				setLastName(userDoc.lastName)
-				setEmail(userDoc.email)
-				setDescription(userDoc.description)
-				setIsRegistered(true);
-				setCustomerStripeID(userDoc.customerStripeID)
-				setPaymentMethodID(userDoc.paymentMethodID)
-
-				const from = location.state?.from?.pathname
-				if (from) {
-					navigate(from, { replace: true })
-				} else if (userDoc.isTeacher) {
-					navigate(`/teachers/${userDoc.userName}`)
-				} else {
-					navigate(`/explore`)
-				}
-			} else {
-				setIsLoading(false)
-				setIsWrong(true)
-				console.log('Login failed right here')
-			}
+			const { data: user } = await axios.post('user/login', { email: identifier.trim(), password, persist: true })
+			startSession(user)
+			navigate(getLandingPath(user, from), { replace: true })
 		} catch (err) {
-			console.log('Error logging in user:\n', err)
+			setError(getAuthErrorMessage(err))
 			setIsLoading(false)
 		}
 	}
+
+	const visibleError = error || google.error
+	const isBusy = isLoading || google.isSubmitting
 
 	return (
 		<Box sx={{
@@ -180,118 +74,146 @@ const Opening = () => {
 			justifyContent: 'center',
 			alignItems: 'center',
 			px: 3,
+			py: 4,
 			bgcolor: 'background.default',
 			minHeight: 0 // allow shrinking
 		}}>
 			<Container maxWidth="xs" sx={{ p: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 				{/* Hero / Logo Section */}
-				<Box sx={{ mb: 6, textAlign: 'center' }}>
-					<img
+				<Box sx={{ mb: 5, textAlign: 'center' }}>
+					<Box component="img"
 						src={logo}
-						alt='Studio Time Logo'
-						style={{ width: '260px', height: 'auto', display: 'block' }}
+						alt='Studio Time'
+						sx={{ width: { xs: 200, sm: 260 }, height: 'auto', display: 'block', mx: 'auto' }}
 					/>
 				</Box>
 
-				{isLoading ? (
-					<Box sx={{ display: 'flex', justifyContent: "center", alignItems: 'center', height: '300px' }}>
-						<CircularProgress color="primary" />
-					</Box>
-				) : (
-					<Box id='fieldGrid' sx={{ width: '100%' }}>
-						<Stack spacing={2}>
-							{/* Email Field */}
+				<Box id='fieldGrid' component="form" onSubmit={handleLogin} noValidate sx={{ width: '100%' }}>
+					<Stack spacing={2}>
+						<Typography component="h1" variant="h5" sx={{ fontWeight: 800, fontFamily: 'Outfit', textAlign: 'center' }}>
+							Welcome back
+						</Typography>
+
+						{visibleError && (
+							<Alert severity="error" role="alert" sx={{ borderRadius: '12px' }}>
+								{visibleError}
+							</Alert>
+						)}
+
+						<TextField
+							id="login-identifier"
+							autoComplete='username'
+							variant='outlined'
+							label="Email or username"
+							fullWidth
+							onChange={(event) => setIdentifier(event.target.value)}
+							value={identifier}
+							inputProps={{ autoCapitalize: 'none', autoCorrect: 'off', spellCheck: false }}
+							error={Boolean(error)}
+							disabled={isBusy}
+						/>
+
+						{/* Password Field & Forgot Password */}
+						<Box>
 							<TextField
-								autoComplete='email'
+								id="login-password"
 								variant='outlined'
-								label="Email or Username"
+								type={showPassword ? "text" : "password"}
+								label="Password"
+								autoComplete='current-password'
+								onChange={(event) => setPassword(event.target.value)}
+								value={password}
 								fullWidth
-								onChange={handleChangeEmail}
-								value={email_}
-								inputProps={{ autoCapitalize: 'none' }}
-								error={isWrong}
-							/>
-
-							{/* Password Field & Forgot Password */}
-							<Box>
-								<TextField
-									variant='outlined'
-									type={showPassword ? "text" : "password"}
-									label="Password"
-									onChange={handleChangePassword}
-									value={password}
-									autoCapitalize='none'
-									fullWidth
-									error={isWrong}
-									helperText={isWrong ? "Incorrect email or password." : ""}
-									InputProps={{
-										endAdornment: (
-											<InputAdornment position="end">
-												<IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-													{showPassword ? <VisibilityOff /> : <Visibility />}
-												</IconButton>
-											</InputAdornment>
-										)
-									}}
-								/>
-								<Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-start' }}>
-									<LinkRouter to='/forgot' style={{ textDecoration: 'none' }}>
-										<Typography
-											variant="caption"
-											sx={{
-												color: 'text.secondary',
-												cursor: 'pointer',
-												'&:hover': { color: 'text.primary', textDecoration: 'underline' }
-											}}
-										>
-											Forgot password?
-										</Typography>
-									</LinkRouter>
-								</Box>
-							</Box>
-
-							{/* Primary Action: Login */}
-							<Button
-								variant='contained'
-								size='large'
-								fullWidth
-								onClick={handleLogin}
-								sx={{
-									mt: 2,
-									py: 1.5,
-									fontSize: '1rem',
-									textTransform: 'none'
+								error={Boolean(error)}
+								disabled={isBusy}
+								InputProps={{
+									endAdornment: (
+										<InputAdornment position="end">
+											<IconButton
+												onClick={() => setShowPassword(!showPassword)}
+												edge="end"
+												aria-label={showPassword ? 'Hide password' : 'Show password'}
+											>
+												{showPassword ? <VisibilityOff /> : <Visibility />}
+											</IconButton>
+										</InputAdornment>
+									)
 								}}
-							>
-								Login
-							</Button>
-
-							{/* Google Sign-In */}
-							<Box sx={{ my: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-								<Typography variant="body2" color="text.secondary">or</Typography>
-							</Box>
-							<div id="googleBtn" style={{ width: '100%', minHeight: '40px' }}></div>
-
-							{/* Secondary Action: Sign Up */}
-							<Box sx={{ mt: 4, textAlign: 'center' }}>
-								<Typography variant="body2" sx={{ color: 'text.secondary' }}>
-									New here?{' '}
-									<LinkRouter
-										to='/sign-up'
-										style={{
-											color: 'inherit',
-											fontWeight: 600,
-											textDecoration: 'underline'
-										}}
-									>
-										Create an account
-									</LinkRouter>
+							/>
+							<Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-start' }}>
+								<Typography
+									component={LinkRouter}
+									to='/forgot'
+									variant="body2"
+									sx={{
+										color: 'text.secondary',
+										textDecoration: 'none',
+										'&:hover, &:focus-visible': { color: 'text.primary', textDecoration: 'underline' }
+									}}
+								>
+									Forgot password?
 								</Typography>
 							</Box>
-						</Stack>
-					</Box>
-				)}
+						</Box>
+
+						{/* Primary Action: Login */}
+						<Button
+							type="submit"
+							variant='contained'
+							size='large'
+							fullWidth
+							disabled={isBusy}
+							sx={{
+								mt: 1,
+								py: 1.5,
+								fontSize: '1rem',
+								textTransform: 'none',
+								fontWeight: 700,
+							}}
+						>
+							{isLoading ? <CircularProgress size={22} color="inherit" aria-label="Signing in" /> : 'Log in'}
+						</Button>
+
+						{/* Google Sign-In */}
+						{isGoogleAvailable && (
+							<>
+								<Divider sx={{ my: 1, color: 'text.secondary', typography: 'body2' }}>or</Divider>
+								<GoogleSignInButton onCredential={google.handleCredential} text="continue_with" />
+							</>
+						)}
+						{google.isSubmitting && !google.rolePrompt.open && (
+							<Box sx={{ display: 'flex', justifyContent: 'center' }} role="status">
+								<CircularProgress size={22} aria-label="Signing in with Google" />
+							</Box>
+						)}
+
+						{/* Secondary Action: Sign Up */}
+						<Box sx={{ mt: 3, textAlign: 'center' }}>
+							<Typography variant="body2" sx={{ color: 'text.secondary' }}>
+								New here?{' '}
+								<LinkRouter
+									to='/sign-up'
+									style={{
+										color: 'inherit',
+										fontWeight: 600,
+										textDecoration: 'underline'
+									}}
+								>
+									Create an account
+								</LinkRouter>
+							</Typography>
+						</Box>
+					</Stack>
+				</Box>
 			</Container>
+
+			<RolePickerDialog
+				open={google.rolePrompt.open}
+				firstName={google.rolePrompt.firstName}
+				isSubmitting={google.isSubmitting}
+				onConfirm={google.confirmRole}
+				onCancel={google.cancelRole}
+			/>
 		</Box>
 	);
 };

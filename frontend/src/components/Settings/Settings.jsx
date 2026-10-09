@@ -50,6 +50,7 @@ import useStore from '../../store';
 import useAuth from '../../hooks/useAuth';
 import useLogout from '../../hooks/useLogout';
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
+import GoogleSignInButton from '../Auth/GoogleSignInButton';
 import useKeyboard from '../../hooks/useKeyboard';
 import UploadProfilePicture from '../Profile/UploadProfilePicture';
 import PaymentMethodForm from '../Profile/PaymentMethodForm';
@@ -86,10 +87,10 @@ export default function Settings() {
     setToast({ open: true, message, severity });
   }, []);
 
-  const handleGoogleLinkResponse = useCallback(async (response) => {
+  const handleGoogleLinkResponse = useCallback(async (credential) => {
     try {
       const result = await axiosPrivate.post(`user/link-google`, {
-        credential: response.credential
+        credential
       });
       if (result.data.success) {
         showToast('Google account linked successfully!', 'success');
@@ -189,44 +190,6 @@ export default function Settings() {
       setNotifications(prev => ({ ...prev, smsMessages: userInfo.smsEnabled }));
     }
   }, [userInfo, firstName_, lastName_, userName_, email_, description_, phoneNumber_]);
-
-  useEffect(() => {
-    window.google_active_callback = handleGoogleLinkResponse;
-  }, [handleGoogleLinkResponse]);
-
-  // Initialize Google link button when account settings tab is active
-  useEffect(() => {
-    let googleBtnTimeout;
-    if (activeTab === 'account' && !userInfo.googleId) {
-      const initGoogleLinkBtn = () => {
-        if (window.google?.accounts?.id) {
-          if (!window.google_initialized) {
-            window.google.accounts.id.initialize({
-              client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID,
-              callback: (response) => {
-                if (typeof window.google_active_callback === 'function') {
-                  window.google_active_callback(response);
-                }
-              }
-            });
-            window.google_initialized = true;
-          }
-          const btnElem = document.getElementById("googleLinkBtn");
-          if (btnElem) {
-            window.google.accounts.id.renderButton(
-              btnElem,
-              { theme: "outline", size: "medium", width: 400, text: "signin_with" }
-            );
-          }
-        } else {
-          // Retry in case GIS script is still loading
-          googleBtnTimeout = setTimeout(initGoogleLinkBtn, 200);
-        }
-      };
-      googleBtnTimeout = setTimeout(initGoogleLinkBtn, 100);
-    }
-    return () => clearTimeout(googleBtnTimeout);
-  }, [activeTab, userInfo.googleId]);
 
   // Fetch Stripe Info (on Demand or Mount)
   useEffect(() => {
@@ -639,7 +602,9 @@ export default function Settings() {
                         Disconnect
                       </Button>
                     ) : (
-                      <div id="googleLinkBtn"></div>
+                      <Box sx={{ width: { xs: 200, sm: 240 } }}>
+                        <GoogleSignInButton onCredential={handleGoogleLinkResponse} text="continue_with" />
+                      </Box>
                     )}
                   </Box>
                 </Stack>

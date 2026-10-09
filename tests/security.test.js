@@ -142,13 +142,84 @@ describe('Google sign-in verifies the credential', () => {
         expect(res.status).toBe(401);
     });
 
-    it('signs in with a genuine token and returns no secrets', async () => {
-        mockTokenInfo({ aud: process.env.GOOGLE_CLIENT_ID, iss: 'https://accounts.google.com', email: 'new@example.com', email_verified: 'true', sub: 'g-123', given_name: 'Ana', family_name: 'Lee' });
+    const genuine = (overrides = {}) => ({ aud: process.env.GOOGLE_CLIENT_ID, iss: 'https://accounts.google.com', email: 'new@example.com', email_verified: 'true', sub: 'g-123', given_name: 'Ana', family_name: 'Lee', ...overrides });
+
+    it('signs up a new guest with a genuine token and returns no secrets', async () => {
+        mockTokenInfo(genuine());
         stripe.customers.create.mockResolvedValue({ id: 'cus_new' });
-        const res = await request(app).post('/user/google-login').send({ credential: 'genuine' }).expect(200);
+        const res = await request(app).post('/user/google-login').send({ credential: 'genuine', role: 'guest' }).expect(200);
         expect(res.body.email).toBe('new@example.com');
+        expect(res.body.isNewUser).toBe(true);
         expectNoSecrets(res.body);
         expect(global.fetch.mock.calls[0][0]).toContain('oauth2.googleapis.com/tokeninfo');
+    });
+
+    it('asks a brand-new user to choose a role instead of guessing', async () => {
+        mockTokenInfo(genuine());
+        const res = await request(app).post('/user/google-login').send({ credential: 'genuine' }).expect(200);
+        expect(res.body).toEqual({ needsRole: true, firstName: 'Ana' });
+        expect(await User.countDocuments()).toBe(0);
+    });
+
+    it('creates a host account when the user picks artist', async () => {
+        mockTokenInfo(genuine());
+        stripe.accounts.create.mockResolvedValue({ id: 'acct_new' });
+        const res = await request(app).post('/user/google-login').send({ credential: 'genuine', role: 'artist' }).expect(200);
+        expect(res.body.isTeacher).toBe(true);
+        expect(res.body.roles).toEqual(expect.arrayContaining([2119, 205]));
+    });
+
+    it('gives Google users the base role so they can reach chat, settings and checkout', async () => {
+        const existing = await makeUser({ email: 'ana@example.com', isStudent: true });
+        mockTokenInfo(genuine({ email: 'Ana@Example.com' }));
+        const res = await request(app).post('/user/google-login').send({ credential: 'genuine' }).expect(200);
+        expect(res.body._id).toBe(String(existing._id)); // matched despite different capitalisation
+        expect(res.body.roles).toEqual(expect.arrayContaining([2119, 1920]));
+        expect(res.body.isNewUser).toBe(false);
+    });
+
+    it('keeps the session cookie for 30 days', async () => {
+        await makeUser({ email: 'ana@example.com' });
+        mockTokenInfo(genuine({ email: 'ana@example.com' }));
+        const res = await request(app).post('/user/google-login').send({ credential: 'genuine' }).expect(200);
+        const cookie = res.headers['set-cookie'].find(c => c.startsWith('jwt='));
+        expect(cookie).toMatch(/Max-Age=2592000/);
+        expect(cookie).toMatch(/HttpOnly/);
+    });
+
+    it('explains when Google sign-in is not configured on the server', async () => {
+        const env = require('../config/env');
+        const original = env.GOOGLE_CLIENT_ID;
+        env.GOOGLE_CLIENT_ID = '';
+        try {
+            const res = await request(app).post('/user/google-login').send({ credential: 'x' }).expect(503);
+            expect(res.body.message).toMatch(/email and password/);
+        } finally {
+            env.GOOGLE_CLIENT_ID = original;
+        }
+    });
+});
+
+describe('Email and password sign-in', () => {
+    it('matches the email regardless of capitalisation and includes the base role', async () => {
+        await makeUser({ email: 'mia@example.com', isTeacher: true });
+        const res = await request(app).post('/user/login').send({ email: 'Mia@Example.com', password: 'password123', persist: true }).expect(200);
+        expect(res.body.roles).toEqual(expect.arrayContaining([2119, 205]));
+    });
+
+    it('refresh returns the same roles and no secrets', async () => {
+        await makeUser({ email: 'mia@example.com', isStudent: true });
+        const login = await request(app).post('/user/login').send({ email: 'mia@example.com', password: 'password123', persist: true }).expect(200);
+        const cookie = login.headers['set-cookie'].find(c => c.startsWith('jwt=')).split(';')[0];
+        const res = await request(app).get('/user/refresh').set('Cookie', cookie).expect(200);
+        expect(res.body.roles).toEqual(expect.arrayContaining([2119, 1920]));
+        expectNoSecrets(res.body);
+    });
+
+    it('treats an email that differs only by case as already registered', async () => {
+        await makeUser({ email: 'mia@example.com' });
+        const res = await request(app).post('/user/registerUser').send({ email: 'MIA@example.com', userName: 'brandnew1', password: 'x123456', firstName: 'M', lastName: 'K', isStudent: true }).expect(200);
+        expect(res.body.success).toBe(false);
     });
 });
 

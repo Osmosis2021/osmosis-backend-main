@@ -2,7 +2,7 @@ import { Outlet } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import useRefreshToken from '../../hooks/useRefreshToken'
 import useAuth from '../../hooks/useAuth'
-import { CircularProgress } from '@mui/material'
+import { Box, CircularProgress } from '@mui/material'
 
 const PersistLogin = () => {
     const [isLoading, setIsLoading] = useState(true)
@@ -15,6 +15,7 @@ const PersistLogin = () => {
             try {
                 await refresh()
             } catch (err) {
+                // No valid session (expired, or signed out elsewhere): continue as a visitor.
                 console.error(err)
             } finally {
                 isMounted && setIsLoading(false)
@@ -24,24 +25,15 @@ const PersistLogin = () => {
         return () => isMounted = false
     }, [auth, persist, refresh])
 
-    return (
-        <>
-            {!persist
-                ? <Outlet />
-                : isLoading
-                    ? (
-                        <CircularProgress
-                            size="xl"
-                            w={20}
-                            h={20}
-                            style={{ display: 'flex', justifyContent: "center", alignItems: 'center', height: '70vh' }}
-                            margin="auto"
-                        />
-                    )
-                    : <Outlet />
-            }
-        </>
-    )
+    if (persist && isLoading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh' }} role="status">
+                <CircularProgress aria-label="Loading your account" />
+            </Box>
+        )
+    }
+
+    return <Outlet />
 }
 
 export default PersistLogin

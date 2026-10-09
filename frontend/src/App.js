@@ -81,8 +81,8 @@ function App() {
 						<Route path='/verify-email' element={<VerifyEmail />} />
 						<Route path='landing' element={<LandingPage />} />
 						<Route path='/explore' element={<Explore />} />
-						<Route path='/sign-up' element={<Signup isTeacher={true} />} />
-						<Route path='/student-sign-up' element={<Signup isStudent={true} />} />
+						<Route path='/sign-up' element={<Signup />} />
+						<Route path='/student-sign-up' element={<Signup initialRole='guest' />} />
 						<Route path='/unauthorized' element={<Unauthorized />} />
 
 						{/* Public Profile Viewers */}

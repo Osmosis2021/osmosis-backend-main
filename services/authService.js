@@ -10,6 +10,47 @@ const bcryptSalt = bcrypt.genSaltSync(7);
 const jwtSecret = env.ACCESS_TOKEN_SECRET;
 const refreshSecret = env.REFRESH_TOKEN_SECRET;
 
+const ACCESS_TOKEN_TTL = '1d';
+const REFRESH_TOKEN_TTL_DAYS = 30;
+
+// Options for the httpOnly refresh-token cookie. It lives as long as the refresh token itself,
+// so "keep me signed in" really lasts 30 days.
+const REFRESH_COOKIE_OPTIONS = {
+    httpOnly: true,
+    sameSite: 'None',
+    secure: true,
+    maxAge: REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
+};
+
+const ROLES = { USER: 2119, STUDENT: 1920, TEACHER: 205 };
+
+// Every signed-in account has the base USER role; guests and hosts add their own.
+const buildRoles = (user) => {
+    const roles = [ROLES.USER];
+    if (user?.isStudent) roles.push(ROLES.STUDENT);
+    if (user?.isTeacher) roles.push(ROLES.TEACHER);
+    return roles;
+};
+
+const escapeRegex = (text) => String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Emails are matched case-insensitively ("Jane@Gmail.com" and "jane@gmail.com" are one account).
+const emailMatch = (email) => ({ email: { $regex: `^${escapeRegex(String(email).trim())}$`, $options: 'i' } });
+
+const signAccessToken = (user, roles) => jwt.sign({ userName: user.userName, roles }, jwtSecret, { expiresIn: ACCESS_TOKEN_TTL });
+
+// Issues an access token and (optionally) a refresh token, storing the refresh token on the user.
+const issueTokens = async (userDoc, { persist = true } = {}) => {
+    const roles = buildRoles(userDoc);
+    const accessToken = signAccessToken(userDoc, roles);
+    const refreshToken = persist
+        ? jwt.sign({ userName: userDoc.userName, roles }, refreshSecret, { expiresIn: `${REFRESH_TOKEN_TTL_DAYS}d` })
+        : '';
+    userDoc.refreshToken = refreshToken;
+    await userDoc.save();
+    return { roles, accessToken, refreshToken };
+};
+
 class AuthService {
     async login(email, password, persist) {
         console.log(`[Login] Login attempt initiated for identifier: "${email}"`);
@@ -21,7 +62,7 @@ class AuthService {
         console.log(`[Login] Searching database for user...`);
         let userDoc;
         try {
-            userDoc = await User.findOne({ $or: [{ email }, { userName: email }] });
+            userDoc = await User.findOne({ $or: [emailMatch(email), { userName: email }] });
         } catch (dbError) {
             console.error(`[Login] Database query error:`, dbError);
             throw dbError;
@@ -40,33 +81,15 @@ class AuthService {
         }
 
         console.log(`[Login] Password verified successfully. Generating tokens...`);
-        const roles = Object.values(userDoc?.roles || [2119]).filter(Boolean);
-        if (userDoc?.isStudent && !roles.includes(1920)) roles.push(1920);
-        if (userDoc?.isTeacher && !roles.includes(205)) roles.push(205);
-
-        const accessToken = jwt.sign(
-            { userName: userDoc.userName, roles },
-            jwtSecret,
-            { expiresIn: '1d' }
-        );
-
-        let refreshToken = '';
-        if (persist) {
-            refreshToken = jwt.sign(
-                { userName: userDoc.userName, roles },
-                refreshSecret,
-                { expiresIn: '30d' }
-            );
-        }
-
-        userDoc.refreshToken = refreshToken;
+        let tokens;
         try {
-            await userDoc.save();
+            tokens = await issueTokens(userDoc, { persist });
             console.log(`[Login] Refresh token saved. Login process complete.`);
         } catch (saveError) {
             console.error(`[Login] Failed to save refresh token to database:`, saveError);
             throw saveError;
         }
+        const { roles, accessToken, refreshToken } = tokens;
 
         return {
             user: { ...userDoc.toJSON(), roles, accessToken },
@@ -78,7 +101,7 @@ class AuthService {
         const { email, userName, firstName, lastName, isStudent, isTeacher } = userData;
         console.log(`[Signup] Starting registration for user: email=${email}, userName=${userName}`);
 
-        const existingUser = await User.findOne({ $or: [{ email }, { userName }] });
+        const existingUser = await User.findOne({ $or: [emailMatch(email), { userName }] });
         if (existingUser) {
             if (existingUser.userName === userName) {
                 console.log(`[Signup] Registration failed: Username "${userName}" is already taken.`);
@@ -207,19 +230,107 @@ class AuthService {
                     return reject({ status: 403, message: 'Forbidden' });
                 }
 
-                const roles = Object.values(foundUser?.roles || [2119]).filter(Boolean);
-                if (foundUser?.isStudent && !roles.includes(1920)) roles.push(1920);
-                if (foundUser?.isTeacher && !roles.includes(205)) roles.push(205);
-
-                const accessToken = jwt.sign(
-                    { userName: decoded.userName, roles: roles },
-                    jwtSecret,
-                    { expiresIn: '1d' }
-                );
+                const roles = buildRoles(foundUser);
+                const accessToken = signAccessToken(foundUser, roles);
 
                 resolve({ ...foundUser.toJSON(), roles, accessToken });
             });
         });
+    }
+
+    /**
+     * Signs in (or signs up) with already-verified Google claims.
+     * Returns { needsRole: true } for a brand-new user who hasn't said whether they are
+     * an artist or a guest yet; the client asks, then calls again with `role`.
+     */
+    async googleSignIn(claims, role) {
+        const { email, sub, given_name, family_name } = claims;
+
+        let userDoc = await User.findOne({ $or: [{ googleId: sub }, emailMatch(email)] });
+        let isNewUser = false;
+
+        if (userDoc) {
+            if (!userDoc.googleId) {
+                userDoc.googleId = sub;
+                userDoc.isEmailVerified = true;
+                await userDoc.save();
+            }
+        } else {
+            const normalizedRole = role === 'student' ? 'guest' : role;
+            if (normalizedRole !== 'artist' && normalizedRole !== 'guest') {
+                return { needsRole: true, firstName: given_name || '' };
+            }
+
+            isNewUser = true;
+            const firstName = given_name || 'Google';
+            const lastName = family_name || 'User';
+            const baseUsername = (given_name || 'user').toLowerCase().replace(/[^a-z0-9]/g, '') || 'user';
+            let userName = baseUsername;
+            let count = 1;
+            while (await User.findOne({ userName })) {
+                userName = `${baseUsername}${count}`;
+                count++;
+            }
+
+            const isTeacher = normalizedRole === 'artist';
+            const isStudent = !isTeacher;
+
+            let accountID;
+            let customerID;
+            try {
+                if (isTeacher) {
+                    const account = await stripe.accounts.create({
+                        type: 'express',
+                        country: 'US',
+                        email: email,
+                        business_type: 'individual',
+                        business_profile: {
+                            url: `https://getstudiotime.com/teachers/${userName}`,
+                        },
+                        individual: {
+                            first_name: firstName,
+                            last_name: lastName,
+                            email: email
+                        },
+                        capabilities: {
+                            transfers: { requested: true },
+                        }
+                    });
+                    accountID = account.id;
+                } else {
+                    const customer = await stripe.customers.create({
+                        name: firstName + ' ' + lastName,
+                        email: email,
+                    });
+                    customerID = customer.id;
+                }
+            } catch (stripeErr) {
+                console.error("Stripe initialization failed for Google signup:", stripeErr);
+            }
+
+            const randomPassword = require('crypto').randomBytes(16).toString('hex');
+            const userInfo = {
+                firstName,
+                lastName,
+                userName,
+                email,
+                password: bcrypt.hashSync(randomPassword, bcryptSalt),
+                isStudent,
+                isTeacher,
+                isEmailVerified: true,
+                googleId: sub,
+                stripeID: accountID,
+                customerStripeID: customerID
+            };
+            Object.keys(userInfo).forEach(key => userInfo[key] === undefined && delete userInfo[key]);
+            userDoc = await User.create(userInfo);
+        }
+
+        const { roles, accessToken, refreshToken } = await issueTokens(userDoc);
+        return {
+            user: { ...userDoc.toJSON(), roles, accessToken, isNewUser },
+            refreshToken,
+        };
     }
 
     async updateProfileImage(userId, image, authHeader) {
@@ -268,3 +379,7 @@ class AuthService {
 }
 
 module.exports = new AuthService();
+module.exports.REFRESH_COOKIE_OPTIONS = REFRESH_COOKIE_OPTIONS;
+module.exports.ROLES = ROLES;
+module.exports.buildRoles = buildRoles;
+module.exports.emailMatch = emailMatch;

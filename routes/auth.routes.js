@@ -1,11 +1,11 @@
 const router = require('express').Router()
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 const User = require('../models/user')
 const { pickPublicFields } = require('../models/user');
 const env = require('../config/env');
 const authService = require('../services/authService');
+const { REFRESH_COOKIE_OPTIONS } = require('../services/authService');
 const emailService = require('../services/emailService');
 const { verifyGoogleCredential } = require('../services/googleAuth');
 const attemptLimiter = require('../services/attemptLimiter');
@@ -22,12 +22,11 @@ router.post('/login', async (req, res, next) => {
         const { email, password, persist } = req.body;
         const { user, refreshToken } = await authService.login(email, password, persist);
 
-        res.cookie('jwt', refreshToken, {
-            httpOnly: true,
-            sameSite: 'None',
-            maxAge: 24 * 60 * 60 * 1000,
-            secure: true
-        });
+        if (refreshToken) {
+            res.cookie('jwt', refreshToken, REFRESH_COOKIE_OPTIONS);
+        } else {
+            res.clearCookie('jwt', { ...REFRESH_COOKIE_OPTIONS, maxAge: undefined });
+        }
 
         res.json(user);
     } catch (error) {
@@ -37,10 +36,7 @@ router.post('/login', async (req, res, next) => {
 
 router.get('/logout', async (req, res) => {
     const { userName } = req.body
-    res.cookie('jwt', '', {
-        httpOnly: true, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000,
-        secure: true
-    })
+    res.clearCookie('jwt', { ...REFRESH_COOKIE_OPTIONS, maxAge: undefined })
     res.json({ message: `Successfully logged out ${userName} on this device` })
 })
 
@@ -344,130 +340,22 @@ router.post('/resend-verification', async (req, res, next) => {
 });
 
 // GOOGLE SIGN-IN / ONBOARDING
+// New users must say whether they are an artist or a guest (`role`). If they haven't yet,
+// we answer { needsRole: true } and the app asks, then sends the same credential again.
 router.post('/google-login', async (req, res, next) => {
     try {
         const { credential, role } = req.body;
         // Throws (with an HTTP status) unless Google confirms the token is genuine,
         // was issued for our client ID, and belongs to a verified email address.
-        const { email, sub, given_name, family_name } = await verifyGoogleCredential(credential);
+        const claims = await verifyGoogleCredential(credential);
+        const result = await authService.googleSignIn(claims, role);
 
-        let userDoc = await User.findOne({ $or: [{ googleId: sub }, { email }] });
-
-        if (userDoc) {
-            if (!userDoc.googleId) {
-                userDoc.googleId = sub;
-                userDoc.isEmailVerified = true;
-                await userDoc.save();
-            }
-        } else {
-            const firstName = given_name || 'Google';
-            const lastName = family_name || 'User';
-            let baseUsername = (given_name || 'user').toLowerCase().replace(/[^a-z0-9]/g, '');
-            let userName = baseUsername;
-            let count = 1;
-            while (await User.findOne({ userName })) {
-                userName = `${baseUsername}${count}`;
-                count++;
-            }
-
-            const isTeacher = role === 'artist';
-            const isStudent = !isTeacher;
-
-            let accountID;
-            let customerID;
-            const stripe = require('../services/stripeClient');
-
-            try {
-                if (isTeacher) {
-                    const account = await stripe.accounts.create({
-                        type: 'express',
-                        country: 'US',
-                        email: email,
-                        business_type: 'individual',
-                        business_profile: {
-                            url: `https://getstudiotime.com/teachers/${userName}`,
-                        },
-                        individual: {
-                            first_name: firstName,
-                            last_name: lastName,
-                            email: email
-                        },
-                        capabilities: {
-                            transfers: { requested: true },
-                        }
-                    });
-                    accountID = account.id;
-                } else {
-                    const customer = await stripe.customers.create({
-                        name: firstName + ' ' + lastName,
-                        email: email,
-                    });
-                    customerID = customer.id;
-                }
-            } catch (stripeErr) {
-                console.error("Stripe initialization failed for Google signup:", stripeErr);
-            }
-
-            const randomPassword = crypto.randomBytes(16).toString('hex');
-            const bcryptSalt = bcrypt.genSaltSync(7);
-
-            userDoc = await User.create({
-                firstName,
-                lastName,
-                userName,
-                email,
-                password: bcrypt.hashSync(randomPassword, bcryptSalt),
-                isStudent,
-                isTeacher,
-                isEmailVerified: true,
-                googleId: sub,
-                stripeID: accountID,
-                customerStripeID: customerID
-            });
+        if (result.needsRole) {
+            return res.json({ needsRole: true, firstName: result.firstName });
         }
 
-        const roles = [];
-        if (userDoc.isStudent) roles.push(1920);
-        if (userDoc.isTeacher) roles.push(205);
-        if (roles.length === 0) roles.push(2119);
-
-        const accessToken = jwt.sign(
-            { userName: userDoc.userName, roles },
-            env.ACCESS_TOKEN_SECRET,
-            { expiresIn: '1d' }
-        );
-
-        const refreshToken = jwt.sign(
-            { userName: userDoc.userName, roles },
-            env.REFRESH_TOKEN_SECRET,
-            { expiresIn: '30d' }
-        );
-
-        userDoc.refreshToken = refreshToken;
-        await userDoc.save();
-
-        res.cookie('jwt', refreshToken, {
-            httpOnly: true,
-            sameSite: 'None',
-            maxAge: 24 * 60 * 60 * 1000,
-            secure: true
-        });
-
-        res.json({
-            _id: userDoc._id,
-            firstName: userDoc.firstName,
-            lastName: userDoc.lastName,
-            userName: userDoc.userName,
-            email: userDoc.email,
-            isTeacher: userDoc.isTeacher,
-            isStudent: userDoc.isStudent,
-            isEmailVerified: userDoc.isEmailVerified,
-            customerStripeID: userDoc.customerStripeID,
-            paymentMethodID: userDoc.paymentMethodID,
-            googleId: userDoc.googleId,
-            accessToken,
-            roles
-        });
+        res.cookie('jwt', result.refreshToken, REFRESH_COOKIE_OPTIONS);
+        res.json(result.user);
     } catch (error) {
         next(error);
     }

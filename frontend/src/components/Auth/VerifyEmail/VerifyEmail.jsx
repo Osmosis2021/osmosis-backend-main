@@ -20,7 +20,9 @@ const VerifyEmail = () => {
     const location = useLocation();
     const logout = useLogout();
     const { auth, setAuth } = useAuth();
-    const { email } = useStore();
+    const { email, isTeacher, userName } = useStore();
+    // After verifying, return to where the user was headed, or their home screen.
+    const destination = location.state?.from?.pathname || (isTeacher && userName ? `/teachers/${userName}` : '/explore');
 
     const [code, setCode] = useState('');
     const [error, setError] = useState('');
@@ -32,10 +34,9 @@ const VerifyEmail = () => {
 
     useEffect(() => {
         if (auth?.isEmailVerified) {
-            const from = location.state?.from?.pathname || '/explore';
-            navigate(from, { replace: true });
+            navigate(destination, { replace: true });
         }
-    }, [auth, navigate, location]);
+    }, [auth, navigate, destination]);
 
     const handleVerify = async (e) => {
         if (e) e.preventDefault();
@@ -55,13 +56,9 @@ const VerifyEmail = () => {
             });
 
             if (response.data.success) {
-                setSuccess('Email verified successfully! Redirecting...');
+                setSuccess('Email verified! Taking you in…');
+                // The effect above redirects as soon as auth reflects the verified email.
                 setAuth(prev => ({ ...prev, isEmailVerified: true }));
-                
-                setTimeout(() => {
-                    const from = location.state?.from?.pathname || '/explore';
-                    navigate(from, { replace: true });
-                }, 1500);
             } else {
                 setError(response.data.message || 'Verification failed. Please check the code.');
             }

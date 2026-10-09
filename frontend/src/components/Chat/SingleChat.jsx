@@ -169,7 +169,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                             }}
                         >
                             <InputBase
-                                sx={{ ml: 1, flex: 1, fontSize: '0.95rem' }}
+                                sx={{ ml: 1, flex: 1, fontSize: '1rem' }}
                                 placeholder="Type a message..."
                                 value={newMessage}
                                 onChange={typingHandler}
