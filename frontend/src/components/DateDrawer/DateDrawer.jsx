@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Button, Box, Drawer, Grid, Paper, styled, Typography, IconButton, Stack, Skeleton } from '@mui/material/';
 import CloseIcon from '@mui/icons-material/Close';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import { formatSessionDate, isUpcomingSession, sessionStart } from '../../utils/sessionTime';
 
 export const timeConverter = (rawTime) => {
     if (!rawTime) return '';
@@ -38,17 +39,9 @@ export default function DateDrawer(props) {
 
     const fetchSchedule = useCallback(() => {
         if (!props.schedule) return;
-        const today = new Date()
-        today.setHours(0, 0, 0, 0);
-        const presentAndFutureCourses = props?.schedule.filter((_course) => {
-            const courseDate = new Date(_course.startDate)
-            return courseDate >= today
-        })
-        presentAndFutureCourses.sort((a, b) => {
-            const dateA = new Date(a.startDate.split('T')[0] + 'T' + a.startTime)
-            const dateB = new Date(b.startDate.split('T')[0] + 'T' + b.startTime)
-            return dateA - dateB
-        })
+        const presentAndFutureCourses = props.schedule
+            .filter((slot) => isUpcomingSession(slot))
+            .sort((a, b) => sessionStart(a) - sessionStart(b))
         setSchedule(presentAndFutureCourses)
         setIsScheduleLoading(false)
     }, [props?.schedule]);
@@ -88,7 +81,7 @@ export default function DateDrawer(props) {
                 }}
             >
                 {props.selectedDateAndTime?.startDate ?
-                    `${new Date(props.selectedDateAndTime.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} at ${timeConverter(props.selectedDateAndTime.startTime)}` :
+                    `${formatSessionDate(props.selectedDateAndTime.startDate, { month: 'short', day: 'numeric' })} at ${timeConverter(props.selectedDateAndTime.startTime)}` :
                     'See all dates'}
             </Button>
 
@@ -139,7 +132,7 @@ export default function DateDrawer(props) {
                                         }}
                                     >
                                         <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, opacity: 0.8 }}>
-                                            {new Date(availability.startDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                                            {formatSessionDate(availability)}
                                         </Typography>
                                         <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
                                             {timeConverter(availability.startTime)}
@@ -155,7 +148,7 @@ export default function DateDrawer(props) {
                                                 borderRadius: 10
                                             }}
                                         >
-                                            {availability.capacity - availability.enrollment} spots left
+                                            {availability.enrollment >= availability.capacity ? 'Full' : `${availability.capacity - availability.enrollment} spots left`}
                                         </Typography>
                                     </Item>
                                 </Grid>

@@ -67,8 +67,6 @@ const useStore = create(set => ({
     profileImage: '',
     setProfileImage: profileImage => set({ profileImage }),
 
-    classDays: [],
-    setClassDays: classDays => set({ classDays }),
 
     newCourseID: '',
     setNewCourseID: newCourseID => set({ newCourseID }),
@@ -106,8 +104,6 @@ const useStore = create(set => ({
     newCourseTimeslots: [],
     setNewCourseTimeslots: newCourseTimeslots => set({ newCourseTimeslots }),
 
-    timeslotsToRemove: [],
-    setTimeslotsToRemove: timeslotsToRemove => set({ timeslotsToRemove }),
 
     newCourseDuration: 60,
     setNewCourseDuration: newCourseDuration => set({ newCourseDuration }),

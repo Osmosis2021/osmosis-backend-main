@@ -1,342 +1,425 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { Button, ButtonGroup, Container, Grid, IconButton, Skeleton, TextField, Typography, Box, Stack, Divider } from '@mui/material';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+	Alert,
+	Box,
+	Button,
+	Chip,
+	CircularProgress,
+	Container,
+	IconButton,
+	InputAdornment,
+	Skeleton,
+	Stack,
+	TextField,
+	Typography,
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+import { useNavigate, useParams } from 'react-router-dom';
 import TopNavBar from '../../TopNavBar/TopNavBar';
 import useStore from '../../../store';
 import EditPhotos from './EditPhotos';
-import { useNavigate, useParams } from 'react-router-dom';
-import { PeopleAltRounded } from '@mui/icons-material';
 import TERMS from '../../../constants/terms';
+import { PremiumCard } from '../../../ui/PremiumCard';
 import useAxiosPrivate from '../../../hooks/useAxiosPrivate';
 import { useConfirm, useToast } from '../../../ui/feedback';
-import { PremiumCard } from '../../../ui/PremiumCard';
+import SessionScheduler from '../../SessionScheduler/SessionScheduler';
+import DurationSelect from '../../SessionScheduler/DurationSelect';
+import { browserTimeZone, formatDuration, isUpcomingSession } from '../../../utils/sessionTime';
 
-import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+const EDITABLE_FIELDS = ['courseTitle', 'courseDescription', 'studioVibe', 'whatToBring', 'tags', 'pricePerStudent', 'capacity', 'duration'];
+const MAX_TAGS = 20;
 
-import mapboxgl from 'mapbox-gl'
-// The following is required to stop "npm build" from transpiling mapbox code.
-// notice the exclamation point in the import.
-// @ts-ignore
-// eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
-mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker').default;
+const pickEditable = (course) => ({
+	courseTitle: course.courseTitle || '',
+	courseDescription: course.courseDescription || '',
+	studioVibe: course.studioVibe || '',
+	whatToBring: course.whatToBring || '',
+	tags: Array.isArray(course.tags) ? course.tags : [],
+	pricePerStudent: course.pricePerStudent ?? '',
+	capacity: course.capacity || 1,
+	duration: course.duration || 60,
+});
 
-const ToggleDays = lazy(() => import('../../SessionCreation/ToggleDays/ToggleDays'))
+const validate = (form) => {
+	const errors = {};
+	if (!form.courseTitle.trim()) errors.courseTitle = 'Add a title so guests know what this is.';
+	else if (form.courseTitle.length > 100) errors.courseTitle = 'Keep the title under 100 characters.';
+	if (form.courseDescription.length > 5000) errors.courseDescription = 'Keep the description under 5,000 characters.';
+	const price = Number(form.pricePerStudent);
+	if (form.pricePerStudent === '' || !Number.isInteger(price) || price < 1) errors.pricePerStudent = 'Enter a whole-dollar price of at least $1.';
+	else if (price > 10000) errors.pricePerStudent = 'Price must be $10,000 or less.';
+	if (!Number.isInteger(form.capacity) || form.capacity < 1 || form.capacity > 100) errors.capacity = 'Between 1 and 100 guests.';
+	return errors;
+};
 
+const Section = ({ title, description, children }) => (
+	<PremiumCard sx={{ p: { xs: 2.5, sm: 3 } }}>
+		<Typography variant="h6" component="h2" sx={{ fontWeight: 800, fontFamily: 'Outfit' }}>{title}</Typography>
+		{description && <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{description}</Typography>}
+		<Box sx={{ mt: 2.5 }}>{children}</Box>
+	</PremiumCard>
+);
 
-// images / courseTitle / industry / tags / pricePerStudent / capacity / icon / firstName / lastName / address / zipCode / profileImage / city 
-
-
-// TO DO:
-
-// - Figure out Gallery Resizing for larger screens
-// - Mapbox functionality, error regarding unmounted components
-// - Modal functionality to populate number of guests in payment field
-// - Payment functionality
-
-const EditCourse = (props) => {
-	const { userName, isTeacher, newCourseTimeslots, setNewCourseTimeslots,
-		timeslotsToRemove, setTimeslotsToRemove } = useStore();
+const EditCourse = () => {
+	const { userName } = useStore();
 	const axiosPrivate = useAxiosPrivate();
 	const confirm = useConfirm();
 	const toast = useToast();
-	const [isLoading, setIsLoading] = useState(true)
-	const [isAvailabilityVisible, setIsAvailabilityVisible] = useState(false)
-	const [courseInfo, setCourseInfo] = useState({})
 	const navigate = useNavigate();
 	const { courseID } = useParams();
 
-	useEffect(() => {
-		const currentBackendURL = useStore.getState().backendURL;
-		fetch(`${currentBackendURL}course/getCourse/${courseID}`)
-			.then((res) => {
-				return res.json();
-			}).then((data) => {
-				setCourseInfo(data)
-				setNewCourseTimeslots(data.schedule)
-				setIsLoading(false)
-			}).catch((err) => {
-				console.log('Error getting teacher info:\n', err);
-			});
-	}, [courseID, setNewCourseTimeslots])
+	const [course, setCourse] = useState(null);
+	const [loadError, setLoadError] = useState('');
+	const [saved, setSaved] = useState(null); // last saved values of the form
+	const [form, setForm] = useState(null);
+	const [touched, setTouched] = useState({});
+	const [serverErrors, setServerErrors] = useState({});
+	const [isSaving, setIsSaving] = useState(false);
+	const [tagDraft, setTagDraft] = useState('');
 
-	const updateCourse = async (e) => {
-		e.preventDefault();
-
-		const timeslotsToAdd = []
-		newCourseTimeslots.forEach(slot => {
-			if (Boolean(slot?._id)) {
-				if (timeslotsToRemove.indexOf(slot._id) >= 0) {  // delete this timeslot from db
-					setTimeslotsToRemove([...timeslotsToRemove, slot._id])
-				}
-			}
-			else if (timeslotsToRemove.indexOf(slot.tempID) < 0) {
-				timeslotsToAdd.push(slot)
-			}
-		})
-		const _toRemove = timeslotsToRemove.filter(el => typeof el === 'string')
-		const updatedCourseInfo = { ...courseInfo, timeslotsToAdd, timeslotsToRemove: _toRemove }
-		setCourseInfo(updatedCourseInfo)
+	const loadCourse = useCallback(async ({ keepForm = false } = {}) => {
 		try {
-			await axiosPrivate.put(`course/updateCourse/${courseInfo._id}`, updatedCourseInfo)
-			setIsLoading(false)
-			setTimeslotsToRemove([])
-			toast.success(`Your ${TERMS.COURSE.toLowerCase()} was updated.`)
-			navigate(`/${isTeacher ? 'teachers' : 'students'}/${userName}`)
+			const { data } = await axiosPrivate.get(`course/getCourse/${courseID}`);
+			if (!data?._id) throw new Error('not found');
+			setCourse(data);
+			if (!keepForm) {
+				setSaved(pickEditable(data));
+				setForm(pickEditable(data));
+			}
+			setLoadError('');
 		} catch (err) {
-			console.log('Error updating experience:\n', err);
-			toast.error(err.response?.data?.message || `We couldn't save your changes. Please try again.`)
-		};
-	}
+			setLoadError("We couldn't load this studio time. Check your connection and try again.");
+		}
+	}, [axiosPrivate, courseID]);
 
-	const removeTag = (tag) => {
-		let filteredTags = courseInfo.tags.filter((selectedTag) => selectedTag !== tag)
-		setCourseInfo({ ...courseInfo, tags: filteredTags })
-	}
+	useEffect(() => { loadCourse(); }, [loadCourse]);
 
-	function handleTags() {
-		const tag = document.getElementById('outlined-basic').value;
-		const newTags = [...courseInfo.tags, tag]
-		setCourseInfo({ ...courseInfo, tags: newTags })
-	}
+	const errors = useMemo(() => (form ? { ...validate(form), ...serverErrors } : {}), [form, serverErrors]);
+	const isDirty = useMemo(() => form && saved && EDITABLE_FIELDS.some((f) => JSON.stringify(form[f]) !== JSON.stringify(saved[f])), [form, saved]);
+	const showError = (field) => (touched[field] || touched.__submit) && errors[field];
 
-	const increaseCapacity = () => setCourseInfo({ ...courseInfo, capacity: parseInt(courseInfo.capacity) + 1 })
+	// Warn before closing the tab with unsaved changes.
+	useEffect(() => {
+		if (!isDirty) return undefined;
+		const handler = (event) => { event.preventDefault(); event.returnValue = ''; };
+		window.addEventListener('beforeunload', handler);
+		return () => window.removeEventListener('beforeunload', handler);
+	}, [isDirty]);
 
-	const decreaseCapacity = () => {
-		if (parseInt(courseInfo.capacity) > 1) {
-			setCourseInfo({ ...courseInfo, capacity: parseInt(courseInfo.capacity) - 1 })
-		};
+	const update = (field, value) => {
+		setForm((prev) => ({ ...prev, [field]: value }));
+		setServerErrors((prev) => ({ ...prev, [field]: undefined }));
+	};
+	const blur = (field) => () => setTouched((prev) => ({ ...prev, [field]: true }));
+
+	const addTag = () => {
+		const tag = tagDraft.trim().replace(/^#/, '');
+		if (!tag) return;
+		if (form.tags.some((t) => t.toLowerCase() === tag.toLowerCase())) { setTagDraft(''); return; }
+		if (form.tags.length >= MAX_TAGS) { toast.info(`Up to ${MAX_TAGS} tags.`); return; }
+		update('tags', [...form.tags, tag]);
+		setTagDraft('');
 	};
 
-	const deleteCourse = async (e) => {
-		e.preventDefault();
-		const today = new Date()
-		today.setHours(0, 0, 0, 0)
-		const bookedGuests = (courseInfo.schedule || [])
-			.filter(slot => slot?.startDate && new Date(slot.startDate) >= today)
-			.reduce((sum, slot) => sum + (Number(slot.enrollment) || 0), 0)
-		const title = courseInfo.courseTitle ? `"${courseInfo.courseTitle}"` : `this ${TERMS.COURSE.toLowerCase()}`
+	const save = async () => {
+		setTouched((prev) => ({ ...prev, __submit: true }));
+		const clientErrors = validate(form);
+		if (Object.keys(clientErrors).length) {
+			document.getElementById(`edit-${Object.keys(clientErrors)[0]}`)?.focus();
+			return;
+		}
+		const changes = {};
+		EDITABLE_FIELDS.forEach((field) => {
+			if (JSON.stringify(form[field]) !== JSON.stringify(saved[field])) changes[field] = form[field];
+		});
+		if (changes.pricePerStudent !== undefined) changes.pricePerStudent = Number(changes.pricePerStudent);
 
+		setIsSaving(true);
+		try {
+			await axiosPrivate.put(`course/updateCourse/${courseID}`, changes);
+			setSaved(form);
+			setServerErrors({});
+			toast.success('Changes saved.');
+			if (changes.capacity !== undefined || changes.duration !== undefined) loadCourse({ keepForm: true });
+		} catch (err) {
+			const data = err.response?.data;
+			if (data?.fieldErrors) setServerErrors(data.fieldErrors);
+			toast.error(data?.message || "We couldn't save your changes. Please try again.");
+		} finally {
+			setIsSaving(false);
+		}
+	};
+
+	const upcomingSessions = (course?.schedule || []).filter((slot) => isUpcomingSession(slot));
+	const bookedSessions = upcomingSessions.filter((slot) => (slot.enrollment || 0) > 0);
+
+	const deleteCourse = async () => {
+		if (bookedSessions.length > 0) {
+			await confirm({
+				title: 'Cancel booked sessions first',
+				description: `${bookedSessions.length} upcoming ${bookedSessions.length === 1 ? 'session has' : 'sessions have'} guests booked. Cancel ${bookedSessions.length === 1 ? 'it' : 'them'} in the Sessions section above so guests are refunded and notified, then you can delete this ${TERMS.COURSE.toLowerCase()}.`,
+				confirmLabel: 'OK',
+				cancelLabel: 'Close',
+			});
+			return;
+		}
 		const deleted = await confirm({
-			title: `Delete ${title}?`,
-			description: (
-				<>
-					It will be removed from Studio Time and guests won't be able to find or book it. This can't be undone.
-					{bookedGuests > 0 && (
-						<Box component="span" sx={{ display: 'block', mt: 1.5, color: 'error.main', fontWeight: 600 }}>
-							{bookedGuests} {bookedGuests === 1 ? 'guest is' : 'guests are'} booked into upcoming sessions.
-							Deleting won't cancel or refund their bookings, so message them first.
-						</Box>
-					)}
-				</>
-			),
+			title: `Delete "${course.courseTitle}"?`,
+			description: `It will be removed from Studio Time, along with its photos and upcoming sessions. Nobody has booked it, so no guests are affected. This can't be undone.`,
 			confirmLabel: `Delete ${TERMS.COURSE.toLowerCase()}`,
 			destructive: true,
-			errorMessage: `We couldn't delete this ${TERMS.COURSE.toLowerCase()}. Please try again.`,
-			onConfirm: () => axiosPrivate.delete(`course/deleteCourse/${courseInfo._id}`),
-		})
+			onConfirm: () => axiosPrivate.delete(`course/deleteCourse/${courseID}`),
+		});
 		if (deleted) {
-			toast.success(`Your ${TERMS.COURSE.toLowerCase()} was deleted.`)
-			navigate(`/teachers/${userName}`)
+			toast.success(`Your ${TERMS.COURSE.toLowerCase()} was deleted.`);
+			navigate(`/teachers/${userName}`);
 		}
+	};
+
+	if (loadError) {
+		return (
+			<Container maxWidth="sm" sx={{ py: 4 }}>
+				<TopNavBar back={`/teachers/${userName}`} title={`Edit ${TERMS.COURSE.toLowerCase()}`} />
+				<Alert severity="error" sx={{ mt: 4, borderRadius: '12px' }}
+					action={<Button color="inherit" onClick={() => loadCourse()}>Retry</Button>}>
+					{loadError}
+				</Alert>
+			</Container>
+		);
 	}
 
+	if (!course || !form) {
+		return (
+			<Container maxWidth="sm" sx={{ py: 4 }} aria-busy="true">
+				<TopNavBar back={`/teachers/${userName}`} title={`Edit ${TERMS.COURSE.toLowerCase()}`} />
+				<Stack spacing={2} sx={{ mt: 4 }}>
+					{[180, 140, 220].map((height) => <Skeleton key={height} variant="rounded" height={height} sx={{ borderRadius: '16px' }} />)}
+				</Stack>
+			</Container>
+		);
+	}
+
+	if (course.userName && userName && course.userName !== userName) {
+		return (
+			<Container maxWidth="sm" sx={{ py: 4 }}>
+				<TopNavBar back={`/teachers/${userName}`} title={`Edit ${TERMS.COURSE.toLowerCase()}`} />
+				<Alert severity="warning" sx={{ mt: 4, borderRadius: '12px' }}>You can only edit your own studio times.</Alert>
+			</Container>
+		);
+	}
+
+	const sessionApi = {
+		onAdd: async (entries) => {
+			await axiosPrivate.post(`course/${courseID}/sessions`, { sessions: entries });
+			await loadCourse({ keepForm: true });
+		},
+		onReschedule: async (slot, entry) => {
+			await axiosPrivate.patch(`course/${courseID}/sessions/${slot._id}`, entry);
+			await loadCourse({ keepForm: true });
+		},
+		onCancel: async (slot, note) => {
+			const { data } = await axiosPrivate.post(`course/${courseID}/sessions/${slot._id}/cancel`, { note });
+			await loadCourse({ keepForm: true });
+			return data.summary;
+		},
+	};
+
 	return (
-		<Container maxWidth='sm' style={{ marginTop: 16 }}>
-			<TopNavBar back={`/teachers/${userName}`} />
-			<Typography variant='h4' style={{ textAlign: 'center' }}>
-				Edit your {TERMS.COURSE.toLowerCase()} offering:
-			</Typography>
+		<Box sx={{ pb: { xs: 'calc(190px + env(safe-area-inset-bottom))', md: 14 } }}>
+			<TopNavBar back={`/teachers/${userName}`} title={`Edit ${TERMS.COURSE.toLowerCase()}`} />
+			<Container maxWidth="sm" sx={{ mt: 3 }}>
+				<Stack spacing={3}>
+					<Section title="Details" description="What guests see first on your listing.">
+						<Stack spacing={2.5}>
+							<TextField
+								id="edit-courseTitle"
+								label="Title"
+								value={form.courseTitle}
+								onChange={(e) => update('courseTitle', e.target.value)}
+								onBlur={blur('courseTitle')}
+								error={Boolean(showError('courseTitle'))}
+								helperText={showError('courseTitle') || `${form.courseTitle.length}/100`}
+								inputProps={{ maxLength: 100 }}
+								required
+								fullWidth
+							/>
+							<TextField
+								id="edit-courseDescription"
+								label="Description"
+								value={form.courseDescription}
+								onChange={(e) => update('courseDescription', e.target.value)}
+								onBlur={blur('courseDescription')}
+								error={Boolean(showError('courseDescription'))}
+								helperText={showError('courseDescription') || 'What will guests do, see and take home?'}
+								multiline
+								minRows={4}
+								fullWidth
+							/>
+							<TextField
+								id="edit-studioVibe"
+								label="Studio vibe"
+								value={form.studioVibe}
+								onChange={(e) => update('studioVibe', e.target.value)}
+								helperText="e.g. Quiet and focused, with music on."
+								multiline
+								minRows={2}
+								fullWidth
+							/>
+							<TextField
+								id="edit-whatToBring"
+								label="What to bring"
+								value={form.whatToBring}
+								onChange={(e) => update('whatToBring', e.target.value)}
+								helperText="e.g. Clothes you don't mind getting messy. All materials provided."
+								multiline
+								minRows={2}
+								fullWidth
+							/>
+						</Stack>
+					</Section>
 
-			<br />
-			<hr style={{ color: 'black', width: '100%', border: 'solid .5px' }} />
-			<br />
+					<Section title="Tags" description="Help guests find you in search.">
+						<Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: form.tags.length ? 2 : 0 }}>
+							{form.tags.map((tag) => (
+								<Chip key={tag} label={`#${tag}`} onDelete={() => update('tags', form.tags.filter((t) => t !== tag))} />
+							))}
+						</Stack>
+						<Stack direction="row" spacing={1}>
+							<TextField
+								id="edit-tags"
+								size="small"
+								label="Add a tag"
+								placeholder="e.g. resin"
+								value={tagDraft}
+								onChange={(e) => setTagDraft(e.target.value)}
+								onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(); } }}
+								inputProps={{ maxLength: 40 }}
+								fullWidth
+							/>
+							<Button variant="outlined" onClick={addTag} disabled={!tagDraft.trim()} sx={{ textTransform: 'none', fontWeight: 700 }}>Add</Button>
+						</Stack>
+					</Section>
 
-			<form>
-				<PremiumCard sx={{ mb: 4, p: 3 }}>
-					<Typography variant="overline" color="text.secondary" sx={{ fontWeight: 800, mb: 1, display: 'block' }}>
-						Experience Title
-					</Typography>
-					<TextField
-						variant="outlined"
-						fullWidth
-						multiline
-						defaultValue={courseInfo.courseTitle}
-						onBlur={event => setCourseInfo(prev => ({ ...prev, courseTitle: event.target.value }))}
-						InputProps={{
-							sx: { fontSize: '1.5rem', fontWeight: 700 }
-						}}
-					/>
-				</PremiumCard>
+					<Section title="Price, guests & length" description="Changes apply to upcoming sessions.">
+						<Stack spacing={3}>
+							<TextField
+								id="edit-pricePerStudent"
+								label="Price per guest"
+								type="number"
+								value={form.pricePerStudent}
+								onChange={(e) => update('pricePerStudent', e.target.value === '' ? '' : Math.floor(Number(e.target.value)))}
+								onBlur={blur('pricePerStudent')}
+								error={Boolean(showError('pricePerStudent'))}
+								helperText={showError('pricePerStudent') || "Guests who already booked keep the price they paid."}
+								InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
+								inputProps={{ min: 1, max: 10000, step: 1, inputMode: 'numeric' }}
+								sx={{ maxWidth: 220 }}
+							/>
 
-				<Grid container direction='row' alignItems='center' columnSpacing={1} sx={{ mb: 4, px: 2 }}>
-					<Grid item>
-						{/* {isLoading ? <Skeleton /> :
-							<img src={require(`../../../assets/icons/${courseInfo?.industry}.png`)} style={{ height: 32, width: 32 }} alt={courseInfo.industry} />
-						} */}
-					</Grid>
-					<Grid item style={{ textAlign: 'left' }}>
-						<Typography variant='h5' sx={{ fontWeight: 800 }}>{courseInfo.industry}</Typography>
-					</Grid>
-				</Grid>
+							<Box>
+								<Typography id="edit-capacity-label" variant="subtitle2" sx={{ fontWeight: 700 }}>Guests per session</Typography>
+								<Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 1 }}>
+									<IconButton aria-label="Fewer guests" onClick={() => update('capacity', Math.max(1, form.capacity - 1))} disabled={form.capacity <= 1}
+										sx={{ border: '1px solid', borderColor: 'divider' }}>
+										<RemoveIcon />
+									</IconButton>
+									<Typography id="edit-capacity" aria-live="polite" aria-labelledby="edit-capacity-label" sx={{ fontWeight: 800, fontSize: '1.25rem', minWidth: 32, textAlign: 'center' }}>
+										{form.capacity}
+									</Typography>
+									<IconButton aria-label="More guests" onClick={() => update('capacity', Math.min(100, form.capacity + 1))} disabled={form.capacity >= 100}
+										sx={{ border: '1px solid', borderColor: 'divider' }}>
+										<AddIcon />
+									</IconButton>
+								</Stack>
+								<Typography variant="caption" color={errors.capacity ? 'error' : 'text.secondary'} sx={{ display: 'block', mt: 1 }}>
+									{errors.capacity || "Can't go below the number of guests already booked into a session."}
+								</Typography>
+							</Box>
 
-				<PremiumCard sx={{ mb: 4, p: 3 }}>
-					<Typography variant="overline" color="text.secondary" sx={{ fontWeight: 800, mb: 1, display: 'block' }}>
-						Tags
-					</Typography>
-					<Grid container direction='row' alignItems='center' spacing={1} sx={{ mb: 2 }}>
-						{isLoading ? <Skeleton style={{ width: '100%', height: '100px' }} /> :
-							courseInfo.tags?.map((tag, index) => {
-								return (
-									<Grid item key={index}>
-										<Box sx={{
-											display: 'flex',
-											alignItems: 'center',
-											bgcolor: 'rgba(0,174,239,0.1)',
-											borderRadius: 2,
-											px: 1.5,
-											py: 0.5
-										}}>
-											<Typography variant='body2' sx={{ fontWeight: 600, color: 'primary.main', mr: 1 }}>
-												#{tag}
-											</Typography>
-											<IconButton size="small" onClick={() => removeTag(tag)}>
-												<HighlightOffIcon fontSize="small" color='error' />
-											</IconButton>
-										</Box>
-									</Grid>
-								)
-							})}
-					</Grid>
+							<DurationSelect
+								id="edit-duration"
+								value={form.duration}
+								onChange={(minutes) => update('duration', minutes)}
+								helperText={bookedSessions.length
+									? `Booked sessions keep their current length (${formatDuration(saved.duration)}).`
+									: undefined}
+							/>
+						</Stack>
+					</Section>
 
-					<Box sx={{ display: 'flex', gap: 1 }}>
-						<TextField
-							fullWidth
-							size="small"
-							id='outlined-basic'
-							label='Add Tag'
-							placeholder='e.g. #jazz'
-							name='generalTags'
+					<Section title="Photos">
+						<EditPhotos
+							courseId={courseID}
+							images={course.images || []}
+							onChange={(images) => setCourse((prev) => ({ ...prev, images }))}
 						/>
-						<Button variant="contained" onClick={handleTags} sx={{ fontWeight: 700 }}>
-							Add
+					</Section>
+
+					<Section title="Sessions" description="Changes to sessions save right away. Booked sessions are locked; you can cancel them and guests are refunded automatically.">
+						<SessionScheduler
+							mode="live"
+							sessions={course.schedule || []}
+							durationMinutes={saved.duration}
+							timezone={course.timezone || browserTimeZone()}
+							{...sessionApi}
+						/>
+					</Section>
+
+					<PremiumCard sx={{ p: { xs: 2.5, sm: 3 }, borderColor: 'error.light' }}>
+						<Typography variant="h6" component="h2" sx={{ fontWeight: 800, fontFamily: 'Outfit', color: 'error.main' }}>
+							Delete {TERMS.COURSE.toLowerCase()}
+						</Typography>
+						<Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
+							Remove this listing and all of its sessions from Studio Time.
+						</Typography>
+						<Button variant="outlined" color="error" onClick={deleteCourse} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '12px' }}>
+							Delete {TERMS.COURSE.toLowerCase()}
 						</Button>
-					</Box>
-				</PremiumCard>
+					</PremiumCard>
+				</Stack>
+			</Container>
 
-				<EditPhotos />
-
-				<br />
-
-				<PremiumCard sx={{ mt: 4, p: 3 }}>
-					<Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Settings</Typography>
-
-					<Stack spacing={4}>
-						<Grid container alignItems='center' justifyContent='space-between'>
-							<Grid item xs={2}>
-								<CalendarTodayIcon color="action" fontSize="large" />
-							</Grid>
-
-							<Grid item xs={6}>
-								<Typography variant='subtitle1' sx={{ fontWeight: 700 }}>
-									Availability
-								</Typography>
-								<Typography variant="body2" color="text.secondary">
-									{newCourseTimeslots.length || 0} upcoming timeslots
-								</Typography>
-							</Grid>
-
-							<Grid item xs={4} align='right'>
-								<Button
-									variant="outlined"
-									size="small"
-									onClick={() => setIsAvailabilityVisible(!isAvailabilityVisible)}
-									sx={{ borderRadius: 3, fontWeight: 700 }}
-								>
-									Edit
+			{/* Sticky save bar, above the mobile bottom navigation */}
+			<Box
+				sx={{
+					position: 'fixed',
+					left: { xs: 0, md: 96 },
+					right: 0,
+					bottom: { xs: 'calc(92px + env(safe-area-inset-bottom))', md: 0 },
+					zIndex: 1100,
+					bgcolor: 'background.default',
+					borderTop: '1px solid',
+					borderColor: 'divider',
+					boxShadow: '0 -4px 16px rgba(0,0,0,0.06)',
+					py: 1.5,
+				}}
+			>
+				<Container maxWidth="sm">
+					<Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+						<Typography variant="body2" color={isDirty ? 'text.primary' : 'text.secondary'} aria-live="polite" sx={{ fontWeight: isDirty ? 700 : 400 }}>
+							{isDirty ? 'You have unsaved changes' : 'All changes saved'}
+						</Typography>
+						<Stack direction="row" spacing={1}>
+							{isDirty && (
+								<Button onClick={() => { setForm(saved); setServerErrors({}); setTouched({}); }} disabled={isSaving}
+									sx={{ textTransform: 'none', color: 'text.secondary' }}>
+									Discard
 								</Button>
-							</Grid>
-						</Grid>
-
-						{isAvailabilityVisible && <Suspense fallback='Loading...'>
-							<ToggleDays isExistingCourse={true} />
-						</Suspense>}
-
-						<Divider />
-
-						<Grid container alignItems='center' justifyContent='space-between'>
-							<Grid item xs={2}>
-								<PeopleAltRounded color="action" fontSize="large" />
-							</Grid>
-
-							<Grid item xs={6}>
-								<Typography variant='subtitle1' sx={{ fontWeight: 700 }}>
-									Capacity
-								</Typography>
-								<Typography variant="body2" color="text.secondary">
-									Max guests per session
-								</Typography>
-							</Grid>
-
-							<Grid item xs={4} align='right'>
-								<ButtonGroup variant='outlined' size="small">
-									<Button onClick={decreaseCapacity}>-</Button>
-									<Button disabled sx={{ color: 'text.primary !important', fontWeight: 700 }}>
-										{courseInfo.capacity || 1}
-									</Button>
-									<Button onClick={increaseCapacity}>+</Button>
-								</ButtonGroup>
-							</Grid>
-						</Grid>
-
-						<Divider />
-
-						<Grid container alignItems='center' justifyContent='space-between'>
-							<Grid item xs={2}>
-								<AttachMoneyIcon color="action" fontSize="large" />
-							</Grid>
-
-							<Grid item xs={6}>
-								<Typography variant='subtitle1' sx={{ fontWeight: 700 }}>
-									Price
-								</Typography>
-								<Typography variant="body2" color="text.secondary">
-									Per student
-								</Typography>
-							</Grid>
-
-							<Grid item xs={4} align='right'>
-								<TextField
-									type='number'
-									size="small"
-									onChange={event => setCourseInfo(prev => ({ ...prev, pricePerStudent: Math.max(0, parseInt(event.target.value) || 0) }))}
-									value={courseInfo.pricePerStudent}
-									InputProps={{
-										startAdornment: <Typography sx={{ mr: 0.5 }}>$</Typography>,
-									}}
-									sx={{ width: 100 }}
-								/>
-							</Grid>
-						</Grid>
+							)}
+							<Button
+								variant="contained"
+								onClick={save}
+								disabled={!isDirty || isSaving}
+								sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '12px', minWidth: 130 }}
+							>
+								{isSaving ? <CircularProgress size={20} color="inherit" aria-label="Saving" /> : 'Save changes'}
+							</Button>
+						</Stack>
 					</Stack>
-				</PremiumCard>
-
-				<br />
-				<br />
-				<br />
-				<hr style={{ color: 'black', width: '90%', border: 'solid .5px' }} />
-				<br />
-
-				<Button type='submit' onClick={updateCourse} variant="contained" size="large" align='center' style={{ fontSize: 26, fontFamily: 'Poppins', color: 'white', marginBottom: '24px' }} fullWidth>
-					Update {TERMS.COURSE}
-				</Button>
-
-				<Button type='submit' onClick={deleteCourse} color='error' variant="contained" size="large" align='center' style={{ fontSize: 26, fontFamily: 'Poppins', color: 'white', marginBottom: '36px' }} fullWidth>
-					Delete {TERMS.COURSE}
-				</Button>
-
-			</form>
-		</Container>
+				</Container>
+			</Box>
+		</Box>
 	);
 };
 

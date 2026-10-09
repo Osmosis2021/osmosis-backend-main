@@ -28,17 +28,16 @@ export default function CompletenessChecklist({ setActiveStep }) {
         courseDescription
     } = useStore();
 
+    // Wizard steps: 0 Templates, 1 Details & tags, 2 Capacity & pricing, 3 Availability, 4 Location, 5 Photos
     const handleFix = (item) => {
         if (item.label === 'Host Bio') {
             navigate('/edit');
         } else if (item.label === '3+ Photos') {
-            setActiveStep(7);
-        } else if (item.label === 'Studio Vibe') {
-            setActiveStep(2); // SessionTag contains Vibe input
-        } else if (item.label === 'Experience Details') {
-            setActiveStep(2); // SessionTag contains Title/Description input
+            setActiveStep(5);
+        } else if (item.label === 'Studio Vibe' || item.label === 'Experience Details') {
+            setActiveStep(1); // SessionTag has the title, description and vibe
         } else if (item.label === 'Availability Set') {
-            setActiveStep(4);
+            setActiveStep(3);
         }
     };
 
@@ -47,7 +46,7 @@ export default function CompletenessChecklist({ setActiveStep }) {
         { label: '3+ Photos', complete: images.length >= 3, tip: 'Show off your studio space.' },
         { label: 'Studio Vibe', complete: Boolean(studioVibe), tip: 'Describe the atmosphere.' },
         { label: 'Experience Details', complete: Boolean(courseTitle) && Boolean(courseDescription), tip: 'Clear titles attract more guests.' },
-        { label: 'Availability Set', complete: newCourseTimeslots.length > 0, tip: 'Open your doors for bookings.' },
+        { label: 'Availability Set', complete: newCourseTimeslots.filter(slot => slot?.date).length > 0, tip: 'Open your doors for bookings.' },
     ];
 
     const completedCount = checklist.filter(item => item.complete).length;

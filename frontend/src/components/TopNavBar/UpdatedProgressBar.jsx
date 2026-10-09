@@ -8,7 +8,7 @@ import {
 import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
 import SessionTag from '../SessionCreation/SessionTag/SessionTag';
-import ToggleDays from '../SessionCreation/ToggleDays/ToggleDays';
+import AvailabilityStep from '../SessionCreation/Availability/AvailabilityStep';
 import Address from '../SessionCreation/Address/Address';
 import Capacity from '../SessionCreation/Capacity/Capacity';
 import UploadPhotos from '../SessionCreation/PhotoHandling/UploadPhotos/UploadPhotos';
@@ -34,7 +34,7 @@ export default function UpdatedProgressBar() {
       case 2:
         return <Capacity setIsNextDisabled={setIsNextDisabled} handleNext={handleNext} />
       case 3:
-        return <ToggleDays setIsNextDisabled={setIsNextDisabled} handleNext={handleNext} />
+        return <AvailabilityStep setIsNextDisabled={setIsNextDisabled} />
       case 4:
         return <Address setIsNextDisabled={setIsNextDisabled} handleNext={handleNext} />
       case 5:

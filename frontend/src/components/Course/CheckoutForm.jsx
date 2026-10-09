@@ -41,7 +41,7 @@ export default function CheckoutForm({ clientSecret, bookThisCourse, onBookingSu
       } else if (response.paymentIntent.status === "succeeded") {
         console.log("Payment succeeded, creating booking...");
         try {
-          const bookingResponse = await bookThisCourse();
+          const bookingResponse = await bookThisCourse(response.paymentIntent.id);
           // Check for valid response (either success flag or just a valid object)
           if (bookingResponse.status === 200 || bookingResponse.data?.success || bookingResponse.data?._id) {
             console.log("Booking created successfully");

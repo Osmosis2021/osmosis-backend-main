@@ -21,6 +21,8 @@ import { PremiumCard } from '../../ui/PremiumCard';
 import { PremiumSectionHeader } from '../../ui/PremiumSectionHeader';
 import { PremiumBackButton } from '../../ui/PremiumBackButton';
 import useStartChat from '../../hooks/useStartChat';
+import { bookingStatusChip } from '../../utils/bookingStatus';
+import { formatClockTime, formatSessionDate } from '../../utils/sessionTime';
 
 function SingleBookingPage() {
     const axiosPrivate = useAxiosPrivate();
@@ -51,15 +53,7 @@ function SingleBookingPage() {
 
     const handleMessageStudent = () => startChat(booking?.studentID?._id, { personLabel: 'this guest' });
 
-    const formatDate = (dateStr) => {
-        if (!dateStr) return '';
-        return new Date(dateStr).toLocaleDateString(undefined, {
-            weekday: 'long',
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric'
-        });
-    };
+    const formatDate = (dateStr) => formatSessionDate(dateStr || '', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
     if (isLoading) return (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#FAFAFA' }}>
@@ -89,7 +83,7 @@ function SingleBookingPage() {
                         <PremiumCard sx={{ p: 4, mb: 4 }}>
                             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
                                 <Chip
-                                    label="Confirmed"
+                                    label={bookingStatusChip(booking).label}
                                     color="success"
                                     sx={{ fontWeight: 800, borderRadius: 2 }}
                                 />
@@ -124,7 +118,7 @@ function SingleBookingPage() {
                                                         {formatDate(booking.date)}
                                                     </Typography>
                                                     <Typography variant="body2" color="text.secondary">
-                                                        at {booking.time}
+                                                        at {formatClockTime(booking.time) || booking.time}
                                                     </Typography>
                                                 </Box>
                                             </Stack>

@@ -1,6 +1,7 @@
 const Course = require('../models/course');
 const CourseTimeslot = require('../models/courseTimeslot');
 const { PUBLIC_FIELDS } = require('../models/user');
+const { INACTIVE_STATUSES } = require('./sessionTime');
 
 const getAllListings = async () => {
     return await Course.find().populate('teacherID', PUBLIC_FIELDS);
@@ -27,7 +28,9 @@ const getListingById = async (id) => {
         // This mutation of the mongoose document is from the original code.
         // Ideally we should lean on .lean() or toObject() but preserving behavior for now.
         listing.set('schedule', []);
-        const timeslots = await CourseTimeslot.find({ courseID: id });
+        // Cancelled sessions and sessions of deleted listings are never shown or bookable.
+        const timeslots = await CourseTimeslot.find({ courseID: id, status: { $nin: INACTIVE_STATUSES } })
+            .sort({ startAt: 1, startDate: 1, startTime: 1 });
         if (timeslots) {
             listing.set('schedule', [...timeslots]);
         }

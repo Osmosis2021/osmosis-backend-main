@@ -1,4 +1,5 @@
 import {
+    Alert,
     CircularProgress,
     Container,
     Grid,
@@ -17,6 +18,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import useStore from '../../../store';
 import useAxiosPrivate from '../../../hooks/useAxiosPrivate';
 import { useToast } from '../../../ui/feedback';
+import { browserTimeZone } from '../../../utils/sessionTime';
 import { Link } from 'react-router-dom';
 import CompletenessChecklist from '../CompletenessChecklist/CompletenessChecklist';
 import { PremiumSectionHeader } from '../../../ui/PremiumSectionHeader';
@@ -54,10 +56,13 @@ export const ConfirmSession = (props) => {
     const [isSuccess, setIsSuccess] = useState(false);
     const [teacherInfo, setTeacherInfo] = useState();
     const [newCourseID, setNewCourseID] = useState('');
+    const [publishedTitle, setPublishedTitle] = useState('');
+    const [submitError, setSubmitError] = useState('');
 
     const handleCourseRegistration = async (e) => {
         e.preventDefault();
         setIsLoading(true)
+        setSubmitError('')
         try {
             const courseInfo = {
                 teacherID: userID,
@@ -74,12 +79,15 @@ export const ConfirmSession = (props) => {
                 latitude: newCourseLatitude,
                 industry: newCourseIndustry,
                 tags,
-                pricePerStudent: newCourseCost,
+                pricePerStudent: Number(newCourseCost),
                 courseTitle,
                 capacity: capacity,
                 duration: newCourseDuration,
                 images,
-                schedule: newCourseTimeslots,
+                sessions: newCourseTimeslots
+                    .filter(slot => slot?.date && slot?.startTime)
+                    .map(({ date, startTime }) => ({ date, startTime })),
+                timezone: browserTimeZone(),
                 courseDescription: courseDescription,
                 studioVibe: studioVibe,
                 whatToBring: whatToBring,
@@ -90,6 +98,7 @@ export const ConfirmSession = (props) => {
 
             if (data.success === true && data.course?._id) {
                 setNewCourseID(data.course._id);
+                setPublishedTitle(courseTitle);
                 setIsSuccess(true);
                 if (props.setHideFooter) props.setHideFooter(true);
 
@@ -110,13 +119,16 @@ export const ConfirmSession = (props) => {
                 setCourseDescription('')
                 setStudioVibe('')
                 setWhatToBring('')
-                setNewCourseLatitude(-73.9569994)
-                setNewCourseLongitude(40.7297027)
+                setNewCourseLatitude(40.7297027)
+                setNewCourseLongitude(-73.9569994)
                 setNewCourseTimeslots([])
             }
         } catch (error) {
             console.log(error)
             setIsLoading(false)
+            const message = error.response?.data?.message || "We couldn't publish your studio time. Please check your connection and try again.";
+            setSubmitError(message)
+            toast.error(message)
         }
     }
 
@@ -147,8 +159,8 @@ export const ConfirmSession = (props) => {
         if (navigator.share) {
             try {
                 await navigator.share({
-                    title: courseTitle,
-                    text: `Check out my new Studio Time: ${courseTitle}`,
+                    title: publishedTitle,
+                    text: `Check out my new Studio Time: ${publishedTitle}`,
                     url: url,
                 });
             } catch (err) {
@@ -283,8 +295,11 @@ export const ConfirmSession = (props) => {
                                     boxShadow: '0 8px 24px rgba(0,174,239,0.25)'
                                 }}
                             >
-                                {isLoading ? <CircularProgress size={24} sx={{ color: 'primary.main' }} /> : 'Go Live Today'}
+                                {isLoading ? <CircularProgress size={24} color="inherit" aria-label="Publishing" /> : 'Go Live Today'}
                             </Button>
+                            {submitError && (
+                                <Alert severity="error" role="alert" sx={{ mt: 2, borderRadius: '12px' }}>{submitError}</Alert>
+                            )}
                             {!isTeacher && (
                                 <Typography variant="caption" color="error" sx={{ mt: 2, display: 'block', textAlign: 'center' }}>
                                     You must be registered as a host to go live.

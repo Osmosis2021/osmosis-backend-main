@@ -4,6 +4,10 @@ const Booking = require('../models/booking');
 
 const listingService = require('../services/listingService');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
+const mongoose = require('mongoose');
+const CourseTimeslot = require('../models/courseTimeslot');
+const sessionService = require('../services/sessionService');
+const { addDays, DATE_RE } = require('../services/sessionTime');
 
 // Loads a course and confirms the signed-in user is its host.
 // Sends the error response itself and returns null when access is denied.
@@ -106,7 +110,8 @@ const experienceService = require('../services/experienceService');
 
 router.post('/registerCourse', requireAuth, requireTeacher, async (req, res, next) => {
     try {
-        const course = await experienceService.createExperience(withHostIdentity(req.body, req.currentUser));
+        const body = { ...req.body, sessions: expandSessionEntries(req.body.sessions) };
+        const course = await experienceService.createExperience(withHostIdentity(body, req.currentUser));
         res.json({
             success: true,
             course
@@ -234,6 +239,73 @@ router.delete('/deleteCourse/:id', requireAuth, async (req, res, next) => {
 });
 
 // ============================================================================
+// SESSIONS (dates & times of a studio time), host only
+// ============================================================================
+
+const MAX_REPEAT_WEEKS = 26;
+
+// Accepts { sessions: [{ date, startTime, repeatWeeks? }] } and expands weekly repeats:
+// repeatWeeks = 8 means this date plus the same weekday for the next 7 weeks.
+const expandSessionEntries = (entries) => {
+    if (!Array.isArray(entries)) return [];
+    return entries.flatMap(({ date, startTime, repeatWeeks }) => {
+        const weeks = Math.min(Math.max(parseInt(repeatWeeks, 10) || 1, 1), MAX_REPEAT_WEEKS);
+        if (!DATE_RE.test(date || '')) return [{ date, startTime }];
+        return Array.from({ length: weeks }, (_, i) => ({ date: addDays(date, i * 7), startTime }));
+    });
+};
+
+const loadOwnedSession = async (req, res, course) => {
+    const { sessionId } = req.params;
+    const session = mongoose.isValidObjectId(sessionId)
+        ? await CourseTimeslot.findOne({ _id: sessionId, courseID: course._id })
+        : null;
+    if (!session) {
+        res.status(404).json({ success: false, message: 'Session not found.' });
+        return null;
+    }
+    return session;
+};
+
+router.post('/:id/sessions', requireAuth, async (req, res, next) => {
+    try {
+        const course = await loadOwnedCourse(req, res);
+        if (!course) return;
+        const created = await sessionService.addSessions(course, expandSessionEntries(req.body.sessions));
+        res.status(201).json({ success: true, sessions: created });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.patch('/:id/sessions/:sessionId', requireAuth, async (req, res, next) => {
+    try {
+        const course = await loadOwnedCourse(req, res);
+        if (!course) return;
+        const session = await loadOwnedSession(req, res, course);
+        if (!session) return;
+        const updated = await sessionService.updateSession(course, session, req.body || {});
+        res.json({ success: true, session: updated });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// Cancels a session. Booked guests are refunded and emailed; the response summarises what happened.
+router.post('/:id/sessions/:sessionId/cancel', requireAuth, async (req, res, next) => {
+    try {
+        const course = await loadOwnedCourse(req, res);
+        if (!course) return;
+        const session = await loadOwnedSession(req, res, course);
+        if (!session) return;
+        const summary = await sessionService.cancelSession(course, session, { note: req.body?.note });
+        res.json({ success: true, summary });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// ============================================================================
 // CONSOLIDATED ROUTES (formerly course-api.routes.js)
 // ============================================================================
 
@@ -267,7 +339,8 @@ router.post('/', requireAuth, requireTeacher, async (req, res, next) => {
         // I'll map it to createExperience but without image processing if req.body.images is not present/array.
         // Or just use Course.create directly if it's "raw"?
         // experienceService.createExperience handles images if present.
-        const course = await experienceService.createExperience(withHostIdentity(req.body, req.currentUser));
+        const body = { ...req.body, sessions: expandSessionEntries(req.body.sessions) };
+        const course = await experienceService.createExperience(withHostIdentity(body, req.currentUser));
         res.status(201).json(course);
     } catch (error) {
         next(error);

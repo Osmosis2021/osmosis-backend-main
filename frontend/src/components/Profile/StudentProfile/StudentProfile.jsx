@@ -28,6 +28,8 @@ import { PremiumButton } from "../../../ui/PremiumButton";
 import { PremiumSectionHeader } from "../../../ui/PremiumSectionHeader";
 import PremiumEmptyState from "../../../ui/PremiumEmptyState";
 import useStartChat from '../../../hooks/useStartChat';
+import { isBookingCancelled, isBookingUpcoming } from '../../../utils/bookingStatus';
+import { formatClockTime, formatSessionDate, sessionLocalDay } from '../../../utils/sessionTime';
 
 const StudentProfile = () => {
   const logout = useLogout();
@@ -55,14 +57,11 @@ const StudentProfile = () => {
   }, [pageUserName, axiosPrivate]);
 
   const sortedBookings = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const upcoming = bookings.filter(b => isBookingUpcoming(b))
+      .sort((a, b) => sessionLocalDay(a.date) - sessionLocalDay(b.date));
 
-    const upcoming = bookings.filter(b => new Date(b.date) >= today)
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    const past = bookings.filter(b => new Date(b.date) < today)
-      .sort((a, b) => new Date(b.date) - new Date(a.date));
+    const past = bookings.filter(b => !isBookingUpcoming(b))
+      .sort((a, b) => sessionLocalDay(b.date) - sessionLocalDay(a.date));
 
     return { upcoming, past };
   }, [bookings]);
@@ -72,11 +71,10 @@ const StudentProfile = () => {
   };
 
   const getStatusChip = (booking) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const bookingDate = new Date(booking.date);
-
-    if (bookingDate < today) {
+    if (isBookingCancelled(booking)) {
+      return <Chip label="Cancelled by host" size="small" color="error" variant="outlined" sx={{ fontWeight: 700 }} />;
+    }
+    if (!isBookingUpcoming(booking)) {
       return <Chip label="Completed" size="small" sx={{ fontWeight: 700, bgcolor: 'rgba(0,0,0,0.05)', color: 'text.secondary' }} />;
     }
     return <Chip label="Upcoming" size="small" color="primary" sx={{ fontWeight: 700 }} />;
@@ -121,7 +119,7 @@ const StudentProfile = () => {
                   <Box>
                     <Typography variant="caption" color="text.secondary" display="block">Date & Time</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                      {new Date(booking.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} @ {booking.time}
+                      {formatSessionDate(booking.date || '', { month: 'short', day: 'numeric' })} @ {formatClockTime(booking.time) || booking.time}
                     </Typography>
                   </Box>
                 </Stack>

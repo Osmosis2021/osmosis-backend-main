@@ -16,7 +16,6 @@ import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import theme from './theme.js';
 import Settings from './components/Settings/Settings';
-import ToggleDays from './components/SessionCreation/ToggleDays/ToggleDays';
 import EditProfile from './components/Profile/EditProfile';
 import Explore from './components/Explore/Explore';
 import EditCourse from './components/Profile/TeacherProfile/EditCourse';
@@ -118,7 +117,6 @@ function App() {
 							<Route path='/editphotos' element={<EditPhotos />} />
 							<Route path='/stripeonboarding/:userName' element={<StripeOnboarding />} />
 							<Route path='teacher/bookings/:id' element={<SingleBookingPage />} />
-							<Route path='/availability' element={<ToggleDays />} />
 							<Route path='/FLOW' element={<UpdatedProgressBar />} />
 							<Route path='/teachersonly' element={<p>This pages is for teachers only.</p>} />
 						</Route>

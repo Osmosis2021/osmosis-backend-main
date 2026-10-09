@@ -230,6 +230,13 @@ const theme = createTheme({
         input: {
           padding: '12px 16px',
         },
+        // Multiline fields pad the wrapper, not the textarea, so text isn't double-indented.
+        multiline: {
+          padding: '12px 16px',
+        },
+        inputMultiline: {
+          padding: 0,
+        },
       },
     },
     MuiChip: {

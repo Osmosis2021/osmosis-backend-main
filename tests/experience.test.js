@@ -75,7 +75,7 @@ describe('Experience Routes', () => {
             .post('/api/courses/registerCourse')
             .set(auth)
             .send({ longitude: 'invalid' })
-            .expect(500);
+            .expect(400);
 
         expect(res.body.success).toBe(false);
     });

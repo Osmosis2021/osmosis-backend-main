@@ -7,6 +7,8 @@ import useStore from "../../store";
 import TERMS from "../../constants/terms";
 
 import styles from "./calendar.module.css";
+import { isBookingCancelled } from '../../utils/bookingStatus';
+import { formatClockTime } from '../../utils/sessionTime';
 // import "./calendar.module.css";
 
 const Calendar = () => {
@@ -32,7 +34,8 @@ const Calendar = () => {
           console.log("Teacher bookings:", teacherResponse.data);
           console.log("Student bookings:", studentResponse.data);
 
-          setBookings(isTeacher ? teacherResponse.data : studentResponse.data);
+          const list = isTeacher ? teacherResponse.data : studentResponse.data;
+          setBookings((Array.isArray(list) ? list : []).filter((booking) => !isBookingCancelled(booking)));
         } else {
           console.error(
             "Error fetching data. Status codes:",
@@ -200,7 +203,7 @@ const Calendar = () => {
             <div>
               {/* <Typography variant="h6">Booking Details</Typography>
                             <Typography>Date: {selectedBooking.date}</Typography>
-                            <Typography>Time: {selectedBooking.time}</Typography>
+                            <Typography>Time: {formatClockTime(selectedBooking.time) || selectedBooking.time}</Typography>
                             <Typography>Student: {selectedBooking.studentUserName}</Typography> */}
               <Typography variant="h6" sx={{ textAlign: "center" }}>
                 {TERMS.BOOKING} Details
@@ -214,7 +217,7 @@ const Calendar = () => {
               <div className="flex justify-center items-center gap-12">
                 <p className="w-[48%] text-right inline-block">Time:</p>
                 <p className="flex-1 text-left inline-block">
-                  {selectedBooking.time}
+                  {formatClockTime(selectedBooking.time) || selectedBooking.time}
                 </p>
               </div>
               <div className="flex justify-center items-center gap-12">

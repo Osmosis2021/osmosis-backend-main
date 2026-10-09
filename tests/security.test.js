@@ -28,6 +28,9 @@ const Message = require('../models/message');
 let mongoServer;
 let app;
 
+// "YYYY-MM-DD" a number of days from today.
+const daysFromNow = (days) => new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
+
 const tokenFor = (user) => jwt.sign({ userName: user.userName, roles: [2119] }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
 
 const makeUser = (overrides = {}) => User.create({
@@ -238,7 +241,11 @@ describe('Studio time routes require the owning host', () => {
         const other = await makeUser({ isTeacher: true });
         const res = await request(app).post('/course/registerCourse')
             .set('Authorization', `Bearer ${tokenFor(host)}`)
-            .send({ courseTitle: 'Mine', teacherID: String(other._id), userName: other.userName })
+            .send({
+                courseTitle: 'Mine', pricePerStudent: 40, capacity: 4, duration: 60,
+                sessions: [{ date: daysFromNow(30), startTime: '14:00' }],
+                teacherID: String(other._id), userName: other.userName,
+            })
             .expect(200);
         expect(res.body.course.teacherID).toBe(String(host._id));
         expect(res.body.course.userName).toBe(host.userName);
@@ -351,8 +358,12 @@ describe('Bookings', () => {
         const guest = await makeUser({ isStudent: true });
         const course = await makeCourse(host);
         const slot = await CourseTimeslot.create({ courseID: course._id, capacity: 4, enrollment: 0, startTime: '14:00', startDate: new Date('2030-01-05') });
+        stripe.paymentIntents.retrieve.mockResolvedValue({
+            status: 'succeeded', amount: 8000,
+            metadata: { courseID: String(course._id), timeslotID: String(slot._id), studentUserName: guest.userName, guests: '2' },
+        });
         const res = await request(app).post('/booking/createBooking').set('Authorization', `Bearer ${tokenFor(guest)}`)
-            .send({ courseID: String(course._id), courseTimeslotID: String(slot._id), numberOfGuests: 2, total: 1, studentUserName: 'someoneelse' })
+            .send({ courseID: String(course._id), courseTimeslotID: String(slot._id), numberOfGuests: 2, total: 1, studentUserName: 'someoneelse', paymentIntentID: 'pi_ok' })
             .expect(200);
         expect(res.body.booking.studentUserName).toBe(guest.userName);
         expect(res.body.booking.total).toBe(80);
@@ -364,11 +375,12 @@ describe('Payments', () => {
         const host = await makeUser({ isTeacher: true, stripeID: 'acct_host' });
         const guest = await makeUser({ isStudent: true, customerStripeID: 'cus_guest' });
         const course = await makeCourse(host, { pricePerStudent: 40 });
+        const slot = await CourseTimeslot.create({ courseID: course._id, capacity: 4, enrollment: 0, startTime: '14:00', startDate: new Date('2030-01-05') });
         stripe.accounts.retrieve.mockResolvedValue({ payouts_enabled: true });
         stripe.paymentIntents.create.mockResolvedValue({ client_secret: 'pi_secret' });
 
         await request(app).post('/stripe/create-payment-intent').set('Authorization', `Bearer ${tokenFor(guest)}`)
-            .send({ courseID: String(course._id), guests: 2, amount: 1, stripeID: 'acct_attacker', customerStripeID: 'cus_victim' })
+            .send({ courseID: String(course._id), timeslotID: String(slot._id), guests: 2, amount: 1, stripeID: 'acct_attacker', customerStripeID: 'cus_victim' })
             .expect(200);
 
         const options = stripe.paymentIntents.create.mock.calls[0][0];

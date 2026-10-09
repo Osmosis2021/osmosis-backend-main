@@ -1,163 +1,150 @@
-import { Box, Typography, Stack, IconButton, Grid, Skeleton } from '@mui/material'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import PhotoCamera from '@mui/icons-material/PhotoCamera';
-import DeleteIcon from '@mui/icons-material/Delete';
-import React, { useEffect, useState } from 'react'
-import useStore from '../../../store';
+import React, { useState } from 'react'
+import { Box, Button, CircularProgress, IconButton, Stack, Typography } from '@mui/material'
+import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
+import CloseIcon from '@mui/icons-material/Close';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import { Link } from 'react-router-dom';
 import useAxiosPrivate from '../../../hooks/useAxiosPrivate';
 import { useConfirm, useToast } from '../../../ui/feedback';
 
+const MAX_FILE_MB = 10;
+const MAX_PHOTOS = 12;
 
-const EditPhotos = () => {
-	const { images, setImages, userName } = useStore();
+const readAsDataUrl = (file) => new Promise((resolve, reject) => {
+	const reader = new FileReader();
+	reader.onload = () => resolve(reader.result);
+	reader.onerror = reject;
+	reader.readAsDataURL(file);
+});
+
+const tileSx = {
+	position: 'relative',
+	aspectRatio: '4 / 3',
+	borderRadius: '12px',
+	overflow: 'hidden',
+	bgcolor: 'background.paper',
+};
+
+const removeButtonSx = {
+	position: 'absolute',
+	top: 6,
+	right: 6,
+	bgcolor: 'rgba(255,255,255,0.9)',
+	'&:hover': { bgcolor: 'white' },
+};
+
+/**
+ * Photos of one studio time: remove existing ones, pick and upload new ones.
+ *
+ * @param {string} courseId
+ * @param {{ _id: string, url: string }[]} images  photos already on the listing
+ * @param {(images) => void} onChange              called with the updated list after a change
+ */
+const EditPhotos = ({ courseId, images = [], onChange }) => {
 	const axiosPrivate = useAxiosPrivate();
 	const confirm = useConfirm();
 	const toast = useToast();
-	const [teacherData, setTeacherData] = useState({});
-	const [isLoading, setIsLoading] = useState(true);
+	const [pending, setPending] = useState([]); // data URLs chosen but not uploaded yet
+	const [isUploading, setIsUploading] = useState(false);
 
-	useEffect(() => {
-		const currentBackendURL = useStore.getState().backendURL;
-		fetch(`${currentBackendURL}course/getCourses/${userName}`)
-			.then((res) => {
-				return res.json();
-			}).then((data) => {
-				setTeacherData(...data);
-				setIsLoading(false)
-			}).catch((err) => {
-				console.log('Error getting teacher info:\n', err);
-			});
-	}, [userName]);
-
-	//Handle and convert image to base 64 
-	const addImage = (e) => {
-		e.preventDefault()
-		const files = Array.from(e.target.files);
-		files.forEach(file => {
-			const reader = new FileReader();
-			reader.readAsDataURL(file);
-			reader.onloadend = () => {
-				// setNewImages([...images, reader.result])
-				setImages([...images, reader.result])
-			}
-		})
+	if (!courseId) {
+		return (
+			<Typography variant="body2" color="text.secondary">
+				Open one of your studio times from <Link to="/">your profile</Link> to edit its photos.
+			</Typography>
+		);
 	}
 
-	function removeImage(e) {
-		const remove = images.filter((item, index) => index !== e);
-		setImages(remove);
-	}
+	const addFiles = async (event) => {
+		const files = Array.from(event.target.files || []);
+		event.target.value = ''; // allow picking the same file again
+		const tooBig = files.filter((file) => file.size > MAX_FILE_MB * 1024 * 1024);
+		const usable = files.filter((file) => file.type.startsWith('image/') && file.size <= MAX_FILE_MB * 1024 * 1024);
+		if (tooBig.length) toast.error(`Photos must be under ${MAX_FILE_MB} MB. ${tooBig.length === 1 ? 'One photo was' : `${tooBig.length} photos were`} skipped.`);
+		const room = MAX_PHOTOS - images.length - pending.length;
+		if (usable.length > room) toast.info(`A listing can have up to ${MAX_PHOTOS} photos.`);
+		const dataUrls = await Promise.all(usable.slice(0, Math.max(room, 0)).map(readAsDataUrl));
+		setPending((prev) => [...prev, ...dataUrls]);
+	};
 
-	const removeAlreadyUploadedImage = async (image) => {
+	const upload = async () => {
+		setIsUploading(true);
+		try {
+			const { data } = await axiosPrivate.put(`course/updatePhoto/${courseId}`, { images: pending });
+			onChange?.(data?.photoUpdate?.images || images);
+			toast.success(pending.length === 1 ? 'Photo added to your listing.' : `${pending.length} photos added to your listing.`);
+			setPending([]);
+		} catch (err) {
+			console.error('Error uploading photos:', err);
+			toast.error("We couldn't upload your photos. Please try again.");
+		} finally {
+			setIsUploading(false);
+		}
+	};
+
+	const removeExisting = async (image) => {
 		const removed = await confirm({
 			title: 'Remove this photo?',
 			description: 'It will no longer appear on your listing. You can upload it again later.',
 			confirmLabel: 'Remove photo',
 			destructive: true,
 			errorMessage: "We couldn't remove the photo. Please try again.",
-			onConfirm: () => axiosPrivate.put(`course/deletePhoto/${teacherData._id}`, { image }),
-		})
+			onConfirm: () => axiosPrivate.put(`course/deletePhoto/${courseId}`, { image }),
+		});
 		if (removed) {
-			setTeacherData(prev => ({ ...prev, images: (prev.images || []).filter(item => item._id !== image._id) }))
-			toast.success('Photo removed.')
+			onChange?.(images.filter((item) => item._id !== image._id));
+			toast.success('Photo removed.');
 		}
-	}
-
-	const addUploadedImage = async () => {
-		if (!images.length) {
-			toast.info('Choose a photo first.')
-			return
-		}
-		try {
-			const { data } = await axiosPrivate.put(`course/updatePhoto/${teacherData._id}`, { images })
-			if (data?.photoUpdate?.images) {
-				setTeacherData(prev => ({ ...prev, images: data.photoUpdate.images }))
-			}
-			setImages([])
-			toast.success(images.length === 1 ? 'Photo uploaded.' : 'Photos uploaded.')
-		} catch (err) {
-			console.error('Error uploading photos:', err)
-			toast.error("We couldn't upload your photos. Please try again.")
-		}
-	}
+	};
 
 	return (
-		<div>
-			<Box>
-				<Typography variant='h6' mt={8} align='left' fontSize={21}>
-					Edit your Photos:
-				</Typography>
-
-				<Stack style={{ alignItems: 'center' }}>
-
-
-					<Grid container>
-						{
-							isLoading ? <Skeleton style={{ height: 125, width: 150 }} /> : teacherData?.images.map((image, index) => {
-								return (
-									<>
-										<Grid item xs={6}>
-											<img src={image.url} style={{ height: 125, width: 150 }} alt='photos uploaded' />
-											<div style={{ position: 'relative', bottom: 50, right: 0 }}>
-												<IconButton type="button" color='error' aria-label='Remove this photo' onClick={() => removeAlreadyUploadedImage(image)}>
-													<DeleteIcon style={{ height: 25, width: 25, background: 'white', opacity: '.75', borderRadius: '50%', padding: '1px' }} />
-												</IconButton>
-											</div>
-										</Grid>
-									</>
-								)
-							})
-						}
-						<Grid item xs={6}>
-							<form
-								method='POST'
-								encType='multipart/form-data'
-								action='uploadfile'
-								style={{ display: 'flex', flexDirection: 'column' }}
-							>
-								<IconButton
-									style={{ height: 150, width: 150 }}
-									color='primary'
-									aria-label='upload picture'
-									component='label'>
-									<input
-										style={{ zIndex: 10 }}
-										size='large'
-										hidden
-										type="file"
-										className="form-control"
-										onChange={addImage}
-									/>
-									<PhotoCamera />
-								</IconButton>
-
-							</form>
-						</Grid>
-					</Grid>
-
-
-					{
-						images.map((item, index) => {
-							return (
-								<div style={{ position: 'relative' }} key={item}>
-									<img src={item} alt="" style={{ width: '250px', height: '125px', objectFit: 'cover' }} />
-
-									<div style={{ position: 'relative', bottom: 50, right: 0 }}>
-										<IconButton type="button" color='error' aria-label='Remove this photo before uploading' onClick={() => removeImage(index)}>
-											<DeleteIcon style={{ zIndex: 10, height: 25, width: 25, background: 'white', opacity: '.75', borderRadius: '50%', padding: '1px' }} />
-										</IconButton>
-									</div>
-								</div>
-							)
-						}
-						)}
-
-					<IconButton type='button' aria-label='Upload selected photos' onClick={addUploadedImage}>
-						<CheckCircleIcon />
-					</IconButton>
-				</Stack>
+		<Stack spacing={2}>
+			<Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' }, gap: 1.5 }}>
+				{images.map((image, index) => (
+					<Box key={image._id || image.url} sx={tileSx}>
+						<Box component="img" src={image.url} alt={`Listing photo ${index + 1}`} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+						<IconButton size="small" sx={removeButtonSx} aria-label={`Remove photo ${index + 1}`} onClick={() => removeExisting(image)}>
+							<DeleteOutlineIcon fontSize="small" />
+						</IconButton>
+					</Box>
+				))}
+				{pending.map((dataUrl, index) => (
+					<Box key={dataUrl.slice(-32) + index} sx={{ ...tileSx, outline: '2px dashed', outlineColor: 'primary.main', outlineOffset: -2 }}>
+						<Box component="img" src={dataUrl} alt={`New photo ${index + 1}, not uploaded yet`} sx={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }} />
+						<IconButton size="small" sx={removeButtonSx} aria-label={`Discard new photo ${index + 1}`} disabled={isUploading}
+							onClick={() => setPending((prev) => prev.filter((_, i) => i !== index))}>
+							<CloseIcon fontSize="small" />
+						</IconButton>
+					</Box>
+				))}
+				{images.length + pending.length < MAX_PHOTOS && (
+					<Button
+						component="label"
+						disabled={isUploading}
+						sx={{ ...tileSx, border: '2px dashed', borderColor: 'divider', flexDirection: 'column', textTransform: 'none', color: 'text.secondary', gap: 0.5 }}
+					>
+						<AddPhotoAlternateIcon />
+						Add photos
+						<input hidden type="file" accept="image/*" multiple onChange={addFiles} />
+					</Button>
+				)}
 			</Box>
-		</div>
+			{images.length === 0 && pending.length === 0 && (
+				<Typography variant="body2" color="text.secondary">Listings with 3 or more photos get far more bookings.</Typography>
+			)}
+			{pending.length > 0 && (
+				<Button
+					variant="contained"
+					onClick={upload}
+					disabled={isUploading}
+					sx={{ alignSelf: { xs: 'stretch', sm: 'flex-start' }, textTransform: 'none', fontWeight: 700, borderRadius: '12px' }}
+				>
+					{isUploading
+						? <CircularProgress size={20} color="inherit" aria-label="Uploading photos" />
+						: `Upload ${pending.length} ${pending.length === 1 ? 'photo' : 'photos'}`}
+				</Button>
+			)}
+		</Stack>
 	)
 }
 

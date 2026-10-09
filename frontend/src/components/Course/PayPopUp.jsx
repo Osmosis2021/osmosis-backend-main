@@ -25,6 +25,7 @@ import { PremiumButton } from '../../ui/PremiumButton';
 import { PremiumCard } from '../../ui/PremiumCard';
 import { useTheme, useMediaQuery, Grid } from '@mui/material';
 import useStartChat from '../../hooks/useStartChat';
+import { formatSessionDate } from '../../utils/sessionTime';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -47,7 +48,7 @@ export default function PayPopUp(props) {
 
   const handleMessageHost = () => startChat(props.teacherID, { personLabel: 'this artist' });
 
-  async function bookThisCourse() {
+  async function bookThisCourse(paymentIntentID) {
     const bookingObj = {
       timestamp: Date.now(),
       numberOfGuests: props.guests,
@@ -59,7 +60,8 @@ export default function PayPopUp(props) {
       studentUserName: props.studentUserName,
       teacherUserName: props.teacherUserName,
       time: props.selectedDateAndTime.startTime,
-      date: props.selectedDateAndTime.startDate
+      date: props.selectedDateAndTime.startDate,
+      paymentIntentID,
     }
 
     const bookingResponse = await axiosPrivate.post(`booking/createBooking`, bookingObj);
@@ -93,10 +95,7 @@ export default function PayPopUp(props) {
   }
 
   function formatDate(inputDate) {
-    if (!inputDate) return '';
-    const options = { weekday: 'long', month: 'long', day: 'numeric' };
-    const date = new Date(inputDate);
-    return date.toLocaleDateString(undefined, options);
+    return formatSessionDate(inputDate || '', { weekday: 'long', month: 'long', day: 'numeric' });
   }
 
   const theme = useTheme();

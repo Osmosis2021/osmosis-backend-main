@@ -3,6 +3,8 @@ const CourseTimeslot = require('../models/courseTimeslot');
 const { PUBLIC_FIELDS } = require('../models/user');
 const { z } = require('zod');
 
+const { INACTIVE_STATUSES, effectiveStartAt } = require('./sessionTime');
+
 const reservationSchema = z.object({
     timestamp: z.number().optional(),
     numberOfGuests: z.number().min(1),
@@ -15,6 +17,8 @@ const reservationSchema = z.object({
     studentID: z.string().optional(),
     time: z.string().optional(),
     date: z.string().optional(),
+    paymentIntentID: z.string().optional(),
+    status: z.string().optional(),
 });
 
 /**
@@ -34,6 +38,13 @@ const createReservation = async (rawData) => {
     const timeslot = await CourseTimeslot.findById(data.courseTimeslotID);
     if (!timeslot) {
         throw new Error('Timeslot not found');
+    }
+    if (INACTIVE_STATUSES.includes(timeslot.status)) {
+        throw Object.assign(new Error('This session was cancelled.'), { status: 409 });
+    }
+    const startsAt = effectiveStartAt(timeslot);
+    if (startsAt && startsAt.getTime() <= Date.now()) {
+        throw Object.assign(new Error('This session has already started.'), { status: 409 });
     }
 
     // Check if there's enough room
@@ -79,7 +90,8 @@ const createReservation = async (rawData) => {
             studentID: data.studentID,
             time: data.time,
             date: data.date,
-            status: 'pending payment' // Adding a default status if it makes sense, but original didn't set it in create.
+            paymentIntentID: data.paymentIntentID,
+            status: data.status || 'pending payment'
         });
 
         return booking;

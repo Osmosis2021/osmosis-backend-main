@@ -39,6 +39,8 @@ const CourseSchema = new mongoose.Schema({
         }
     }],
     online: Boolean,
+    // IANA timezone of the studio (e.g. 'America/New_York'); session times are in this zone.
+    timezone: String,
     // students: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
     teacherID: {
         type: mongoose.Schema.Types.ObjectId,

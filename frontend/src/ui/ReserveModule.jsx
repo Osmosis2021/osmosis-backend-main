@@ -7,6 +7,7 @@ import DateDrawer, { timeConverter } from '../components/DateDrawer/DateDrawer';
 import PayPopUp from '../components/Course/PayPopUp';
 import TERMS from '../constants/terms';
 import { PremiumCard } from './PremiumCard';
+import { formatSessionDate, isUpcomingSession, sessionStart } from '../utils/sessionTime';
 
 export const ReserveModule = ({
     courseData,
@@ -27,21 +28,13 @@ export const ReserveModule = ({
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-    const formatDate = (inputDate) => {
-        const options = { weekday: 'short', month: 'short', day: 'numeric' };
-        const date = new Date(inputDate);
-        return date.toLocaleDateString(undefined, options);
-    };
+    const formatDate = (inputDate) => formatSessionDate(inputDate || '', { weekday: 'short', month: 'short', day: 'numeric' });
 
     const nextAvailableSlots = useMemo(() => {
         if (!courseData?.schedule) return [];
-        const today = new Date();
         return courseData.schedule
-            .filter(slot => {
-                const slotDate = new Date(slot.startDate);
-                return slotDate >= today && slot.enrollment < slot.capacity;
-            })
-            .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+            .filter(slot => isUpcomingSession(slot) && slot.enrollment < slot.capacity)
+            .sort((a, b) => sessionStart(a) - sessionStart(b))
             .slice(0, 3);
     }, [courseData?.schedule]);
 

@@ -19,6 +19,11 @@ const BookingSchema = new mongoose.Schema({
     ratedAndReviewed: { type: Boolean, default: false },
     rating: { type: Number },
     review: { type: String },
+    // Stripe PaymentIntent that paid for this booking (used for refunds).
+    paymentIntentID: { type: String, index: { unique: true, sparse: true } },
+    // 'refunded' | 'manual' (needs a refund from the Stripe dashboard) | 'failed' | 'not_needed'
+    refundStatus: { type: String },
+    cancelledAt: { type: Date },
     // date: { startDate: {type: String}, startTime: {type: String},},
     // checkIn: {type: TimeRanges, required: true},
     // checkOut: {type: TimeRanges, required: true},

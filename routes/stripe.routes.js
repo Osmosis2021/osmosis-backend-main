@@ -6,6 +6,7 @@ const CourseTimeslot = require('../models/courseTimeslot');
 const env = require('../config/env');
 const stripe = require('../services/stripeClient');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
+const { INACTIVE_STATUSES, effectiveStartAt } = require('../services/sessionTime');
 
 let stripePublishableKey = ''
 if (env.NODE_ENV === 'production') {
@@ -142,19 +143,20 @@ router.post('/create-payment-intent', requireAuth, async (req, res) => {
             return res.status(404).json({ error: 'This studio time no longer exists.' });
         }
 
-        let timeslot = null;
-        if (timeslotID) {
-            if (!mongoose.isValidObjectId(timeslotID)) {
-                return res.status(400).json({ error: 'Please choose a session.' });
-            }
-            timeslot = await CourseTimeslot.findOne({ _id: timeslotID, courseID: course._id });
-            if (!timeslot) {
-                return res.status(404).json({ error: 'This session is no longer available.' });
-            }
-            const spotsLeft = (timeslot.capacity || 1) - (timeslot.enrollment || 0);
-            if (guests > spotsLeft) {
-                return res.status(409).json({ error: 'Sorry, there are not enough spots left in this session.' });
-            }
+        if (!mongoose.isValidObjectId(timeslotID)) {
+            return res.status(400).json({ error: 'Please choose a session.' });
+        }
+        const timeslot = await CourseTimeslot.findOne({ _id: timeslotID, courseID: course._id });
+        if (!timeslot || INACTIVE_STATUSES.includes(timeslot.status)) {
+            return res.status(404).json({ error: 'This session is no longer available.' });
+        }
+        const startsAt = effectiveStartAt(timeslot, course.timezone);
+        if (startsAt && startsAt.getTime() <= Date.now()) {
+            return res.status(409).json({ error: 'This session has already started.' });
+        }
+        const spotsLeft = (timeslot.capacity || 1) - (timeslot.enrollment || 0);
+        if (guests > spotsLeft) {
+            return res.status(409).json({ error: 'Sorry, there are not enough spots left in this session.' });
         }
 
         const host = await User.findById(course.teacherID).select('stripeID');
@@ -179,12 +181,12 @@ router.post('/create-payment-intent', requireAuth, async (req, res) => {
             currency: 'usd',
             metadata: {
                 courseID: String(course._id),
-                timeslotID: timeslot ? String(timeslot._id) : '',
+                timeslotID: String(timeslot._id),
                 guests: String(guests),
                 teacherUserName: course.userName || '',
                 studentUserName: guest.userName,
-                date: timeslot?.startDate ? timeslot.startDate.toISOString().split('T')[0] : '',
-                time: timeslot?.startTime || '',
+                date: timeslot.startDate ? timeslot.startDate.toISOString().split('T')[0] : '',
+                time: timeslot.startTime || '',
             },
             application_fee_amount: applicationFeeFor(totalCents),
             transfer_data: {

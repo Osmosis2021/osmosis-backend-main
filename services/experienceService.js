@@ -1,27 +1,45 @@
 const Course = require('../models/course');
 const CourseTimeslot = require('../models/courseTimeslot');
 const cloudinary = require('../config/cloudinary');
-const ObjectID = require("bson-objectid");
 const { z } = require('zod');
 
-const experienceSchema = z.object({
+const sessionService = require('./sessionService');
+const { isValidTimeZone } = require('./sessionTime');
+
+const MIN_DURATION = 30;
+const MAX_DURATION = 240;
+
+// Fields a host can set on a studio time. Unknown fields (e.g. `_id`, `feedback`, `schedule`,
+// already-uploaded `images` objects sent back by the edit page) are ignored rather than rejected;
+// photos and sessions have their own endpoints.
+const editableFields = {
     teacherID: z.string().optional(),
     userName: z.string().optional(),
     address: z.any().optional(),
     longitude: z.number().optional(),
     latitude: z.number().optional(),
     industry: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-    pricePerStudent: z.number().optional(),
-    courseTitle: z.string().optional(),
-    courseDescription: z.string().optional(),
-    studioVibe: z.string().optional(),
-    whatToBring: z.string().optional(),
-    capacity: z.number().optional(),
-    duration: z.any().optional(), // Can be string or number
-    schedule: z.array(z.any()).optional(),
+    tags: z.array(z.string().trim().max(40)).max(20).optional(),
+    pricePerStudent: z.number({ error: 'Enter a price.' }).int('Use a whole-dollar price.').min(1, 'Price must be at least $1.').max(10000, 'Price must be $10,000 or less.'),
+    courseTitle: z.string({ error: 'Add a title.' }).trim().min(1, 'Add a title.').max(100, 'Keep the title under 100 characters.'),
+    courseDescription: z.string().max(5000, 'Keep the description under 5,000 characters.').optional(),
+    studioVibe: z.string().max(2000).optional(),
+    whatToBring: z.string().max(2000).optional(),
+    capacity: z.number({ error: 'Set how many guests can join.' }).int().min(1, 'Allow at least 1 guest.').max(100, 'Up to 100 guests per session.'),
+    duration: z.coerce.number({ error: 'Choose a session length.' }).int()
+        .min(MIN_DURATION, `Sessions must be at least ${MIN_DURATION} minutes.`)
+        .max(MAX_DURATION, `Sessions can be up to ${MAX_DURATION / 60} hours.`)
+        .refine((minutes) => minutes % 15 === 0, 'Use 15-minute steps.'),
+};
+
+const createSchema = z.object({
+    ...editableFields,
+    timezone: z.string().optional(),
     images: z.array(z.string()).optional(),
+    sessions: z.array(z.object({ date: z.string(), startTime: z.string() })).min(1, 'Add at least one session.'),
 });
+
+const updateSchema = z.object(editableFields).partial();
 
 const normalizeAddress = (addressInput) => {
     if (!addressInput) return { address: '', addressDetails: null };
@@ -40,7 +58,11 @@ const normalizeAddress = (addressInput) => {
 };
 
 const createExperience = async (rawData) => {
-    const data = experienceSchema.parse(rawData);
+    const { sessions, timezone, ...data } = createSchema.parse(rawData);
+    data.timezone = isValidTimeZone(timezone) ? timezone : undefined;
+
+    // Check every session before saving anything, so a bad time doesn't leave a half-created listing.
+    sessionService.buildSessions(data, sessions);
 
     // Normalize address before creating
     if (rawData.address) {
@@ -48,8 +70,7 @@ const createExperience = async (rawData) => {
         data.address = address;
         data.addressDetails = addressDetails;
     }
-    // Handle image upload if images are strings (base64/url)
-    // The original code in /registerCourse iterates over req.body.images
+    // Upload images (base64 or URLs) to Cloudinary
     let imagesBuffer = [];
     if (data.images && Array.isArray(data.images)) {
         for (let i = 0; i < data.images.length; i++) {
@@ -65,35 +86,18 @@ const createExperience = async (rawData) => {
         }
     }
 
-    const newCourseObj = {
-        ...data,
-        images: imagesBuffer
-    };
-
-    // Create course
-    const course = await Course.create(newCourseObj);
-
-    // Create timeslots
-    if (data.schedule && Array.isArray(data.schedule)) {
-        // We use map but don't await the promises in the original code? 
-        // Original: schedule.map(_timeslot => { ... CourseTimeslot.create(...) })
-        // This is fire-and-forget in the original code. I will preserve that behavior 
-        // but maybe use Promise.all to be safer? 
-        // "ZERO behavior change" -> If I await, it might be slower. 
-        // But not awaiting means potential race conditions or unhandled errors.
-        // I will await them to be "better" without breaking the contract.
-        const timeslotPromises = data.schedule.map(_timeslot => {
-            const timeslotObj = { ..._timeslot, courseID: ObjectID(course._id), enrollment: 0, status: 'created' };
-            return CourseTimeslot.create(timeslotObj);
-        });
-        await Promise.all(timeslotPromises);
+    const course = await Course.create({ ...data, images: imagesBuffer });
+    try {
+        await sessionService.addSessions(course, sessions);
+    } catch (error) {
+        await Course.findByIdAndDelete(course._id);
+        throw error;
     }
-
     return course;
 };
 
 const updateExperience = async (id, rawData) => {
-    const data = experienceSchema.partial().parse(rawData);
+    const data = updateSchema.parse(rawData);
 
     // Normalize address before updating
     if (rawData.address) {
@@ -101,31 +105,35 @@ const updateExperience = async (id, rawData) => {
         data.address = address;
         data.addressDetails = addressDetails;
     }
-    // Update basic fields
-    const courseUpdate = await Course.findOneAndUpdate({ _id: id }, { $set: data }, { new: true });
 
-    // Handle timeslots
-    const ts2add = data.timeslotsToAdd || [];
-    const ts2remove = data.timeslotsToRemove || [];
+    const course = await Course.findById(id);
+    if (!course) return null;
 
-    if (ts2add.length) {
-        const addPromises = ts2add.map(_timeslot => {
-            const timeslotObj = { ..._timeslot, courseID: courseUpdate._id, enrollment: 0, status: 'created' };
-            return CourseTimeslot.create(timeslotObj);
+    // Push capacity/length changes to upcoming sessions first; this throws (and nothing is
+    // saved) if capacity would drop below what guests have already booked.
+    const capacityChanged = data.capacity !== undefined && data.capacity !== course.capacity;
+    const durationChanged = data.duration !== undefined && data.duration !== course.duration;
+    if (capacityChanged || durationChanged) {
+        await sessionService.syncFutureSessions(course, {
+            capacity: capacityChanged ? data.capacity : undefined,
+            duration: durationChanged ? data.duration : undefined,
         });
-        await Promise.all(addPromises);
     }
 
-    if (ts2remove.length) {
-        await CourseTimeslot.deleteMany({ _id: { $in: ts2remove } });
-    }
-
-    return courseUpdate;
+    return Course.findOneAndUpdate({ _id: id }, { $set: data }, { new: true });
 };
 
 const deleteExperience = async (id) => {
     const foundCourse = await Course.findById(id);
     if (!foundCourse) return null;
+
+    // Guests must be refunded and told first: the host cancels booked sessions, then deletes.
+    const booked = await sessionService.upcomingBookedSessions(foundCourse);
+    if (booked.length > 0) {
+        const error = new Error(`This studio time has ${booked.length} upcoming booked ${booked.length === 1 ? 'session' : 'sessions'}. Cancel ${booked.length === 1 ? 'it' : 'them'} first so guests are refunded and notified.`);
+        error.status = 409;
+        throw error;
+    }
 
     // Delete images from Cloudinary
     if (foundCourse.images && Array.isArray(foundCourse.images)) {

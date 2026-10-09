@@ -12,6 +12,8 @@ const Course = require('../models/course');
 const CourseTimeslot = require('../models/courseTimeslot');
 
 jest.mock('../services/reservationService');
+jest.mock('../services/stripeClient');
+const stripe = require('../services/stripeClient');
 
 const app = express();
 app.use(express.json());
@@ -41,15 +43,20 @@ describe('Booking Routes', () => {
         const course = await Course.create({ teacherID: new mongoose.Types.ObjectId(), userName: 'host', pricePerStudent: 25 });
         const slot = await CourseTimeslot.create({ courseID: course._id, capacity: 3, startTime: '10:00', startDate: new Date('2030-02-01') });
         reservationService.createReservation.mockResolvedValue({ _id: 'booking-id' });
+        stripe.paymentIntents.retrieve.mockResolvedValue({
+            status: 'succeeded',
+            amount: 2500,
+            metadata: { courseID: String(course._id), timeslotID: String(slot._id), studentUserName: 'testuser', guests: '1' },
+        });
 
         const res = await request(app)
             .post('/api/bookings/createBooking')
             .set('Authorization', `Bearer ${jwt.sign({ userName: student.userName }, process.env.ACCESS_TOKEN_SECRET)}`)
-            .send({ courseTimeslotID: String(slot._id), courseID: String(course._id), numberOfGuests: 1 })
+            .send({ courseTimeslotID: String(slot._id), courseID: String(course._id), numberOfGuests: 1, paymentIntentID: 'pi_123' })
             .expect(200);
 
         expect(res.body.message).toBe('Booking created successfully');
-        expect(reservationService.createReservation).toHaveBeenCalledWith(expect.objectContaining({ studentUserName: 'testuser', total: 25 }));
+        expect(reservationService.createReservation).toHaveBeenCalledWith(expect.objectContaining({ studentUserName: 'testuser', total: 25, paymentIntentID: 'pi_123', status: 'confirmed' }));
     });
 
     test('POST /api/bookings/createBooking - invalid token is rejected', async () => {

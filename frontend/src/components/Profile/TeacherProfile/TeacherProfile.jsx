@@ -25,6 +25,8 @@ import { PremiumCard } from "../../../ui/PremiumCard";
 import { PremiumButton } from "../../../ui/PremiumButton";
 import { PremiumSkeleton, PremiumEmptyState } from "../../../ui/PremiumFeedback";
 import useStartChat from '../../../hooks/useStartChat';
+import { isBookingUpcoming } from '../../../utils/bookingStatus';
+import { formatClockTime, formatSessionDate } from '../../../utils/sessionTime';
 
 const handleJsonResponse = async (res) => {
   if (!res.ok) {
@@ -255,7 +257,7 @@ const TeacherProfile = (props) => {
             <PremiumSectionHeader title="Your Upcoming Sessions" subtitle="Manage your upcoming studio visits." />
             <Grid container spacing={3}>
               {bookings
-                .filter(b => new Date(b.date) > new Date())
+                .filter(b => isBookingUpcoming(b))
                 .map(booking => (
                   <Grid item xs={12} md={6} key={booking._id}>
                     <PremiumCard component={Link} to={`/teacher/bookings/${booking?._id}`} sx={{ textDecoration: 'none' }}>
@@ -264,7 +266,7 @@ const TeacherProfile = (props) => {
                         <Box sx={{ flex: 1 }}>
                           <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>{booking?.courseID?.courseTitle}</Typography>
                           <Typography variant="caption" color="text.secondary">
-                            {new Date(booking.date).toLocaleDateString()} at {booking.time}
+                            {formatSessionDate(booking.date || '')} at {formatClockTime(booking.time) || booking.time}
                           </Typography>
                         </Box>
                         <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main' }}>${booking.total}</Typography>

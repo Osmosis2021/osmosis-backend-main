@@ -22,6 +22,9 @@ import { PremiumCard } from '../../ui/PremiumCard';
 import { PremiumSectionHeader } from '../../ui/PremiumSectionHeader';
 import { PremiumBackButton } from '../../ui/PremiumBackButton';
 import useStartChat from '../../hooks/useStartChat';
+import { Alert } from '@mui/material';
+import { bookingStatusChip, isBookingCancelled, refundMessage } from '../../utils/bookingStatus';
+import { formatClockTime, formatSessionDate } from '../../utils/sessionTime';
 
 function SingleBookingPageForStudent() {
     const axiosPrivate = useAxiosPrivate();
@@ -60,15 +63,7 @@ function SingleBookingPageForStudent() {
 
     const handleMessageHost = () => startChat(booking?.teacherID?._id, { personLabel: 'this host' });
 
-    const formatDate = (dateStr) => {
-        if (!dateStr) return '';
-        return new Date(dateStr).toLocaleDateString(undefined, {
-            weekday: 'long',
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric'
-        });
-    };
+    const formatDate = (dateStr) => formatSessionDate(dateStr || '', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
     if (isLoading) return (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#FAFAFA' }}>
@@ -95,11 +90,16 @@ function SingleBookingPageForStudent() {
 
                 <Grid container spacing={4}>
                     <Grid item xs={12} md={8}>
+                        {isBookingCancelled(booking) && (
+                            <Alert severity="warning" sx={{ mb: 3, borderRadius: '12px' }}>
+                                <strong>The host cancelled this session.</strong> {refundMessage(booking)}
+                            </Alert>
+                        )}
                         <PremiumCard sx={{ p: 4, mb: 4 }}>
                             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
                                 <Chip
-                                    label="Confirmed"
-                                    color="success"
+                                    label={bookingStatusChip(booking).label}
+                                    color={bookingStatusChip(booking).color}
                                     sx={{ fontWeight: 800, borderRadius: 2 }}
                                 />
                                 <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
@@ -133,7 +133,7 @@ function SingleBookingPageForStudent() {
                                                         {formatDate(booking.date)}
                                                     </Typography>
                                                     <Typography variant="body2" color="text.secondary">
-                                                        at {booking.time}
+                                                        at {formatClockTime(booking.time) || booking.time}
                                                     </Typography>
                                                 </Box>
                                             </Stack>
