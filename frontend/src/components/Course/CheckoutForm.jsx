@@ -59,7 +59,9 @@ export default function CheckoutForm({ clientSecret, bookThisCourse, onBookingSu
           }
         } catch (bookingErr) {
           console.error("Booking API error:", bookingErr);
-          setMessage("Payment processed, but booking confirmation failed. Please save your receipt.");
+          // The server explains what happened (e.g. the last spot was taken and the payment refunded).
+          setMessage(bookingErr.response?.data?.message
+            || "Your payment went through, but we couldn't confirm the booking right away. We'll email your confirmation shortly; contact support if it doesn't arrive.");
           setIsProcessing(false);
         }
       }

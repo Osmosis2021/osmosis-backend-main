@@ -1,10 +1,91 @@
 const Course = require('../models/course');
 const CourseTimeslot = require('../models/courseTimeslot');
 const { PUBLIC_FIELDS } = require('../models/user');
-const { INACTIVE_STATUSES } = require('./sessionTime');
+const Booking = require('../models/booking');
+const { INACTIVE_STATUSES, DEFAULT_TIMEZONE, effectiveStartAt } = require('./sessionTime');
 
-const getAllListings = async () => {
-    return await Course.find().populate('teacherID', PUBLIC_FIELDS);
+// Upcoming, still-bookable sessions for the given courses, keyed by course id and sorted by start.
+const upcomingSessionsByCourse = async (courses) => {
+    const ids = courses.map((c) => c._id);
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const candidates = await CourseTimeslot.find({
+        courseID: { $in: ids },
+        status: { $nin: INACTIVE_STATUSES },
+        $or: [{ startAt: { $gt: new Date() } }, { startAt: { $exists: false }, startDate: { $gte: oneDayAgo } }],
+    });
+    const timezoneOf = new Map(courses.map((c) => [String(c._id), c.timezone]));
+    const now = Date.now();
+    const byCourse = new Map();
+    candidates.forEach((slot) => {
+        const start = effectiveStartAt(slot, timezoneOf.get(String(slot.courseID)) || DEFAULT_TIMEZONE);
+        if (!start || start.getTime() <= now) return;
+        const key = String(slot.courseID);
+        if (!byCourse.has(key)) byCourse.set(key, []);
+        byCourse.get(key).push({ slot, start });
+    });
+    byCourse.forEach((list) => list.sort((a, b) => a.start - b.start));
+    return byCourse;
+};
+
+/**
+ * All listings, each with `nextSession` (the soonest session with spots left, or null)
+ * and `upcomingSessionCount`, so browse pages can show dates and skip dead ends.
+ */
+const getAllListings = async () => withNextSessions(await Course.find().populate('teacherID', PUBLIC_FIELDS));
+
+const withNextSessions = async (courses) => {
+    const sessions = await upcomingSessionsByCourse(courses);
+    return courses.map((course) => {
+        const upcoming = sessions.get(String(course._id)) || [];
+        const open = upcoming.find(({ slot }) => (slot.enrollment || 0) < (slot.capacity || 1));
+        return {
+            ...course.toJSON(),
+            upcomingSessionCount: upcoming.length,
+            nextSession: open ? {
+                _id: open.slot._id,
+                startAt: open.start,
+                startDate: open.slot.startDate,
+                startTime: open.slot.startTime,
+                timezone: open.slot.timezone || course.timezone,
+                spotsLeft: (open.slot.capacity || 1) - (open.slot.enrollment || 0),
+            } : null,
+        };
+    });
+};
+
+/**
+ * Public, real numbers for a host's profile (nothing made up): past sessions that had guests,
+ * guests hosted, and reviews across their listings.
+ */
+const getHostStats = async (userName) => {
+    const courses = await Course.find({ userName }).select('_id feedback timezone addressDetails');
+    const ratings = courses.flatMap((c) => (c.feedback || []).map((f) => Number(f.rating)).filter((r) => r > 0));
+    const pastSessions = (await CourseTimeslot.find({
+        courseID: { $in: courses.map((c) => c._id) },
+        status: { $nin: INACTIVE_STATUSES },
+        enrollment: { $gt: 0 },
+    })).filter((slot) => {
+        const start = effectiveStartAt(slot, DEFAULT_TIMEZONE);
+        return start && start.getTime() < Date.now();
+    });
+    const pastSessionIds = new Set(pastSessions.map((s) => String(s._id)));
+    const bookings = await Booking.find({
+        teacherUserName: userName,
+        status: { $nin: ['cancelled', 'cancelled by host'] },
+    }).select('courseTimeslotID numberOfGuests');
+    const guestsHosted = bookings
+        .filter((b) => pastSessionIds.has(String(b.courseTimeslotID)))
+        .reduce((sum, b) => sum + (b.numberOfGuests || 0), 0);
+    const city = courses.map((c) => c.addressDetails?.city).find(Boolean) || null;
+
+    return {
+        listings: courses.length,
+        sessionsHosted: pastSessions.length,
+        guestsHosted,
+        reviewCount: ratings.length,
+        averageRating: ratings.length ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10 : null,
+        city,
+    };
 };
 
 const getListingsByLocation = async (latitude, longitude) => {
@@ -18,9 +99,7 @@ const getListingsByLocation = async (latitude, longitude) => {
     });
 };
 
-const getListingsByHost = async (userName) => {
-    return await Course.find({ userName });
-};
+const getListingsByHost = async (userName) => withNextSessions(await Course.find({ userName }));
 
 const getListingById = async (id) => {
     const listing = await Course.findById(id).populate('feedback.studentID', PUBLIC_FIELDS);
@@ -40,6 +119,7 @@ const getListingById = async (id) => {
 
 module.exports = {
     getAllListings,
+    getHostStats,
     getListingsByLocation,
     getListingsByHost,
     getListingById

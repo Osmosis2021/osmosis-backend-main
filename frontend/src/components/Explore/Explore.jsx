@@ -1,99 +1,147 @@
-import { Container, Grid, Box, Button } from '@mui/material';
-import React, { useState, useEffect } from 'react';
+import { Alert, Box, Button, Container, Grid, Skeleton, Stack, Typography } from '@mui/material';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 import SessionCard from '../SessionCard/SessionCard';
-import axios from 'axios';
-import useStore from "../../store"
-import { useNavigate, useLocation } from 'react-router-dom';
+import axios from '../../actions/axios';
+import useStore from '../../store';
 import { PremiumSectionHeader } from '../../ui/PremiumSectionHeader';
-import { PremiumSkeleton, PremiumEmptyState } from '../../ui/PremiumFeedback';
 import OpeningMap from '../OpeningMap/openingMap';
 import MapIcon from '@mui/icons-material/Map';
 import ViewListIcon from '@mui/icons-material/ViewList';
+import EventBusyIcon from '@mui/icons-material/EventBusy';
+import { sessionStart } from '../../utils/sessionTime';
+
+const CardSkeleton = () => (
+    <Box aria-hidden>
+        <Skeleton variant="rounded" height={200} sx={{ borderRadius: '16px 16px 0 0' }} />
+        <Box sx={{ p: 2.5 }}>
+            <Skeleton width="80%" height={28} />
+            <Skeleton width="45%" />
+            <Skeleton width="65%" sx={{ mt: 1 }} />
+        </Box>
+    </Box>
+);
 
 export default function Explore() {
-    const { backendURL } = useStore()
+    const { isTeacher, userName } = useStore();
     const [classes, setClasses] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [status, setStatus] = useState('loading'); // loading | ready | error
     const [view, setView] = useState('list'); // 'list' or 'map'
-    const navigate = useNavigate()
-    const location = useLocation()
+    const location = useLocation();
 
-    useEffect(() => {
-        setLoading(true);
-        axios.get(`${backendURL}course/getClasses`)
-            .then(response => {
-                setClasses(response.data);
-                setLoading(false);
-            })
-            .catch(err => {
-                console.error(err);
-                setLoading(false);
-            });
-    }, [backendURL]);
+    const load = useCallback(async () => {
+        setStatus('loading');
+        try {
+            const { data } = await axios.get('course/getClasses');
+            setClasses(Array.isArray(data) ? data : []);
+            setStatus('ready');
+        } catch (err) {
+            console.error(err);
+            setStatus('error');
+        }
+    }, []);
+
+    useEffect(() => { load(); }, [load]);
 
     // Check query param for initial view
     useEffect(() => {
         const params = new URLSearchParams(location.search);
-        const viewParam = params.get('view');
-        if (viewParam === 'map') setView('map');
+        if (params.get('view') === 'map') setView('map');
     }, [location.search]);
 
-    const handleToggleView = () => {
-        const nextView = view === 'list' ? 'map' : 'list';
-        setView(nextView);
-        // Optionally update URL without full navigate if wanted, but simpler to just toggle local state
+    // Listings you can book first (soonest date first), then ones waiting for new dates.
+    const sorted = useMemo(() => [...classes].sort((a, b) => {
+        if (Boolean(a.nextSession) !== Boolean(b.nextSession)) return a.nextSession ? -1 : 1;
+        if (!a.nextSession) return 0;
+        return sessionStart(a.nextSession) - sessionStart(b.nextSession);
+    }), [classes]);
+
+    const renderList = () => {
+        if (status === 'loading') {
+            return (
+                <Grid container spacing={3} aria-busy="true" aria-label="Loading studio times">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <Grid item xs={12} sm={6} md={4} lg={3} key={i}><CardSkeleton /></Grid>
+                    ))}
+                </Grid>
+            );
+        }
+        if (status === 'error') {
+            return (
+                <Alert
+                    severity="error"
+                    sx={{ borderRadius: '12px', maxWidth: 560, mx: 'auto' }}
+                    action={<Button color="inherit" size="small" onClick={load}>Try again</Button>}
+                >
+                    We couldn't load studio times. Check your connection and try again.
+                </Alert>
+            );
+        }
+        if (sorted.length === 0) {
+            return (
+                <Stack alignItems="center" spacing={1.5} sx={{ py: 8, px: 3, textAlign: 'center', border: '1px dashed', borderColor: 'divider', borderRadius: '16px' }}>
+                    <EventBusyIcon sx={{ fontSize: 44, color: 'text.disabled' }} aria-hidden />
+                    <Typography variant="h6" component="h2" sx={{ fontWeight: 700 }}>No studio times yet</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 380 }}>
+                        Artists are getting their studios ready. Check back soon, or follow us on Instagram to hear when new sessions open.
+                    </Typography>
+                    {isTeacher && userName && (
+                        <Button component={RouterLink} to="/flow" variant="contained" sx={{ mt: 1, textTransform: 'none', fontWeight: 700, borderRadius: '12px' }}>
+                            Host the first studio time
+                        </Button>
+                    )}
+                </Stack>
+            );
+        }
+        return (
+            <Grid container spacing={3}>
+                {sorted.map(course => (
+                    <Grid item xs={12} sm={6} md={4} lg={3} key={course?._id}>
+                        <Box
+                            component={RouterLink}
+                            to={`/teachers/${course?.teacherID?.userName || course?.userName}/${course?._id}`}
+                            aria-label={`${course?.courseTitle} with ${course?.teacherID?.firstName || 'artist'}, $${course?.pricePerStudent} per guest`}
+                            sx={{
+                                display: 'block',
+                                height: '100%',
+                                color: 'inherit',
+                                textDecoration: 'none',
+                                borderRadius: '16px',
+                                '&:focus-visible': { outline: '3px solid', outlineColor: 'primary.main', outlineOffset: 3 },
+                            }}
+                        >
+                            <SessionCard
+                                images={course?.images?.[0]?.url}
+                                industry={course?.industry}
+                                courseTitle={course?.courseTitle}
+                                firstName={course?.teacherID?.firstName}
+                                lastName={course?.teacherID?.lastName}
+                                tags={course?.tags}
+                                price={course?.pricePerStudent}
+                                icon={course?.industry}
+                                profileImage={course?.teacherID?.profileImage?.url}
+                                capacity={course?.capacity}
+                                duration={course?.duration}
+                                city={course?.addressDetails?.city || course?.city}
+                                nextSession={course?.nextSession ?? null}
+                            />
+                        </Box>
+                    </Grid>
+                ))}
+            </Grid>
+        );
     };
 
     return (
         <Box sx={{ position: 'relative', minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
             {view === 'list' ? (
-                <Container sx={{ py: 6, flexGrow: 1 }}>
+                <Container sx={{ py: { xs: 4, md: 6 }, pb: 16, flexGrow: 1 }}>
                     <PremiumSectionHeader
                         title="Book Studio Time"
-                        subtitle="Explore sessions hosted by local artists."
+                        subtitle="Step inside real artists' studios and make something with them."
                         align="center"
                     />
-
-                    {loading ? (
-                        <Grid container spacing={3}>
-                            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                                <Grid item xs={12} sm={6} md={4} lg={3} key={i}>
-                                    <PremiumSkeleton height={320} />
-                                </Grid>
-                            ))}
-                        </Grid>
-                    ) : classes?.length > 0 ? (
-                        <Grid container spacing={3}>
-                            {classes.map(course => (
-                                <Grid item xs={12} sm={6} md={4} lg={3} key={course?._id}>
-                                    <Box
-                                        onClick={() => navigate(`/teachers/${course?.teacherID?.userName}/${course?._id}`)}
-                                        sx={{ cursor: 'pointer', height: '100%' }}
-                                    >
-                                        <SessionCard
-                                            images={course?.images?.[0]?.url}
-                                            industry={course?.industry}
-                                            courseTitle={course?.courseTitle}
-                                            firstName={course?.teacherID?.firstName}
-                                            lastName={course?.teacherID?.lastName}
-                                            tags={course?.tags}
-                                            price={course?.pricePerStudent}
-                                            icon={course?.industry}
-                                            profileImage={course?.teacherID?.profileImage?.url}
-                                            capacity={course?.capacity}
-                                            duration={course?.duration}
-                                            city={course?.addressDetails?.city || course?.city}
-                                        />
-                                    </Box>
-                                </Grid>
-                            ))}
-                        </Grid>
-                    ) : (
-                        <PremiumEmptyState
-                            title="No sessions found"
-                            message="Check back later or try adjusting your filters."
-                        />
-                    )}
+                    {renderList()}
                 </Container>
             ) : (
                 <Box sx={{ flexGrow: 1, position: 'relative', height: '100%' }}>
@@ -105,7 +153,7 @@ export default function Explore() {
             <Box
                 sx={{
                     position: 'fixed',
-                    bottom: { xs: 'calc(80px + env(safe-area-inset-bottom))', md: 32 },
+                    bottom: { xs: 'calc(100px + env(safe-area-inset-bottom))', md: 32 },
                     left: '50%',
                     transform: 'translateX(-50%)',
                     zIndex: 1400,
@@ -113,8 +161,9 @@ export default function Explore() {
                 }}
             >
                 <Button
-                    onClick={handleToggleView}
+                    onClick={() => setView(view === 'list' ? 'map' : 'list')}
                     variant="contained"
+                    aria-label={view === 'list' ? 'Show studio times on a map' : 'Show studio times as a list'}
                     sx={{
                         pointerEvents: 'auto',
                         bgcolor: 'text.primary',
@@ -125,11 +174,7 @@ export default function Explore() {
                         textTransform: 'none',
                         fontWeight: 600,
                         boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                        '&:hover': {
-                            bgcolor: 'rgba(0,0,0,0.85)',
-                            transform: 'translateY(-2px)'
-                        },
-                        transition: 'all 0.2s',
+                        '&:hover': { bgcolor: 'rgba(0,0,0,0.85)' },
                         display: 'flex',
                         alignItems: 'center',
                         gap: 1

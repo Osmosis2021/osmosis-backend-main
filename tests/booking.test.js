@@ -44,6 +44,7 @@ describe('Booking Routes', () => {
         const slot = await CourseTimeslot.create({ courseID: course._id, capacity: 3, startTime: '10:00', startDate: new Date('2030-02-01') });
         reservationService.createReservation.mockResolvedValue({ _id: 'booking-id' });
         stripe.paymentIntents.retrieve.mockResolvedValue({
+            id: 'pi_123',
             status: 'succeeded',
             amount: 2500,
             metadata: { courseID: String(course._id), timeslotID: String(slot._id), studentUserName: 'testuser', guests: '1' },

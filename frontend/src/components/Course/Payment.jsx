@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import { Alert, Button, Skeleton, Stack } from "@mui/material";
 import CheckoutForm from "./CheckoutForm";
 import useStore from "../../store";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
@@ -15,6 +16,11 @@ const getStripe = (backendURL) => {
             .then(data => {
                 if (!data?.publishableKey) throw new Error("Missing publishableKey");
                 return loadStripe(data.publishableKey);
+            })
+            .catch((err) => {
+                // Don't cache a failure; the next attempt should try again.
+                stripePromiseCache = null;
+                throw err;
             });
     }
     return stripePromiseCache;
@@ -23,6 +29,8 @@ const getStripe = (backendURL) => {
 export default function Payment(props) {
     const [stripePromise, setStripePromise] = useState(null);
     const [clientSecret, setClientSecret] = useState("");
+    const [loadError, setLoadError] = useState("");
+    const [attempt, setAttempt] = useState(0);
 
     const { backendURL, paymentMethodID } = useStore();
     const axiosPrivate = useAxiosPrivate();
@@ -39,10 +47,12 @@ export default function Payment(props) {
         let isMounted = true;
 
         async function init() {
+            setLoadError("");
+            setClientSecret("");
             try {
                 // Validation: Host must have Stripe ID
                 if (!props?.stripeID) {
-                    console.error("Missing Host Stripe ID - Cannot process payment");
+                    setLoadError("This artist hasn't finished setting up payments yet, so this session can't be booked online.");
                     return;
                 }
 
@@ -57,6 +67,10 @@ export default function Payment(props) {
                 if (isMounted) setClientSecret(intentData.clientSecret);
             } catch (err) {
                 console.error("Error initializing Stripe payment:", err);
+                if (isMounted) {
+                    setLoadError(err.response?.data?.error || err.response?.data?.message
+                        || "We couldn't load the payment form. Check your connection and try again.");
+                }
             }
         }
 
@@ -65,7 +79,7 @@ export default function Payment(props) {
         return () => {
             isMounted = false;
         };
-    }, [backendURL, props?.stripeID, requestBody, axiosPrivate]);
+    }, [backendURL, props?.stripeID, requestBody, axiosPrivate, attempt]);
 
     // ✅ Styling for PaymentElement lives HERE:
     const elementsOptions = useMemo(() => {
@@ -110,7 +124,29 @@ export default function Payment(props) {
         };
     }, [clientSecret]);
 
-    if (!stripePromise || !clientSecret || !elementsOptions) return null;
+    if (loadError) {
+        return (
+            <Alert
+                severity="error"
+                role="alert"
+                sx={{ borderRadius: 2 }}
+                action={props?.stripeID ? <Button color="inherit" size="small" onClick={() => setAttempt((n) => n + 1)}>Try again</Button> : undefined}
+            >
+                {loadError}
+            </Alert>
+        );
+    }
+
+    if (!stripePromise || !clientSecret || !elementsOptions) {
+        return (
+            <Stack spacing={2} aria-busy="true" aria-label="Loading secure payment form">
+                <Skeleton variant="rounded" height={52} sx={{ borderRadius: 2 }} />
+                <Skeleton variant="rounded" height={52} sx={{ borderRadius: 2 }} />
+                <Skeleton variant="rounded" height={52} sx={{ borderRadius: 2 }} />
+                <Skeleton variant="rounded" height={56} sx={{ borderRadius: 3 }} />
+            </Stack>
+        );
+    }
 
     return (
         <Elements stripe={stripePromise} options={elementsOptions}>

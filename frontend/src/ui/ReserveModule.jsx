@@ -7,7 +7,7 @@ import DateDrawer, { timeConverter } from '../components/DateDrawer/DateDrawer';
 import PayPopUp from '../components/Course/PayPopUp';
 import TERMS from '../constants/terms';
 import { PremiumCard } from './PremiumCard';
-import { formatSessionDate, isUpcomingSession, sessionStart } from '../utils/sessionTime';
+import { formatDuration, formatSessionDate, isUpcomingSession, sessionStart } from '../utils/sessionTime';
 
 export const ReserveModule = ({
     courseData,
@@ -38,6 +38,11 @@ export const ReserveModule = ({
             .slice(0, 3);
     }, [courseData?.schedule]);
 
+    const hasUpcoming = useMemo(() => (courseData?.schedule || []).some((slot) => isUpcomingSession(slot)), [courseData?.schedule]);
+    const selectedSlot = courseData?.schedule?.find((slot) => slot._id === selectedTimeslotID);
+    const spotsLeft = Math.max(0, (selectedSlot?.capacity ?? courseData.capacity ?? 0) - (selectedEnrollment || 0));
+    const sessionCapacity = selectedSlot?.capacity ?? courseData.capacity;
+
     const handleQuickSelect = (slot) => {
         setSelectedDateAndTime({ startDate: slot.startDate, startTime: slot.startTime });
         setSelectedTimeslotID(slot._id);
@@ -60,9 +65,19 @@ export const ReserveModule = ({
 
             <Stack spacing={3}>
                 <Box>
+                    {!hasUpcoming && (
+                        <Box sx={{ p: 2, mb: 1, borderRadius: 2, border: '1px dashed', borderColor: 'divider', textAlign: 'center' }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>No upcoming dates right now</Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                The artist hasn't opened new sessions yet. Message them to ask when they're hosting next.
+                            </Typography>
+                        </Box>
+                    )}
+                    {hasUpcoming && (
                     <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', color: 'text.secondary', mb: 1.5, display: 'block', letterSpacing: 1 }}>
                         Next Available
                     </Typography>
+                    )}
                     <Stack direction="row" spacing={1} sx={{ mb: 2, overflowX: 'auto', pb: 1 }}>
                         {nextAvailableSlots.map((slot) => (
                             <Chip
@@ -102,7 +117,7 @@ export const ReserveModule = ({
                         </Typography>
                         {selectedDateAndTime?.startDate && (
                             <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                                {courseData.capacity - selectedEnrollment} spots left
+                                {spotsLeft} {spotsLeft === 1 ? 'spot' : 'spots'} left
                             </Typography>
                         )}
                     </Stack>
@@ -120,14 +135,16 @@ export const ReserveModule = ({
                         <Button
                             onClick={decreaseGuests}
                             disabled={guestsEntered <= 1}
+                            aria-label="Remove a guest"
                             sx={{ minWidth: 44, height: 44, borderRadius: 2, bgcolor: 'white', border: '1px solid #E0E0E0', color: 'text.primary' }}
                         >
                             <RemoveIcon fontSize="small" />
                         </Button>
-                        <Typography variant="h6" sx={{ fontWeight: 800 }}>{guestsEntered}</Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 800 }} aria-live="polite" aria-label={`${guestsEntered} ${guestsEntered === 1 ? 'guest' : 'guests'}`}>{guestsEntered}</Typography>
                         <Button
                             onClick={increaseGuests}
-                            disabled={guestsEntered + selectedEnrollment >= courseData.capacity}
+                            disabled={guestsEntered + selectedEnrollment >= sessionCapacity}
+                            aria-label="Add a guest"
                             sx={{ minWidth: 44, height: 44, borderRadius: 2, bgcolor: 'white', border: '1px solid #E0E0E0', color: 'text.primary' }}
                         >
                             <AddIcon fontSize="small" />
@@ -174,7 +191,7 @@ export const ReserveModule = ({
                     fullWidth
                 />
                 <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block', textAlign: 'center' }}>
-                    You won't be charged yet
+                    You'll see the full price and session details before you pay.
                 </Typography>
             </Box>
         </Stack>
@@ -201,7 +218,7 @@ export const ReserveModule = ({
                             ${courseData.pricePerStudent}
                         </Typography>
                         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                            {courseData.duration || 60} mins • {formatDate(selectedDateAndTime?.startDate) || 'Select date'}
+                            {formatDuration(courseData.duration || 60)} • {selectedDateAndTime?.startDate ? formatDate(selectedDateAndTime.startDate) : hasUpcoming ? 'Choose a date' : 'No dates yet'}
                         </Typography>
                     </Box>
                     <PremiumButton

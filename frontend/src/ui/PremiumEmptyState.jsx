@@ -2,9 +2,14 @@ import React from 'react';
 import { Box, Typography, Stack } from '@mui/material';
 import { PremiumButton } from './PremiumButton';
 
+/**
+ * Empty state: title, explanation and an optional action.
+ * (`message` is accepted as an alias of `subtitle`.)
+ */
 export const PremiumEmptyState = ({
     title,
     subtitle,
+    message,
     icon,
     actionLabel,
     onAction,
@@ -33,7 +38,7 @@ export const PremiumEmptyState = ({
                         {title}
                     </Typography>
                     <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 400, mx: 'auto' }}>
-                        {subtitle}
+                        {subtitle || message}
                     </Typography>
                 </Box>
                 {actionLabel && (

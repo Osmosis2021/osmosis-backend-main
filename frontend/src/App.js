@@ -20,15 +20,11 @@ import EditProfile from './components/Profile/EditProfile';
 import Explore from './components/Explore/Explore';
 import EditCourse from './components/Profile/TeacherProfile/EditCourse';
 import EditPhotos from './components/Profile/TeacherProfile/EditPhotos';
-import Confirm from './components/Course/Confirm';
 import BookingPage from './components/Booking/BookingPage';
 import SingleBookingPage from './components/Booking/SingleBookingPage';
 import TermsOfService from './components/Settings/TermsOfService';
-import Payment from './components/Course/Payment';
 import SingleBookingPageForStudent from './components/Booking/SingleBookingPageForStudent';
 import Privacy from './components/Settings/Privacy';
-import { Elements } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
 import OrdersAndPayments from './components/Profile/OrdersAndPayments';
 import Chat from './components/Chat/Chat';
 import Layout from './Layout'
@@ -41,30 +37,6 @@ import { ToastProvider, ConfirmProvider } from './ui/feedback';
 axios.defaults.withCredentials = true;
 
 function App() {
-	let stripePromise
-	if (process.env.NODE_ENV === 'production') {
-		stripePromise = loadStripe(process.env.STRIPE_PUBLISHABLE_KEY)
-	} else {
-		stripePromise = loadStripe(process.env.STRIPE_PUBLISHABLE_TEST_KEY)
-	}
-	// const [isAuthenticating, setIsAuthenticating] = useState(true);
-	// const {setAuth, persist, setPersist} = useAuth()
-
-	// // Effectively persist the user login by checking for it in this top-level component
-	// useEffect(async () => {
-	// 	const authResult = await axios.get(`user/persistCheck`, 
-	// 		{headers: {'Content-Type': 'application/json'}, withCredentials: true})
-	// 	if (authResult) {
-	// 		setAuth(authResult);
-	// 	}
-	// 	setIsAuthenticating(false);
-
-	// 	if (isAuthenticating) {
-	// 		return null; // or loading or whatever
-	// 	}
-	// }, [])
-
-
 	return (
 		<ThemeProvider theme={theme}>
 			<CssBaseline />
@@ -102,12 +74,6 @@ function App() {
 							<Route path='/ordersandpayments' element={<OrdersAndPayments />} />
 							<Route path='/bookings' element={<BookingPage />} />
 							<Route path='/calendar' element={<Calendar />} />
-							<Route path='/payment' element={<Payment />} />
-							<Route path='/confirm' element={
-								<Elements stripe={stripePromise}>
-									<Confirm />
-								</Elements>
-							} />
 							<Route path='/usersonly' element={<p>This pages is for users only (teachers and students).</p>} />
 						</Route>
 

@@ -6,14 +6,14 @@ import {
   Grid,
   Typography,
   Stack,
-  IconButton
+  IconButton,
+  Chip
 } from "@mui/material";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import SessionCard from "../../SessionCard/SessionCard";
 import React, { useState, useEffect } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
-import VerifiedIcon from '@mui/icons-material/Verified';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MessageIcon from '@mui/icons-material/Message';
 import useStore from "../../../store";
@@ -25,6 +25,7 @@ import { PremiumCard } from "../../../ui/PremiumCard";
 import { PremiumButton } from "../../../ui/PremiumButton";
 import { PremiumSkeleton, PremiumEmptyState } from "../../../ui/PremiumFeedback";
 import useStartChat from '../../../hooks/useStartChat';
+import axios from '../../../actions/axios';
 import { isBookingUpcoming } from '../../../utils/bookingStatus';
 import { formatClockTime, formatSessionDate } from '../../../utils/sessionTime';
 
@@ -108,6 +109,17 @@ const TeacherProfile = (props) => {
   }, [pageUserName, backendURL]);
 
   const [isOnboarded, setIsOnboarded] = useState(false);
+  const [stats, setStats] = useState(null);
+
+  // Real, public numbers for this host (no placeholders).
+  useEffect(() => {
+    let cancelled = false;
+    setStats(null);
+    axios.get(`course/hostStats/${pageUserName}`)
+      .then(({ data }) => { if (!cancelled) setStats(data); })
+      .catch(() => { if (!cancelled) setStats(null); });
+    return () => { cancelled = true; };
+  }, [pageUserName]);
 
   useEffect(() => {
     if (teacherInfo?.stripeID) {
@@ -152,24 +164,32 @@ const TeacherProfile = (props) => {
                     <Typography variant="h3" sx={{ fontWeight: 800, fontFamily: 'Outfit, sans-serif' }}>
                       {teacherInfo.firstName} {teacherInfo.lastName}
                     </Typography>
-                    <VerifiedIcon color="primary" sx={{ fontSize: 28 }} />
                   </Stack>
-                  <Stack direction="row" spacing={2} color="text.secondary">
-                    <Stack direction="row" spacing={0.5} alignItems="center">
-                      <LocationOnIcon fontSize="small" />
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                        {teacherInfo.city || 'Brooklyn, NY'}
-                      </Typography>
-                    </Stack>
+                  <Stack direction="row" spacing={2} color="text.secondary" flexWrap="wrap" useFlexGap>
+                    {stats?.city && (
+                      <Stack direction="row" spacing={0.5} alignItems="center">
+                        <LocationOnIcon fontSize="small" aria-hidden />
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                          {stats.city}
+                        </Typography>
+                      </Stack>
+                    )}
                     <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                       @{teacherInfo.userName}
                     </Typography>
                   </Stack>
                 </Box>
 
-                <Typography variant="body1" sx={{ maxWidth: 600, color: 'text.secondary', lineHeight: 1.7 }}>
-                  {teacherInfo.description || "Artist and educator sharing the creative process with the community."}
-                </Typography>
+                {teacherInfo.description ? (
+                  <Typography variant="body1" sx={{ maxWidth: 600, color: 'text.secondary', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                    {teacherInfo.description}
+                  </Typography>
+                ) : isOwnProfile && (
+                  <Typography variant="body2" color="text.secondary">
+                    Add a short bio so guests get to know you before they book.{' '}
+                    <Link to="/edit" style={{ color: 'inherit', fontWeight: 700 }}>Add bio</Link>
+                  </Typography>
+                )}
 
                 <Stack direction="row" spacing={2}>
                   {!isOwnProfile && (
@@ -208,25 +228,31 @@ const TeacherProfile = (props) => {
             </Grid>
           </Grid>
 
-          {/* Stats Row */}
-          <Grid container spacing={4} sx={{ mt: 4 }}>
-            {[
-              { label: 'Sessions Hosted', value: bookings.length },
-              { label: 'Avg Rating', value: '4.9' },
-              { label: 'Response Time', value: '< 2 hrs' }
-            ].map((stat, i) => (
-              <Grid item xs={4} key={i}>
-                <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#F9F9F9', borderRadius: 4 }}>
-                  <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>
-                    {stat.value}
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase' }}>
-                    {stat.label}
-                  </Typography>
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
+          {/* Stats: only real numbers; brand-new hosts get a simple badge instead of zeros */}
+          {stats && (stats.sessionsHosted > 0 || stats.reviewCount > 0) ? (
+            <Grid container spacing={2} sx={{ mt: 4 }}>
+              {[
+                { label: stats.sessionsHosted === 1 ? 'Session hosted' : 'Sessions hosted', value: stats.sessionsHosted },
+                { label: stats.guestsHosted === 1 ? 'Guest hosted' : 'Guests hosted', value: stats.guestsHosted },
+                stats.reviewCount > 0
+                  ? { label: `Rating · ${stats.reviewCount} ${stats.reviewCount === 1 ? 'review' : 'reviews'}`, value: `★ ${stats.averageRating}` }
+                  : { label: 'Reviews', value: 'None yet' },
+              ].map((stat) => (
+                <Grid item xs={4} key={stat.label}>
+                  <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#F9F9F9', borderRadius: 4, height: '100%' }}>
+                    <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>
+                      {stat.value}
+                    </Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase' }}>
+                      {stat.label}
+                    </Typography>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+          ) : stats && (
+            <Chip label="New host on Studio Time" sx={{ mt: 3, fontWeight: 700 }} />
+          )}
         </Container>
       </Box>
 
@@ -324,6 +350,8 @@ const TeacherProfile = (props) => {
                         city={course.addressDetails?.city || course.city}
                         zipCode={course.addressDetails?.zipCode || course.zipCode}
                         address={course.addressDetails?.line1 || course.address}
+                        duration={course.duration}
+                        nextSession={course.nextSession ?? null}
                       />
                     </Link>
                   </Box>
@@ -332,10 +360,12 @@ const TeacherProfile = (props) => {
             </Grid>
           ) : (
             <PremiumEmptyState
-              title="No sessions yet"
-              subtitle={isOwnProfile ? "Start your hosting journey today." : "This artist hasn't posted any sessions yet."}
-              actionText={isOwnProfile ? "Create a Session" : null}
-              onAction={() => isOwnProfile && navigate('/flow')}
+              title={isOwnProfile ? "You haven't listed a studio time yet" : "No studio times yet"}
+              subtitle={isOwnProfile
+                ? "List your first studio time and share the link with your followers. It takes about 5 minutes."
+                : `${teacherInfo.firstName || 'This artist'} hasn't opened any sessions yet. Check back soon.`}
+              actionLabel={isOwnProfile ? "List your first studio time" : undefined}
+              onAction={() => navigate('/flow')}
             />
           )}
         </Box>

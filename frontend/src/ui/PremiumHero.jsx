@@ -5,6 +5,7 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import { industryIcon } from '../utils/industryIcon';
 
 const NextArrow = ({ onClick }) => (
     <IconButton
@@ -85,7 +86,7 @@ export const PremiumHero = ({ images, title, industry }) => {
                 }}
             >
                 <img
-                    src={require(`../assets/icons/${industry || 'Sharing'}.png`)}
+                    src={industryIcon(industry)}
                     alt={industry}
                     style={{ width: '80px', height: '80px', opacity: 0.3, marginBottom: '20px' }}
                 />

@@ -23,7 +23,8 @@ const Opening = () => {
 	const navigate = useNavigate()
 	const location = useLocation()
 	const startSession = useSession()
-	const from = location.state?.from?.pathname
+	// Where to return after logging in (keeps any query, e.g. a chosen session).
+	const from = location.state?.from ? `${location.state.from.pathname}${location.state.from.search || ''}` : undefined
 	const [identifier, setIdentifier] = useState('')
 	const [password, setPassword] = useState('')
 	const [showPassword, setShowPassword] = useState(false)

@@ -3,8 +3,11 @@ import { Avatar, Box, CardContent, CardMedia, Stack, Typography } from '@mui/mat
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PeopleIcon from '@mui/icons-material/People';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import { PremiumCard } from '../../ui/PremiumCard';
 import { PremiumChip } from '../../ui/PremiumChip';
+import { formatDuration, formatSessionDate, formatClockTime } from '../../utils/sessionTime';
+import { industryIcon } from '../../utils/industryIcon';
 
 function SessionCard(props) {
     const {
@@ -18,8 +21,14 @@ function SessionCard(props) {
         lastName,
         city,
         profileImage,
-        duration
+        duration,
+        nextSession,       // { startDate, startTime, spotsLeft } or null; undefined hides the line
     } = props;
+
+    const nextLine = nextSession === undefined ? null
+        : nextSession
+            ? `${formatSessionDate(nextSession, { weekday: 'short', month: 'short', day: 'numeric' })} · ${formatClockTime(nextSession.startTime)}${nextSession.spotsLeft <= 2 ? ` · ${nextSession.spotsLeft} ${nextSession.spotsLeft === 1 ? 'spot' : 'spots'} left` : ''}`
+            : 'New dates coming soon';
 
     const renderImage = () => {
         if (images) {
@@ -28,7 +37,7 @@ function SessionCard(props) {
                     component="img"
                     height="200"
                     image={images}
-                    alt={courseTitle}
+                    alt=""
                     sx={{
                         objectFit: 'cover',
                         transition: 'transform 0.5s ease',
@@ -52,7 +61,7 @@ function SessionCard(props) {
                 }}
             >
                 <img
-                    src={require(`../../assets/icons/${industry || 'Sharing'}.png`)}
+                    src={industryIcon(industry)}
                     alt={industry}
                     style={{ width: '48px', height: '48px', opacity: 0.5, marginBottom: '12px' }}
                 />
@@ -83,7 +92,7 @@ function SessionCard(props) {
                         boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                     }}
                 >
-                    ${price}
+                    ${price}<Box component="span" sx={{ fontWeight: 500, color: 'text.secondary', fontSize: '0.75rem' }}> / guest</Box>
                 </Box>
             </Box>
 
@@ -127,20 +136,33 @@ function SessionCard(props) {
                         }}
                     >
                         <Stack direction="row" spacing={0.5} alignItems="center">
-                            <AccessTimeIcon sx={{ fontSize: 16 }} />
-                            <Typography variant="inherit">{duration || 60}m</Typography>
+                            <AccessTimeIcon sx={{ fontSize: 16 }} aria-hidden />
+                            <Typography variant="inherit">{formatDuration(duration || 60)}</Typography>
                         </Stack>
-                        <Typography variant="inherit">•</Typography>
+                        <Typography variant="inherit" aria-hidden>•</Typography>
                         <Stack direction="row" spacing={0.5} alignItems="center">
-                            <PeopleIcon sx={{ fontSize: 16 }} />
-                            <Typography variant="inherit">{capacity}</Typography>
+                            <PeopleIcon sx={{ fontSize: 16 }} aria-hidden />
+                            <Typography variant="inherit">Up to {capacity}</Typography>
                         </Stack>
-                        <Typography variant="inherit">•</Typography>
-                        <Stack direction="row" spacing={0.5} alignItems="center">
-                            <LocationOnIcon sx={{ fontSize: 16 }} />
-                            <Typography variant="inherit">{city || 'Local'}</Typography>
-                        </Stack>
+                        {city && (
+                            <>
+                                <Typography variant="inherit" aria-hidden>•</Typography>
+                                <Stack direction="row" spacing={0.5} alignItems="center">
+                                    <LocationOnIcon sx={{ fontSize: 16 }} aria-hidden />
+                                    <Typography variant="inherit">{city}</Typography>
+                                </Stack>
+                            </>
+                        )}
                     </Stack>
+
+                    {nextLine && (
+                        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ color: nextSession ? 'text.primary' : 'text.secondary' }}>
+                            <EventAvailableIcon sx={{ fontSize: 18 }} aria-hidden />
+                            <Typography variant="body2" sx={{ fontWeight: nextSession ? 700 : 500 }}>
+                                {nextSession ? `Next: ${nextLine}` : nextLine}
+                            </Typography>
+                        </Stack>
+                    )}
 
                     <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                         {tags?.slice(0, 3).map((tag, index) => (

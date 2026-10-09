@@ -1,40 +1,42 @@
-const Booking = require('../models/booking');
 const env = require('../config/env');
 const stripe = require('../services/stripeClient');
+const bookingService = require('../services/bookingService');
 
 const STRIPE_WEBHOOK_SECRET = env.STRIPE_WEBHOOK_SECRET;
 
+/**
+ * Stripe webhook. On a successful payment, makes sure the booking exists. Normally checkout
+ * creates it a moment earlier; this is the safety net for guests who pay and then close the
+ * page or lose their connection before checkout finishes.
+ */
 const handleWebhook = async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
-    console.log({ 'req.body': req.body, sig });
-    // Check if webhook signing is configured
 
     try {
         event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
-        console.log({ event });
     } catch (err) {
-        console.log('req.body', req.body, 'sig', sig, 'STRIPE_WEBHOOK_SECRET', STRIPE_WEBHOOK_SECRET);
-        console.log('in /webhook', { err });
+        console.error('[webhook] Signature verification failed:', err.message);
         res.status(400).send(`Webhook Error: ${err.message}`);
         return;
     }
 
-    // Handle the event
     switch (event.type) {
-        case 'payment_intent.succeeded':
-            const paymentIntentSucceeded = event.data.object;
-            // Then define and call a function to handle the event payment_intent.succeeded
-            console.log('Payment completed successfully');
-
-            //   Change status of booking to paid
-            // Note: event.metbookingID seems to be a typo in the original code (metbookingID vs metadata.bookingID?)
-            // But preserving exact behavior as requested.
-            const updateBooking = await Booking.findOneAndUpdate({ _id: event.metbookingID }, { $set: event.data }, { new: true });
+        case 'payment_intent.succeeded': {
+            const paymentIntent = event.data.object;
+            // Only payments made through Studio Time checkout carry these.
+            if (!paymentIntent?.metadata?.courseID || !paymentIntent?.metadata?.timeslotID) break;
+            try {
+                const { created } = await bookingService.createBookingFromPayment(paymentIntent);
+                if (created) console.log(`[webhook] Created booking for ${paymentIntent.id} (checkout didn't finish).`);
+            } catch (err) {
+                // Acknowledge anyway: retrying won't help, and any refund has already been attempted.
+                console.error(`[webhook] Could not create booking for ${paymentIntent.id}:`, err.message);
+            }
             break;
-        // ... handle other event types
+        }
         default:
-            console.log(`Unhandled event type ${event.type}`);
+            break;
     }
 
     // Return a 200 response to acknowledge receipt of the event

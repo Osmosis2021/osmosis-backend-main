@@ -17,7 +17,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import MessageIcon from '@mui/icons-material/Message';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import LockIcon from '@mui/icons-material/Lock';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import useStore from '../../store';
 import Payment from './Payment';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
@@ -101,14 +101,28 @@ export default function PayPopUp(props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  const isDisabled = !props.selectedDateAndTime?.startDate || !userID || !props.stripeID;
+  const location = useLocation();
+  const hasDate = Boolean(props.selectedDateAndTime?.startDate);
+  const isOwnListing = Boolean(userID) && props.teacherUserName === userName;
+  // Signed-out guests can tap through to log in; everything else must be ready to pay.
+  const isDisabled = !hasDate || isOwnListing || (Boolean(userID) && !props.stripeID);
+
+  const handleReserveClick = () => {
+    if (!userID) {
+      // Come back to this listing with the same session selected.
+      const search = props.selectedTimeslotID ? `?session=${props.selectedTimeslotID}` : location.search;
+      navigate('/', { state: { from: { pathname: location.pathname, search } } });
+      return;
+    }
+    handleClickOpen();
+  };
 
   return (
     <Box sx={{ width: props.fullWidth ? '100%' : 'auto' }}>
       <Button
         variant="contained"
         fullWidth={props.fullWidth}
-        onClick={handleClickOpen}
+        onClick={handleReserveClick}
         disabled={isDisabled}
         sx={{
           borderRadius: 3,
@@ -125,10 +139,16 @@ export default function PayPopUp(props) {
           }
         }}
       >
-        {!props.selectedDateAndTime?.startDate ? "Select Date First" :
-          !userID ? "Sign in to Reserve" :
-            !props.stripeID ? "Payments Unavailable" : "Reserve Now"}
+        {!hasDate ? "Choose a date to continue" :
+          isOwnListing ? "This is your studio time" :
+            !userID ? "Log in to reserve" :
+              !props.stripeID ? "Payments unavailable" : "Reserve now"}
       </Button>
+      {!userID && hasDate && (
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
+          You'll come right back here after logging in.
+        </Typography>
+      )}
       {!props.stripeID && userID && props.selectedDateAndTime?.startDate && (
         <Typography variant="caption" color="error" sx={{ display: 'block', mt: 1, textAlign: 'center', fontWeight: 600 }}>
           This artist hasn't enabled payments yet.

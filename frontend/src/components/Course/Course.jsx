@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Grid, Stack, Typography, Rating, Box, Divider, Skeleton, Avatar } from '@mui/material';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Alert, Button, Container, Grid, Stack, Typography, Rating, Box, Divider, Skeleton, Avatar } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import { useParams } from 'react-router-dom';
+import SearchOffIcon from '@mui/icons-material/SearchOff';
+import { Link as RouterLink, useParams, useSearchParams } from 'react-router-dom';
 import ReactMapGL, { Marker } from 'react-map-gl';
 import TopNavBar from '../TopNavBar/TopNavBar';
 import useStore from '../../store';
@@ -11,6 +12,9 @@ import { ReserveModule } from '../../ui/ReserveModule';
 import { PremiumSectionHeader } from '../../ui/PremiumSectionHeader';
 import { PremiumChip } from '../../ui/PremiumChip';
 import { PremiumSkeleton } from '../../ui/PremiumFeedback';
+import axios from '../../actions/axios';
+import { industryIcon } from '../../utils/industryIcon';
+import { formatDuration, isUpcomingSession } from '../../utils/sessionTime';
 
 import mapboxgl from 'mapbox-gl'
 // eslint-disable-next-line import/no-webpack-loader-syntax
@@ -23,18 +27,27 @@ const Course = () => {
 	const [, setSelectedEnrolledStudents] = useState([])
 	const [selectedEnrollment, setSelectedEnrollment] = useState(0)
 	const [isLoading, setIsLoading] = useState(true);
+	const [loadState, setLoadState] = useState('loading'); // loading | ready | notFound | error
 	const [teacherInfo, setTeacherInfo] = useState();
 	const [guestsEntered, setGuestsEntered] = useState(1);
 	const paramsCourse = useParams();
-	const { backendURL, userName } = useStore();
+	const { userName } = useStore();
 	const MAPBOX_TOKEN = 'pk.eyJ1IjoicmFkZXItamFrZSIsImEiOiJjbDU4dXdnMXcyNDZ2M2pvY2k2OW1yajY5In0.VoWote3L5R1CdSF1RPKaZg';
 
+	const selectedSlot = courseData?.schedule?.find((slot) => slot._id === selectedTimeslotID);
+	const sessionCapacity = selectedSlot?.capacity ?? courseData.capacity ?? 1;
+
 	const increaseGuests = () => {
-		const proposedTotal = guestsEntered + 1 + selectedEnrollment
-		if (Boolean(courseData.capacity) && (proposedTotal <= courseData.capacity)) {
-			setGuestsEntered(Math.min(guestsEntered + 1, courseData.capacity));
+		if (guestsEntered + 1 + selectedEnrollment <= sessionCapacity) {
+			setGuestsEntered(guestsEntered + 1);
 		}
 	};
+
+	// When a different session is chosen, never ask for more spots than it has left.
+	useEffect(() => {
+		const spotsLeft = Math.max(1, sessionCapacity - selectedEnrollment);
+		setGuestsEntered((current) => Math.min(current, spotsLeft));
+	}, [selectedTimeslotID, sessionCapacity, selectedEnrollment]);
 
 	const decreaseGuests = () => {
 		if (guestsEntered > 1) {
@@ -42,20 +55,44 @@ const Course = () => {
 		}
 	};
 
-	useEffect(() => {
+	const loadListing = useCallback(async () => {
 		setIsLoading(true);
-		Promise.all([
-			fetch(`${backendURL}course/getCourse/${paramsCourse.course}`).then(res => res.json()),
-			fetch(`${backendURL}user/getUserInfo/${paramsCourse.userName}`).then(res => res.json())
-		]).then(([course, teacher]) => {
-			setCourseData(course);
-			setTeacherInfo(teacher);
-			setIsLoading(false);
-		}).catch((err) => {
+		setLoadState('loading');
+		try {
+			const [{ data: course }, { data: teacher }] = await Promise.all([
+				axios.get(`course/getCourse/${paramsCourse.course}`),
+				axios.get(`user/getUserInfo/${paramsCourse.userName}`).catch(() => ({ data: null })),
+			]);
+			if (!course?._id) {
+				setLoadState('notFound');
+			} else {
+				setCourseData(course);
+				setTeacherInfo(teacher || undefined);
+				setLoadState('ready');
+			}
+		} catch (err) {
 			console.log('Error loading data:', err);
+			setLoadState(err.response?.status === 404 ? 'notFound' : 'error');
+		} finally {
 			setIsLoading(false);
-		});
-	}, [paramsCourse, backendURL]);
+		}
+	}, [paramsCourse.course, paramsCourse.userName]);
+
+	useEffect(() => { loadListing(); }, [loadListing]);
+
+	// Pre-select a session from the link (e.g. after logging in to reserve it).
+	const [searchParams] = useSearchParams();
+	const sessionFromLink = searchParams.get('session');
+	useEffect(() => {
+		if (!sessionFromLink || selectedTimeslotID || !courseData?.schedule) return;
+		const slot = courseData.schedule.find((s) => s._id === sessionFromLink);
+		if (slot && isUpcomingSession(slot) && slot.enrollment < slot.capacity) {
+			setSelectedDateAndTime({ startDate: slot.startDate, startTime: slot.startTime });
+			setSelectedTimeslotID(slot._id);
+			setSelectedEnrolledStudents(slot.enrolledStudents);
+			setSelectedEnrollment(slot.enrollment);
+		}
+	}, [sessionFromLink, courseData, selectedTimeslotID]);
 
 	const [rating, setRating] = useState(0);
 	useEffect(() => {
@@ -65,6 +102,31 @@ const Course = () => {
 			setRating(average);
 		}
 	}, [courseData?.feedback]);
+
+	if (!isLoading && loadState !== 'ready') {
+		return (
+			<Box>
+				<TopNavBar back='/explore' next='empty' activeStep='empty' />
+				<Container maxWidth="sm" sx={{ py: 10, textAlign: 'center' }}>
+					{loadState === 'notFound' ? (
+						<Stack spacing={2} alignItems="center">
+							<SearchOffIcon sx={{ fontSize: 48, color: 'text.disabled' }} aria-hidden />
+							<Typography variant="h5" component="h1" sx={{ fontWeight: 800 }}>This studio time isn't available</Typography>
+							<Typography color="text.secondary">It may have been removed by the artist. There are other studios to explore.</Typography>
+							<Button component={RouterLink} to="/explore" variant="contained" sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '12px' }}>
+								Browse studio times
+							</Button>
+						</Stack>
+					) : (
+						<Alert severity="error" sx={{ borderRadius: '12px', textAlign: 'left' }}
+							action={<Button color="inherit" size="small" onClick={loadListing}>Try again</Button>}>
+							We couldn't load this studio time. Check your connection and try again.
+						</Alert>
+					)}
+				</Container>
+			</Box>
+		);
+	}
 
 	if (isLoading) {
 		return (
@@ -112,19 +174,19 @@ const Course = () => {
 									<PremiumChip key={index} label={tag} />
 								))}
 							</Stack>
-							<Stack direction="row" spacing={1} alignItems="center" color="text.secondary">
-								<img
-									src={require(`../../assets/icons/${courseData.industry || 'sports'}.png`)}
-									style={{ height: 20, width: 20, opacity: 0.7 }}
-									alt={courseData.industry}
-								/>
-								<Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-									{courseData.industry}
-								</Typography>
-								<Typography variant="subtitle2">•</Typography>
-								<Typography variant="subtitle2">{courseData.duration || 60} mins</Typography>
-								<Typography variant="subtitle2">•</Typography>
-								<Typography variant="subtitle2">Up to {courseData.capacity} guests</Typography>
+							<Stack direction="row" spacing={1} alignItems="center" color="text.secondary" flexWrap="wrap" useFlexGap>
+								{courseData.industry && (
+									<>
+										<img src={industryIcon(courseData.industry)} style={{ height: 20, width: 20, opacity: 0.7 }} alt="" />
+										<Typography variant="subtitle2" sx={{ fontWeight: 600, textTransform: 'capitalize' }}>
+											{courseData.industry}
+										</Typography>
+										<Typography variant="subtitle2" aria-hidden>•</Typography>
+									</>
+								)}
+								<Typography variant="subtitle2">{formatDuration(courseData.duration || 60)}</Typography>
+								<Typography variant="subtitle2" aria-hidden>•</Typography>
+								<Typography variant="subtitle2">Up to {courseData.capacity} {courseData.capacity === 1 ? 'guest' : 'guests'}</Typography>
 							</Stack>
 						</Box>
 
@@ -137,12 +199,14 @@ const Course = () => {
 							</Typography>
 						</Box>
 
-						<Box sx={{ mb: 6 }}>
-							<PremiumSectionHeader title="Studio Vibe" />
-							<Typography variant="body1" color="text.secondary">
-								{courseData.studioVibe || `Experience the creative energy of a professional ${courseData.industry} studio.`}
-							</Typography>
-						</Box>
+						{courseData.studioVibe && (
+							<Box sx={{ mb: 6 }}>
+								<PremiumSectionHeader title="Studio Vibe" />
+								<Typography variant="body1" color="text.secondary">
+									{courseData.studioVibe}
+								</Typography>
+							</Box>
+						)}
 
 						{courseData.whatToBring && (
 							<Box sx={{ mb: 6 }}>
@@ -237,7 +301,7 @@ const Course = () => {
 						<Box>
 							<PremiumSectionHeader
 								title="Cancellation Policy"
-								subtitle="Full refund for cancellations made at least 24 hours before the session start time."
+								subtitle="Plans changed? Message your host or contact Studio Time support at least 24 hours before the session for a full refund. If the host cancels, you're refunded in full automatically."
 							/>
 						</Box>
 					</Grid>

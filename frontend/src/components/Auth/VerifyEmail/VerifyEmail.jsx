@@ -22,7 +22,7 @@ const VerifyEmail = () => {
     const { auth, setAuth } = useAuth();
     const { email, isTeacher, userName } = useStore();
     // After verifying, return to where the user was headed, or their home screen.
-    const destination = location.state?.from?.pathname || (isTeacher && userName ? `/teachers/${userName}` : '/explore');
+    const destination = (location.state?.from ? `${location.state.from.pathname}${location.state.from.search || ''}` : '') || (isTeacher && userName ? `/teachers/${userName}` : '/explore');
 
     const [code, setCode] = useState('');
     const [error, setError] = useState('');

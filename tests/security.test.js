@@ -16,6 +16,7 @@ jest.mock('../services/emailService', () => ({
     sendResendVerificationEmail: jest.fn().mockResolvedValue(),
     sendUpdatedEmailVerification: jest.fn().mockResolvedValue(),
     sendPasswordResetEmail: jest.fn().mockResolvedValue(),
+    sendEmail: jest.fn().mockResolvedValue({ id: 'mock' }),
 }));
 
 const stripe = require('../services/stripeClient');
@@ -359,7 +360,7 @@ describe('Bookings', () => {
         const course = await makeCourse(host);
         const slot = await CourseTimeslot.create({ courseID: course._id, capacity: 4, enrollment: 0, startTime: '14:00', startDate: new Date('2030-01-05') });
         stripe.paymentIntents.retrieve.mockResolvedValue({
-            status: 'succeeded', amount: 8000,
+            id: 'pi_ok', status: 'succeeded', amount: 8000,
             metadata: { courseID: String(course._id), timeslotID: String(slot._id), studentUserName: guest.userName, guests: '2' },
         });
         const res = await request(app).post('/booking/createBooking').set('Authorization', `Bearer ${tokenFor(guest)}`)

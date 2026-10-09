@@ -87,6 +87,15 @@ router.get('/getCourse/:courseID', async (req, res, next) => {
     }
 });
 
+// Real profile stats for a host (public).
+router.get('/hostStats/:userName', async (req, res, next) => {
+    try {
+        res.json(await listingService.getHostStats(req.params.userName));
+    } catch (err) {
+        next(err);
+    }
+});
+
 // Get Classes from DB
 
 router.get('/getClasses', async (req, res, next) => {
