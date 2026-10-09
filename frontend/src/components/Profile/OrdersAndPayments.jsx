@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import useStore from '../../store';
 import { Button, Container, Grid, Typography } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 import TopNavBar from '../TopNavBar/TopNavBar';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import PaymentMethodForm from './PaymentMethodForm';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from "@stripe/stripe-js";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
+import usePayouts from "../../hooks/usePayouts";
 
 const OrdersAndPayments = (props) => {
 
@@ -16,10 +16,9 @@ const OrdersAndPayments = (props) => {
     const [userInfo, setUserInfo] = useState({});
     const [stripeInfo, setStripeInfo] = useState({});
     const [cardInfo, setCardInfo] = useState({});
-    const [accountLink, setAccountLink] = useState();
+    const payouts = usePayouts({ load: false });
     const [stripePromise, setStripePromise] = useState('')
     const [isLoading, setIsLoading] = useState(true);
-    const navigate = useNavigate();
 
     useEffect(() => {
         const { backendURL, userName } = useStore.getState();
@@ -37,20 +36,16 @@ const OrdersAndPayments = (props) => {
             setUserInfo(userData);
             console.log(userData)
 
-            // USE STRIPE ID TO ONBOARD USER 
-            if (userData?.stripeID !== undefined) {
-                const stripeID = userData?.stripeID
-                const { data: accountLinkData } = await axiosPrivate.get(`stripe/accountLink/${stripeID}`)
-                setAccountLink(accountLinkData?.url)
-
-                // GET USER INFO WITH STRIPE ID
-                const { data: stripeAccountData } = await axiosPrivate.get(`stripe/retrieveStripeAccount/${stripeID}`)
+            // Host payout account (onboarding links are created when the button is tapped)
+            if (userData?.stripeID) {
+                const { data: stripeAccountData } = await axiosPrivate.get(`stripe/retrieveStripeAccount/${userData.stripeID}`)
                 setStripeInfo(stripeAccountData)
+            }
 
-                // RETRIEVE CUSTOMER
-                const { data: stripeCustomerData } = await axiosPrivate.get(`stripe/retrieveStripeCustomerAccount/${userData?.customerStripeID}`)
+            // Guest's saved card
+            if (userData?.customerStripeID) {
+                const { data: stripeCustomerData } = await axiosPrivate.get(`stripe/retrieveStripeCustomerAccount/${userData.customerStripeID}`)
                 setCardInfo(stripeCustomerData.card)
-                console.log(stripeCustomerData)
             }
         };
 
@@ -60,7 +55,8 @@ const OrdersAndPayments = (props) => {
     }, [axiosPrivate])
 
     function stripeOnboarding() {
-        navigate(window.location.assign(accountLink))
+        if (stripeInfo?.retrieveAccount?.payouts_enabled) payouts.openDashboard()
+        else payouts.startOnboarding()
     }
 
     const handleSavePaymentMethod = (paymentMethodID) => {
@@ -95,7 +91,7 @@ const OrdersAndPayments = (props) => {
                                     Studio Time uses Stripe to get you paid quickly and keep your personal and payment
                                     information secure. Thousands of companies around the world trust Stripe to process payments
                                     for their users. Set up a Stripe account to get paid with Studio Time.
-                                    Your stripe ID is: <span style={{ color: '#000000' }}>{userInfo?.stripeID}</span>
+                                    {userInfo?.stripeID && <> Your Stripe ID is: <span style={{ color: '#000000' }}>{userInfo.stripeID}</span></>}
                                 </Typography>
 
                                 <br />

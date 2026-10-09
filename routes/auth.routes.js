@@ -13,7 +13,7 @@ const { requireAuth, optionalAuth, getBearerToken, verifyAccessToken } = require
 
 router.get('/config', (req, res) => {
     res.send({
-        publishableKey: env.STRIPE_PUBLISHABLE_LIVE_KEY,
+        publishableKey: require('../services/stripeClient').publishableKey,
     });
 });
 

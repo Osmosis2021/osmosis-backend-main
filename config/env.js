@@ -19,6 +19,11 @@ const envSchema = z.object({
     RESEND_API_KEY: z.string().optional(),
     RESEND_FROM_EMAIL: z.string().optional(),
     GOOGLE_CLIENT_ID: z.string().optional(),
+    // 'test' or 'live'. Defaults to live in production and test elsewhere, but can be set
+    // explicitly to run a production deployment against Stripe test keys before launch.
+    STRIPE_MODE: z.enum(['test', 'live']).optional(),
+    // Public address of the web app, used for links that bring people back from Stripe.
+    FRONTEND_URL: z.string().optional(),
     CLOUDINARY_CLOUD_NAME: z.string().optional(),
     CLOUDINARY_API_KEY: z.string().optional(),
     CLOUDINARY_API_SECRET: z.string().optional(),
@@ -43,6 +48,8 @@ const processEnv = {
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    STRIPE_MODE: process.env.STRIPE_MODE || undefined,
+    FRONTEND_URL: process.env.FRONTEND_URL,
     CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
     CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,

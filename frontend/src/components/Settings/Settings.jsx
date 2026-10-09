@@ -49,6 +49,7 @@ import useAuth from '../../hooks/useAuth';
 import useLogout from '../../hooks/useLogout';
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import GoogleSignInButton from '../Auth/GoogleSignInButton';
+import usePayouts from '../../hooks/usePayouts';
 import { useToast } from '../../ui/feedback';
 import { SUPPORT_EMAIL } from '../../constants/support';
 import useKeyboard from '../../hooks/useKeyboard';
@@ -125,7 +126,7 @@ export default function Settings() {
   // Stripe & Payout States
   const [stripeInfo, setStripeInfo] = useState({});
   const [cardInfo, setCardInfo] = useState({});
-  const [accountLink, setAccountLink] = useState('');
+  const payouts = usePayouts({ load: false });
   const [isOnboarded, setIsOnboarded] = useState(false);
   const [stripePromise, setStripePromise] = useState(null);
   const [paymentsLoading, setPaymentsLoading] = useState(true);
@@ -198,16 +199,16 @@ export default function Settings() {
       try {
         const { data: userData } = await axiosPrivate.get(`user/getUserInfo/${userName}`);
 
-        if (userData?.stripeID !== undefined) {
-          const stripeID = userData.stripeID;
-          const { data: accountLinkData } = await axiosPrivate.get(`stripe/accountLink/${stripeID}`);
-          setAccountLink(accountLinkData?.url);
-
-          const { data: stripeAccountData } = await axiosPrivate.get(`stripe/retrieveStripeAccount/${stripeID}`);
+        // Host payout account (onboarding links are created on demand when the button is tapped).
+        if (userData?.stripeID) {
+          const { data: stripeAccountData } = await axiosPrivate.get(`stripe/retrieveStripeAccount/${userData.stripeID}`);
           setStripeInfo(stripeAccountData);
           setIsOnboarded(stripeAccountData?.retrieveAccount?.payouts_enabled || false);
+        }
 
-          const { data: stripeCustomerData } = await axiosPrivate.get(`stripe/retrieveStripeCustomerAccount/${userData?.customerStripeID}`);
+        // Guest's saved card
+        if (userData?.customerStripeID) {
+          const { data: stripeCustomerData } = await axiosPrivate.get(`stripe/retrieveStripeCustomerAccount/${userData.customerStripeID}`);
           setCardInfo(stripeCustomerData.card);
         }
       } catch (err) {
@@ -313,13 +314,12 @@ export default function Settings() {
   };
 
   // Handlers for Orders & Payments Setup
-  const stripeOnboarding = () => {
-    if (accountLink) {
-      window.location.assign(accountLink);
-    } else {
-      showToast('Stripe onboarding link not available.', 'error');
-    }
-  };
+  // Stripe links are single-use and expire quickly, so they're created when the host taps.
+  const stripeOnboarding = () => (isOnboarded ? payouts.openDashboard() : payouts.startOnboarding());
+
+  useEffect(() => {
+    if (payouts.error) showToast(payouts.error, 'error');
+  }, [payouts.error, showToast]);
 
   const handleSavePaymentMethod = (paymentMethodID) => {
     axiosPrivate.post(`stripe/save-payment-method/${userInfo?.customerStripeID}`,
@@ -740,7 +740,7 @@ export default function Settings() {
                     </Typography>
                     <Box sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: '12px', bgcolor: 'background.paper' }}>
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        Stripe ID: <strong>{userInfo?.stripeID || 'Not setup'}</strong>
+                        Stripe ID: <strong>{userInfo?.stripeID || 'Not set up yet'}</strong>
                       </Typography>
                       <Typography variant="body2" color={isOnboarded ? "success.main" : "warning.main"} sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         Status: {isOnboarded ? 'Payouts Active' : 'Onboarding Required'}
@@ -750,9 +750,10 @@ export default function Settings() {
                     <Button
                       variant="contained"
                       onClick={stripeOnboarding}
-                      sx={{ py: 1.5, borderRadius: '12px', alignSelf: 'flex-start' }}
+                      disabled={payouts.isRedirecting}
+                      sx={{ py: 1.5, borderRadius: '12px', alignSelf: 'flex-start', minWidth: 180 }}
                     >
-                      {isOnboarded ? 'Stripe Dashboard' : 'Setup Payouts'}
+                      {payouts.isRedirecting ? 'Opening Stripe…' : isOnboarded ? 'View payouts in Stripe' : 'Set up payouts'}
                     </Button>
 
                     {isOnboarded && stripeInfo?.retrieveAccount?.external_accounts?.data?.[0] && (

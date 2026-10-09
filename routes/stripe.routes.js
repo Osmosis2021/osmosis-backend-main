@@ -3,26 +3,56 @@ const mongoose = require('mongoose');
 const User = require('../models/user');
 const Course = require('../models/course');
 const CourseTimeslot = require('../models/courseTimeslot');
-const env = require('../config/env');
 const stripe = require('../services/stripeClient');
-const { requireAuth, optionalAuth } = require('../middleware/auth');
+const { requireAuth, optionalAuth, requireTeacher } = require('../middleware/auth');
+const payoutService = require('../services/payoutService');
 const { INACTIVE_STATUSES, effectiveStartAt } = require('../services/sessionTime');
 
-let stripePublishableKey = ''
-if (env.NODE_ENV === 'production') {
-    stripePublishableKey = env.STRIPE_PUBLISHABLE_KEY
-} else {
-    stripePublishableKey = env.STRIPE_PUBLISHABLE_TEST_KEY
-}
 
 // Platform account that holds payments for hosts who have not finished Stripe onboarding.
 const UNONBOARDED_HOST_HOLDING_ACCOUNT = 'acct_1OnmPHI0y4kZR3uX';
 
 router.get('/config', (req, res) => {
-    res.send({ publishableKey: stripePublishableKey, });
+    res.send({ publishableKey: stripe.publishableKey, mode: stripe.stripeMode });
 });
 
 const isOwnStripeAccount = (req, stripeID) => Boolean(req.currentUser?.stripeID) && req.currentUser.stripeID === stripeID;
+
+// HOST PAYOUTS (Stripe Express)
+// Each call works on the signed-in host's own account only.
+
+const sendPayoutError = (res, next) => (err) => {
+    if (err.status) return res.status(err.status).json({ message: err.message });
+    console.error('[payouts]', err);
+    return next(err);
+};
+
+// Where the host is in Stripe onboarding: not_started | in_progress | action_needed | pending_review | ready
+router.get('/payouts/status', requireAuth, requireTeacher, async (req, res, next) => {
+    try {
+        res.json(await payoutService.getPayoutStatus(req.currentUser));
+    } catch (err) {
+        sendPayoutError(res, next)(err);
+    }
+});
+
+// Link to Stripe's hosted onboarding (creates the host's Stripe account first if needed).
+router.post('/payouts/onboarding-link', requireAuth, requireTeacher, async (req, res, next) => {
+    try {
+        res.json({ url: await payoutService.createOnboardingLink(req.currentUser) });
+    } catch (err) {
+        sendPayoutError(res, next)(err);
+    }
+});
+
+// One-time sign-in link to the host's Stripe Express Dashboard.
+router.post('/payouts/dashboard-link', requireAuth, requireTeacher, async (req, res, next) => {
+    try {
+        res.json({ url: await payoutService.createDashboardLink(req.currentUser) });
+    } catch (err) {
+        sendPayoutError(res, next)(err);
+    }
+});
 
 // ACCOUNT LINK
 // Onboarding links let someone edit payout details, so only the account owner can get one.

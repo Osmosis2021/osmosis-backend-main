@@ -262,16 +262,16 @@ const TeacherProfile = (props) => {
           <PremiumCard sx={{ mb: 6, bgcolor: 'rgba(0,174,239,0.05)', border: '1px dashed #000000', borderRadius: 2 }}>
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} padding={2} alignItems="center" justifyContent="space-between">
               <Box>
-                <Typography variant="h6" sx={{ fontWeight: 800 }}>Finish Setting Up Your Studio</Typography>
-                <Typography variant="body2" color="text.secondary">Onboard to Stripe to process payments and get paid for your sessions.</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 800 }}>Set up payouts to start taking bookings</Typography>
+                <Typography variant="body2" color="text.secondary">Guests can't pay for your studio times until Stripe knows where to send your earnings. It takes about 5 minutes.</Typography>
               </Box>
               <Button
                 component={Link}
-                to={`/stripeonboarding/${userName}`}
+                to="/payouts"
                 variant="contained"
                 sx={{ borderRadius: 3, fontWeight: 700, px: 4 }}
               >
-                Setup Stripe
+                Set up payouts
               </Button>
             </Stack>
           </PremiumCard>

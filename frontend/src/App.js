@@ -29,7 +29,7 @@ import OrdersAndPayments from './components/Profile/OrdersAndPayments';
 import Chat from './components/Chat/Chat';
 import Layout from './Layout'
 import Unauthorized from './components/Unauthorized'
-import StripeOnboarding from './components/SessionCreation/StripeOnboarding/StripeOnboarding';
+import PayoutSetup from './components/Payouts/PayoutSetup';
 import Calendar from './components/Calendar/Calendar.jsx';
 import LandingPage from './components/LandingPage/LandingPage.jsx';
 import { ToastProvider, ConfirmProvider } from './ui/feedback';
@@ -81,7 +81,10 @@ function App() {
 						<Route element={<RequireAuth allowedRoles={[205]} />} >
 							<Route path='/editcourse/:courseID' element={<EditCourse />} />
 							<Route path='/editphotos' element={<EditPhotos />} />
-							<Route path='/stripeonboarding/:userName' element={<StripeOnboarding />} />
+							<Route path='/stripeonboarding/:userName' element={<PayoutSetup />} />
+							<Route path='/payouts' element={<PayoutSetup />} />
+							<Route path='/payouts/return' element={<PayoutSetup mode='returned' />} />
+							<Route path='/payouts/refresh' element={<PayoutSetup mode='refresh' />} />
 							<Route path='teacher/bookings/:id' element={<SingleBookingPage />} />
 							<Route path='/FLOW' element={<UpdatedProgressBar />} />
 							<Route path='/teachersonly' element={<p>This pages is for teachers only.</p>} />
