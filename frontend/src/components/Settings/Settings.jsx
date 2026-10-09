@@ -17,8 +17,6 @@ import {
   TextField,
   InputAdornment,
   Switch,
-  Snackbar,
-  Alert,
   Stack,
   Accordion,
   AccordionSummary,
@@ -51,6 +49,8 @@ import useAuth from '../../hooks/useAuth';
 import useLogout from '../../hooks/useLogout';
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import GoogleSignInButton from '../Auth/GoogleSignInButton';
+import { useToast } from '../../ui/feedback';
+import { SUPPORT_EMAIL } from '../../constants/support';
 import useKeyboard from '../../hooks/useKeyboard';
 import UploadProfilePicture from '../Profile/UploadProfilePicture';
 import PaymentMethodForm from '../Profile/PaymentMethodForm';
@@ -81,11 +81,7 @@ export default function Settings() {
   const [description_, setDescription_] = useState(description || '');
   const [phoneNumber_, setPhoneNumber_] = useState('');
 
-  // Feedback toast state
-  const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
-  const showToast = useCallback((message, severity = 'success') => {
-    setToast({ open: true, message, severity });
-  }, []);
+  const { showToast } = useToast();
 
   const handleGoogleLinkResponse = useCallback(async (credential) => {
     try {
@@ -403,8 +399,11 @@ export default function Settings() {
       showToast('Please fill in all fields', 'error');
       return;
     }
-    showToast('Inquiry sent! Support will get back to you shortly.', 'success');
-    setHelpContact({ subject: '', message: '' });
+    // There is no support inbox API yet, so hand the message to the user's email app.
+    const subject = encodeURIComponent(`[Studio Time] ${helpContact.subject}`);
+    const body = encodeURIComponent(`${helpContact.message}\n\n— Sent from Studio Time by @${userName}`);
+    window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
+    showToast(`Opening your email app. You can also write to ${SUPPORT_EMAIL}.`, 'info');
   };
 
   const menuItems = [
@@ -444,7 +443,7 @@ export default function Settings() {
             <Divider />
 
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 2 }}>
-              <UploadProfilePicture showToast={showToast} />
+              <UploadProfilePicture />
               <Typography variant="h6" sx={{ mt: 2, fontWeight: 700, fontFamily: 'Outfit' }}>
                 {firstName_ || userInfo.firstName} {lastName_ || userInfo.lastName}
               </Typography>
@@ -1250,21 +1249,6 @@ export default function Settings() {
             </Card>
           </Container>
 
-          <Snackbar
-            open={toast.open}
-            autoHideDuration={4000}
-            onClose={() => setToast({ ...toast, open: false })}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-          >
-            <Alert
-              onClose={() => setToast({ ...toast, open: false })}
-              severity={toast.severity}
-              variant="filled"
-              sx={{ width: '100%', borderRadius: '12px', fontWeight: 600, boxShadow: 3 }}
-            >
-              {toast.message}
-            </Alert>
-          </Snackbar>
         </Box>
       );
     }
@@ -1374,21 +1358,6 @@ export default function Settings() {
       </Container>
 
       {/* Snackbar alerts */}
-      <Snackbar
-        open={toast.open}
-        autoHideDuration={4000}
-        onClose={() => setToast({ ...toast, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setToast({ ...toast, open: false })}
-          severity={toast.severity}
-          variant="filled"
-          sx={{ width: '100%', borderRadius: '12px', fontWeight: 600, boxShadow: 3 }}
-        >
-          {toast.message}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }

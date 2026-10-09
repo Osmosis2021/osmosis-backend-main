@@ -27,17 +27,19 @@ import { PremiumCard } from "../../../ui/PremiumCard";
 import { PremiumButton } from "../../../ui/PremiumButton";
 import { PremiumSectionHeader } from "../../../ui/PremiumSectionHeader";
 import PremiumEmptyState from "../../../ui/PremiumEmptyState";
+import useStartChat from '../../../hooks/useStartChat';
 
 const StudentProfile = () => {
   const logout = useLogout();
   const axiosPrivate = useAxiosPrivate();
+  const startChat = useStartChat();
   const theme = useTheme();
   const navigate = useNavigate();
 
   const [tabValue, setTabValue] = useState(0);
   const [userInfo, setUserInfo] = useState({});
   const [bookings, setBookings] = useState([]);
-  const { userID, userName } = useStore();
+  const { userName } = useStore();
   const pageUserName = useParams()?.userName;
 
   useEffect(() => {
@@ -155,29 +157,7 @@ const StudentProfile = () => {
                 size="small"
                 startIcon={<MessageIcon />}
                 sx={{ fontWeight: 700, textTransform: 'none' }}
-                onClick={async () => {
-                  if (!userID) {
-                    alert("Please log in to message artists.");
-                    navigate('/');
-                    return;
-                  }
-                  if (!booking?.teacherID?._id) {
-                    alert("Could not identify the artist. Please try again.");
-                    return;
-                  }
-                  try {
-                    const { data } = await axiosPrivate.get(`chat/accessChats/${booking.teacherID._id}?userID=${userID}`);
-                    const { chats, setChats, setSelectedChat } = useStore.getState();
-                    if (!chats.find((c) => c._id === data._id)) {
-                      setChats([data, ...chats]);
-                    }
-                    setSelectedChat(data);
-                    navigate('/chat');
-                  } catch (err) {
-                    console.error("Error accessing chat:", err);
-                    navigate('/chat');
-                  }
-                }}
+                onClick={() => startChat(booking?.teacherID?._id, { personLabel: 'this artist' })}
               >
                 Message Artist
               </Button>

@@ -2,7 +2,8 @@ import { Button, IconButton, Stack, Box } from '@mui/material';
 import useStore from '../../store';
 import { useState, useEffect } from 'react';
 import Prof from './Prof';
-import { axiosPrivate } from '../../actions/axios';
+import useAxiosPrivate from '../../hooks/useAxiosPrivate';
+import { useToast } from '../../ui/feedback';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 // import PhotoCamera from '@mui/icons-material/PhotoCamera';
 // import TopNavBar from '../../../TopNavBar/TopNavBar';
@@ -14,6 +15,8 @@ export default function UploadProfilePicture(props) {
 
     const [image, setImage] = useState('');
     const { userID, userName } = useStore()
+    const axiosPrivate = useAxiosPrivate()
+    const toast = useToast()
     const [userInfo, setUserInfo] = useState('');
     // const User = useParams();
 
@@ -50,19 +53,11 @@ export default function UploadProfilePicture(props) {
 
         axiosPrivate.put(`user/updateProfileImage/${userID}`, { image }, { withCredentials: true }
         ).then(res => {
-            if (props.showToast) {
-                props.showToast('Profile picture updated successfully!', 'success');
-            } else {
-                alert('Image updated');
-            }
+            toast.success('Profile picture updated.');
             // Clear base64 selected image state once confirmed
             setImage('');
         }).catch(err => {
-            if (props.showToast) {
-                props.showToast('Failed to update profile picture.', 'error');
-            } else {
-                alert('Upload failed');
-            }
+            toast.error("We couldn't update your profile picture. Please try again.");
         });
     }
 

@@ -16,6 +16,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import useStore from '../../../store';
 import useAxiosPrivate from '../../../hooks/useAxiosPrivate';
+import { useToast } from '../../../ui/feedback';
 import { Link } from 'react-router-dom';
 import CompletenessChecklist from '../CompletenessChecklist/CompletenessChecklist';
 import { PremiumSectionHeader } from '../../../ui/PremiumSectionHeader';
@@ -48,6 +49,7 @@ export const ConfirmSession = (props) => {
     } = useStore();
 
     const axiosPrivate = useAxiosPrivate();
+    const toast = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [teacherInfo, setTeacherInfo] = useState();
@@ -129,10 +131,15 @@ export const ConfirmSession = (props) => {
             });
     }, [])
 
-    const handleCopyLink = () => {
+    const handleCopyLink = async () => {
         const url = `${window.location.origin}/teachers/${userName}/${newCourseID}`;
-        navigator.clipboard.writeText(url);
-        alert('Link copied to clipboard!');
+        try {
+            await navigator.clipboard.writeText(url);
+            toast.success('Link copied. Paste it in your bio or stories!');
+        } catch (err) {
+            // Some in-app browsers block clipboard access; show the link so it can be copied by hand.
+            toast.info(url, { duration: 10000 });
+        }
     };
 
     const handleShare = async () => {
@@ -145,7 +152,8 @@ export const ConfirmSession = (props) => {
                     url: url,
                 });
             } catch (err) {
-                console.log('Error sharing:', err);
+                // Closing the share sheet is not an error.
+                if (err?.name !== 'AbortError') handleCopyLink();
             }
         } else {
             handleCopyLink();

@@ -11,7 +11,7 @@ import {
     Rating
 } from '@mui/material'
 import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import TopNavBar from '../TopNavBar/TopNavBar';
 import MessageIcon from '@mui/icons-material/Message';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
@@ -21,13 +21,14 @@ import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { PremiumCard } from '../../ui/PremiumCard';
 import { PremiumSectionHeader } from '../../ui/PremiumSectionHeader';
 import { PremiumBackButton } from '../../ui/PremiumBackButton';
+import useStartChat from '../../hooks/useStartChat';
 
 function SingleBookingPageForStudent() {
     const axiosPrivate = useAxiosPrivate();
     const { id } = useParams()
-    const { backendURL, userName, chats, setChats, setSelectedChat, userID } = useStore();
+    const { backendURL, userName, userID } = useStore();
+    const startChat = useStartChat();
     const [booking, setBooking] = useState(null);
-    const navigate = useNavigate();
 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -57,31 +58,7 @@ function SingleBookingPageForStudent() {
             });
     }, [id, axiosPrivate, backendURL]);
 
-    const handleMessageHost = async () => {
-        if (!userID) {
-            alert("Please log in to message.");
-            navigate('/');
-            return;
-        }
-        const targetUserId = booking?.teacherID?._id;
-        if (!targetUserId) {
-            alert("Could not identify host for this booking. Please try again.");
-            return;
-        };
-        if (targetUserId === userID) return; // safety
-
-        try {
-            const { data } = await axiosPrivate.get(`chat/accessChats/${targetUserId}?userID=${userID}`);
-            if (!chats.find((c) => c._id === data._id)) {
-                setChats([data, ...chats]);
-            }
-            setSelectedChat(data);
-            navigate('/chat');
-        } catch (err) {
-            console.error("Error accessing chat:", err);
-            navigate('/chat');
-        }
-    };
+    const handleMessageHost = () => startChat(booking?.teacherID?._id, { personLabel: 'this host' });
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '';

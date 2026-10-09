@@ -37,6 +37,7 @@ import Unauthorized from './components/Unauthorized'
 import StripeOnboarding from './components/SessionCreation/StripeOnboarding/StripeOnboarding';
 import Calendar from './components/Calendar/Calendar.jsx';
 import LandingPage from './components/LandingPage/LandingPage.jsx';
+import { ToastProvider, ConfirmProvider } from './ui/feedback';
 
 axios.defaults.withCredentials = true;
 
@@ -68,6 +69,8 @@ function App() {
 	return (
 		<ThemeProvider theme={theme}>
 			<CssBaseline />
+			<ToastProvider>
+			<ConfirmProvider>
 			<Routes>
 				<Route path='/' element={<Layout />} >
 					<Route element={<PersistLogin />} >
@@ -136,6 +139,8 @@ function App() {
 					</Route>
 				</Route>
 			</Routes>
+			</ConfirmProvider>
+			</ToastProvider>
 		</ThemeProvider>
 	);
 }

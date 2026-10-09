@@ -24,6 +24,7 @@ import { PremiumSectionHeader } from "../../../ui/PremiumSectionHeader";
 import { PremiumCard } from "../../../ui/PremiumCard";
 import { PremiumButton } from "../../../ui/PremiumButton";
 import { PremiumSkeleton, PremiumEmptyState } from "../../../ui/PremiumFeedback";
+import useStartChat from '../../../hooks/useStartChat';
 
 const handleJsonResponse = async (res) => {
   if (!res.ok) {
@@ -40,12 +41,13 @@ const handleJsonResponse = async (res) => {
 const TeacherProfile = (props) => {
   const navigate = useNavigate();
   const axiosPrivate = useAxiosPrivate();
+  const startChat = useStartChat();
   const logout = useLogout();
   const [teacherInfo, setTeacherInfo] = useState({ profileImage: {} });
   const [sessionCard, setSessionCard] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [bookings, setBookings] = useState([]);
-  const { backendURL, userID, userName } = useStore();
+  const { backendURL, userName } = useStore();
   const pageUserName = useParams()?.userName;
 
   useEffect(() => {
@@ -171,31 +173,7 @@ const TeacherProfile = (props) => {
                   {!isOwnProfile && (
                     <PremiumButton
                       startIcon={<MessageIcon />}
-                      onClick={async () => {
-                        if (!userID) {
-                          alert("Please log in to message artists.");
-                          navigate("/");
-                          return;
-                        }
-                        if (!teacherInfo?._id) {
-                          alert("Could not identify the artist. Please try again.");
-                          return;
-                        }
-                        try {
-                          const { data } = await axiosPrivate.get(
-                            `chat/accessChats/${teacherInfo._id}?userID=${userID}`
-                          );
-                          const { chats, setChats, setSelectedChat } = useStore.getState();
-                          if (!chats.find((c) => c._id === data._id)) {
-                            setChats([data, ...chats]);
-                          }
-                          setSelectedChat(data);
-                          navigate("/chat");
-                        } catch (err) {
-                          console.error("Error accessing chat:", err);
-                          navigate("/chat");
-                        }
-                      }}
+                      onClick={() => startChat(teacherInfo?._id, { personLabel: 'this artist' })}
                     >
                       Message Artist
                     </PremiumButton>

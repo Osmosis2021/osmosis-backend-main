@@ -5,11 +5,14 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import React, { useEffect, useState } from 'react'
 import useStore from '../../../store';
 import useAxiosPrivate from '../../../hooks/useAxiosPrivate';
+import { useConfirm, useToast } from '../../../ui/feedback';
 
 
 const EditPhotos = () => {
 	const { images, setImages, userName } = useStore();
 	const axiosPrivate = useAxiosPrivate();
+	const confirm = useConfirm();
+	const toast = useToast();
 	const [teacherData, setTeacherData] = useState({});
 	const [isLoading, setIsLoading] = useState(true);
 
@@ -46,24 +49,36 @@ const EditPhotos = () => {
 	}
 
 	const removeAlreadyUploadedImage = async (image) => {
-		// e.preventDefault();
-		console.log(image)
-		await axiosPrivate.put(`course/deletePhoto/${teacherData._id}`, {
-			image
-		}).then(res => {
-			alert('Uploaded Image was deleted?')
-			// navigate('/editcourse')
+		const removed = await confirm({
+			title: 'Remove this photo?',
+			description: 'It will no longer appear on your listing. You can upload it again later.',
+			confirmLabel: 'Remove photo',
+			destructive: true,
+			errorMessage: "We couldn't remove the photo. Please try again.",
+			onConfirm: () => axiosPrivate.put(`course/deletePhoto/${teacherData._id}`, { image }),
 		})
+		if (removed) {
+			setTeacherData(prev => ({ ...prev, images: (prev.images || []).filter(item => item._id !== image._id) }))
+			toast.success('Photo removed.')
+		}
 	}
 
 	const addUploadedImage = async () => {
-		// e.preventDefault();
-		axiosPrivate.put(`course/updatePhoto/${teacherData._id}`, {
-			images
-		}).then(res => {
-			alert('Image(s) uploaded successfully?')
-			// navigate('/editcourse')
-		})
+		if (!images.length) {
+			toast.info('Choose a photo first.')
+			return
+		}
+		try {
+			const { data } = await axiosPrivate.put(`course/updatePhoto/${teacherData._id}`, { images })
+			if (data?.photoUpdate?.images) {
+				setTeacherData(prev => ({ ...prev, images: data.photoUpdate.images }))
+			}
+			setImages([])
+			toast.success(images.length === 1 ? 'Photo uploaded.' : 'Photos uploaded.')
+		} catch (err) {
+			console.error('Error uploading photos:', err)
+			toast.error("We couldn't upload your photos. Please try again.")
+		}
 	}
 
 	return (
@@ -84,7 +99,7 @@ const EditPhotos = () => {
 										<Grid item xs={6}>
 											<img src={image.url} style={{ height: 125, width: 150 }} alt='photos uploaded' />
 											<div style={{ position: 'relative', bottom: 50, right: 0 }}>
-												<IconButton type="button" color='error' onClick={() => removeAlreadyUploadedImage(image)}>
+												<IconButton type="button" color='error' aria-label='Remove this photo' onClick={() => removeAlreadyUploadedImage(image)}>
 													<DeleteIcon style={{ height: 25, width: 25, background: 'white', opacity: '.75', borderRadius: '50%', padding: '1px' }} />
 												</IconButton>
 											</div>
@@ -128,7 +143,7 @@ const EditPhotos = () => {
 									<img src={item} alt="" style={{ width: '250px', height: '125px', objectFit: 'cover' }} />
 
 									<div style={{ position: 'relative', bottom: 50, right: 0 }}>
-										<IconButton type="button" color='error' onClick={() => removeImage(index)}>
+										<IconButton type="button" color='error' aria-label='Remove this photo before uploading' onClick={() => removeImage(index)}>
 											<DeleteIcon style={{ zIndex: 10, height: 25, width: 25, background: 'white', opacity: '.75', borderRadius: '50%', padding: '1px' }} />
 										</IconButton>
 									</div>
@@ -137,7 +152,7 @@ const EditPhotos = () => {
 						}
 						)}
 
-					<IconButton type='button' onClick={addUploadedImage}>
+					<IconButton type='button' aria-label='Upload selected photos' onClick={addUploadedImage}>
 						<CheckCircleIcon />
 					</IconButton>
 				</Stack>

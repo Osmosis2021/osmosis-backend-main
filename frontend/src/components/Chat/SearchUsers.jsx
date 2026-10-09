@@ -7,6 +7,7 @@ import useStore from '../../store';
 import UserListItem from './UserListItem';
 import UsersLoading from './UsersLoading';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
+import { useToast } from '../../ui/feedback';
 
 
 const SearchUsers = () => {
@@ -17,6 +18,7 @@ const SearchUsers = () => {
     const [open, setOpen] = useState(false);
     const { setSelectedChat, chats, setChats } = useStore();
     const axiosPrivate = useAxiosPrivate();
+    const toast = useToast();
 
     const handleModalOpen = () => {
         setOpen(true);
@@ -36,12 +38,10 @@ const SearchUsers = () => {
                     setIsLoading(false);
                     setSearchResult(data);
                 } catch (err) {
-                    alert('Failed to find user');
                     setIsLoading(false);
                     setSearchResult([]);
+                    toast.error("Search isn't working right now. Please try again.");
                 }
-            } else {
-                alert('TYPE USER TO SEARCH');
             }
         }
     }
@@ -54,7 +54,8 @@ const SearchUsers = () => {
             setSelectedChat(data)
             setOpen(false)
         } catch (err) {
-            console.log('Error while accessing chat:', err.message); 
+            console.log('Error while accessing chat:', err.message);
+            toast.error("We couldn't open the conversation. Please try again.");
         }
     }
 

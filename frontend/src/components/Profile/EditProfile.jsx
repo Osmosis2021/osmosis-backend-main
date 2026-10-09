@@ -15,9 +15,7 @@ import {
     ListItem,
     ListItemButton,
     ListItemIcon,
-    ListItemText,
-    Snackbar,
-    Alert
+    ListItemText
 } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -36,6 +34,7 @@ import DeleteForeverRoundedIcon from '@mui/icons-material/DeleteForeverRounded';
 
 import React, { useState, useEffect } from 'react';
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
+import { useToast } from '../../ui/feedback';
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import UploadProfilePicture from './UploadProfilePicture';
 import useStore from '../../store';
@@ -69,13 +68,8 @@ function EditProfile() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
-    // Toast Feedback state
-    const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
+    const { showToast } = useToast();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-    const showToast = (message, severity = 'success') => {
-        setToast({ open: true, message, severity });
-    };
 
     useEffect(() => {
         manageKeyboard('editProfileFieldGrid'); // hide bottomnav when mobile keyboard showing
@@ -209,7 +203,7 @@ function EditProfile() {
                     {/* Profile Picture Card */}
                     <Card variant="outlined">
                         <CardContent sx={{ py: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <UploadProfilePicture showToast={showToast} />
+                            <UploadProfilePicture />
                             <Typography variant="h6" sx={{ mt: 2, fontWeight: 700 }}>
                                 {firstName_ || userInfo.firstName} {lastName_ || userInfo.lastName}
                             </Typography>
@@ -470,22 +464,6 @@ function EditProfile() {
                 </Box>
             </Drawer>
 
-            {/* Non-intrusive Snackbar Alert Toast */}
-            <Snackbar
-                open={toast.open}
-                autoHideDuration={4000}
-                onClose={() => setToast({ ...toast, open: false })}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            >
-                <Alert
-                    onClose={() => setToast({ ...toast, open: false })}
-                    severity={toast.severity}
-                    variant="filled"
-                    sx={{ width: '100%', borderRadius: '12px', fontWeight: 600, boxShadow: 3 }}
-                >
-                    {toast.message}
-                </Alert>
-            </Snackbar>
         </Box>
     );
 }

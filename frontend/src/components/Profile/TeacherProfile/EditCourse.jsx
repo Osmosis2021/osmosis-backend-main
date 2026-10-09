@@ -9,6 +9,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { PeopleAltRounded } from '@mui/icons-material';
 import TERMS from '../../../constants/terms';
 import useAxiosPrivate from '../../../hooks/useAxiosPrivate';
+import { useConfirm, useToast } from '../../../ui/feedback';
 import { PremiumCard } from '../../../ui/PremiumCard';
 
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
@@ -37,6 +38,8 @@ const EditCourse = (props) => {
 	const { userName, isTeacher, newCourseTimeslots, setNewCourseTimeslots,
 		timeslotsToRemove, setTimeslotsToRemove } = useStore();
 	const axiosPrivate = useAxiosPrivate();
+	const confirm = useConfirm();
+	const toast = useToast();
 	const [isLoading, setIsLoading] = useState(true)
 	const [isAvailabilityVisible, setIsAvailabilityVisible] = useState(false)
 	const [courseInfo, setCourseInfo] = useState({})
@@ -78,11 +81,11 @@ const EditCourse = (props) => {
 			await axiosPrivate.put(`course/updateCourse/${courseInfo._id}`, updatedCourseInfo)
 			setIsLoading(false)
 			setTimeslotsToRemove([])
-			alert(`Successfully updated your ${TERMS.COURSE.toLowerCase()}`)
+			toast.success(`Your ${TERMS.COURSE.toLowerCase()} was updated.`)
 			navigate(`/${isTeacher ? 'teachers' : 'students'}/${userName}`)
 		} catch (err) {
-			alert('Update failed, please try again later')
-			console.log('Error updating user:\n', err);
+			console.log('Error updating experience:\n', err);
+			toast.error(err.response?.data?.message || `We couldn't save your changes. Please try again.`)
 		};
 	}
 
@@ -107,14 +110,35 @@ const EditCourse = (props) => {
 
 	const deleteCourse = async (e) => {
 		e.preventDefault();
-		try {
-			await axiosPrivate.delete(`course/deleteCourse/${courseInfo._id}`)
-			alert(`Successfully DELETED your ${TERMS.COURSE.toLowerCase()}`)
+		const today = new Date()
+		today.setHours(0, 0, 0, 0)
+		const bookedGuests = (courseInfo.schedule || [])
+			.filter(slot => slot?.startDate && new Date(slot.startDate) >= today)
+			.reduce((sum, slot) => sum + (Number(slot.enrollment) || 0), 0)
+		const title = courseInfo.courseTitle ? `"${courseInfo.courseTitle}"` : `this ${TERMS.COURSE.toLowerCase()}`
+
+		const deleted = await confirm({
+			title: `Delete ${title}?`,
+			description: (
+				<>
+					It will be removed from Studio Time and guests won't be able to find or book it. This can't be undone.
+					{bookedGuests > 0 && (
+						<Box component="span" sx={{ display: 'block', mt: 1.5, color: 'error.main', fontWeight: 600 }}>
+							{bookedGuests} {bookedGuests === 1 ? 'guest is' : 'guests are'} booked into upcoming sessions.
+							Deleting won't cancel or refund their bookings, so message them first.
+						</Box>
+					)}
+				</>
+			),
+			confirmLabel: `Delete ${TERMS.COURSE.toLowerCase()}`,
+			destructive: true,
+			errorMessage: `We couldn't delete this ${TERMS.COURSE.toLowerCase()}. Please try again.`,
+			onConfirm: () => axiosPrivate.delete(`course/deleteCourse/${courseInfo._id}`),
+		})
+		if (deleted) {
+			toast.success(`Your ${TERMS.COURSE.toLowerCase()} was deleted.`)
 			navigate(`/teachers/${userName}`)
-		} catch (err) {
-			alert('DELETION failed, please try again later')
-			console.log('Error updating user:\n', err);
-		};
+		}
 	}
 
 	return (

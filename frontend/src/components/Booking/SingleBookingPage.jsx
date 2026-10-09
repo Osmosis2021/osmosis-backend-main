@@ -20,15 +20,17 @@ import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 import { PremiumCard } from '../../ui/PremiumCard';
 import { PremiumSectionHeader } from '../../ui/PremiumSectionHeader';
 import { PremiumBackButton } from '../../ui/PremiumBackButton';
+import useStartChat from '../../hooks/useStartChat';
 
 function SingleBookingPage() {
     const axiosPrivate = useAxiosPrivate();
     const { id } = useParams()
-    const { backendURL, userID } = useStore();
+    const { backendURL } = useStore();
     const [booking, setBooking] = useState(null);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
+    const startChat = useStartChat();
 
     useEffect(() => {
         setIsLoading(true);
@@ -47,37 +49,7 @@ function SingleBookingPage() {
             });
     }, [id, axiosPrivate, backendURL]);
 
-    const handleMessageStudent = async () => {
-        if (!userID) {
-            alert("Please log in to message.");
-            navigate('/');
-            return;
-        }
-        const targetUserId =
-            booking?.studentID?._id
-        // booking?.studentUserName ||
-        // booking?.studentID ||
-        // booking?.student?._id ||
-        // booking?.student?._id;
-        if (!targetUserId) {
-            alert("Could not identify guest for this booking. Please try again.");
-            return;
-        };
-        if (targetUserId === userID) return; // safety: never message yourself
-
-        try {
-            const { data } = await axiosPrivate.get(`chat/accessChats/${targetUserId}?userID=${userID}`);
-            const { chats, setChats, setSelectedChat } = useStore.getState();
-            if (!chats.find((c) => c._id === data._id)) {
-                setChats([data, ...chats]);
-            }
-            setSelectedChat(data);
-            navigate('/chat');
-        } catch (err) {
-            console.error("Error accessing chat:", err);
-            navigate('/chat');
-        }
-    };
+    const handleMessageStudent = () => startChat(booking?.studentID?._id, { personLabel: 'this guest' });
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '';

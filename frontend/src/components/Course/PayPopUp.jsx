@@ -24,6 +24,7 @@ import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 import { PremiumButton } from '../../ui/PremiumButton';
 import { PremiumCard } from '../../ui/PremiumCard';
 import { useTheme, useMediaQuery, Grid } from '@mui/material';
+import useStartChat from '../../hooks/useStartChat';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -33,9 +34,10 @@ export default function PayPopUp(props) {
   const [open, setOpen] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [bookingID, setBookingID] = useState(null);
-  const { userID, userName, chats, setChats, setSelectedChat } = useStore();
+  const { userID, userName } = useStore();
   const axiosPrivate = useAxiosPrivate();
   const navigate = useNavigate();
+  const startChat = useStartChat();
 
   const paymentMetadata = {
     teacherUserName: props.teacherUserName,
@@ -43,23 +45,7 @@ export default function PayPopUp(props) {
     date: props.selectedDateAndTime?.startDate ? String(props.selectedDateAndTime.startDate).split('T')[0] : null
   }
 
-  const handleMessageHost = async () => {
-    if (!props.teacherID) {
-      navigate('/chat');
-      return;
-    }
-    try {
-      const { data } = await axiosPrivate.get(`chat/accessChats/${props.teacherID}?userID=${userID}`);
-      if (!chats.find((c) => c._id === data._id)) {
-        setChats([data, ...chats]);
-      }
-      setSelectedChat(data);
-      navigate('/chat');
-    } catch (err) {
-      console.error("Error accessing chat:", err);
-      navigate('/chat'); // Fallback
-    }
-  };
+  const handleMessageHost = () => startChat(props.teacherID, { personLabel: 'this artist' });
 
   async function bookThisCourse() {
     const bookingObj = {
