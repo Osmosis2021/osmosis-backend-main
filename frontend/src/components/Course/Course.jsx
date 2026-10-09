@@ -301,7 +301,7 @@ const Course = () => {
 						<Box>
 							<PremiumSectionHeader
 								title="Cancellation Policy"
-								subtitle="Plans changed? Message your host or contact Studio Time support at least 24 hours before the session for a full refund. If the host cancels, you're refunded in full automatically."
+								subtitle="Plans changed? Message the artist or contact Studio Time support at least 24 hours before the session for a full refund. If the host cancels, you're refunded in full automatically."
 							/>
 						</Box>
 					</Grid>

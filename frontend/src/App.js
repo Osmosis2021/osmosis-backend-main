@@ -2,9 +2,8 @@ import RequireAuth from './RequireAuth';
 import axios from 'axios'
 import PersistLogin from './components/Profile/PersistLogin'
 import { Routes, Route } from 'react-router-dom';
-import { Opening, Role } from './components/index';
+import { Opening } from './components/index';
 import UpdatedProgressBar from './components/TopNavBar/UpdatedProgressBar';
-import Major from './components/Student/Major.jsx';
 import StudentProfile from './components/Profile/StudentProfile/StudentProfile';
 import TeacherProfile from './components/Profile/TeacherProfile/TeacherProfile';
 import Signup from './components/Auth/Signup';
@@ -20,7 +19,8 @@ import EditProfile from './components/Profile/EditProfile';
 import Explore from './components/Explore/Explore';
 import EditCourse from './components/Profile/TeacherProfile/EditCourse';
 import EditPhotos from './components/Profile/TeacherProfile/EditPhotos';
-import BookingPage from './components/Booking/BookingPage';
+import MyBookingsRedirect from './components/Booking/MyBookingsRedirect';
+import PageNotFound from './components/PageNotFound';
 import SingleBookingPage from './components/Booking/SingleBookingPage';
 import TermsOfService from './components/Settings/TermsOfService';
 import SingleBookingPageForStudent from './components/Booking/SingleBookingPageForStudent';
@@ -47,8 +47,6 @@ function App() {
 					<Route element={<PersistLogin />} >
 						{/* Public routes */}
 						<Route path='/' element={<Opening />} />
-						<Route path='/role' element={<Role />} />
-						<Route path='/majors' element={<Major />} />
 						<Route path='/termsofservice' element={<TermsOfService />} />
 						<Route path='/privacy' element={<Privacy />} />
 						<Route path='/forgot' element={<Forgot />} />
@@ -63,18 +61,15 @@ function App() {
 						<Route path='/teachers/:userName' element={<TeacherProfile />} />
 						<Route path='/teachers/:userName/:course' element={<Course />} />
 						<Route path='/students/:userName' element={<StudentProfile />} />
-						<Route path='/students' element={<h1 style={{ padding: '10px' }}>This is where your personal page will be when you sign up.</h1>} />
 
-						{/* <Route path='/passwordreset' element={<PasswordReset />} /> */}
 						{/* Authenticated routes (Any User) */}
 						<Route element={<RequireAuth allowedRoles={[2119]} />} >
 							<Route path='/chat' element={<Chat />} />
 							<Route path='/settings' element={<Settings />} />
 							<Route path='/edit' element={<EditProfile />} />
 							<Route path='/ordersandpayments' element={<OrdersAndPayments />} />
-							<Route path='/bookings' element={<BookingPage />} />
+							<Route path='/bookings' element={<MyBookingsRedirect />} />
 							<Route path='/calendar' element={<Calendar />} />
-							<Route path='/usersonly' element={<p>This pages is for users only (teachers and students).</p>} />
 						</Route>
 
 						{/* Teacher Only Routes */}
@@ -86,14 +81,12 @@ function App() {
 							<Route path='/payouts/return' element={<PayoutSetup mode='returned' />} />
 							<Route path='/payouts/refresh' element={<PayoutSetup mode='refresh' />} />
 							<Route path='teacher/bookings/:id' element={<SingleBookingPage />} />
-							<Route path='/FLOW' element={<UpdatedProgressBar />} />
-							<Route path='/teachersonly' element={<p>This pages is for teachers only.</p>} />
+							<Route path='/flow' element={<UpdatedProgressBar />} />
 						</Route>
 
 						{/* Student Only Routes */}
 						<Route element={<RequireAuth allowedRoles={[1920]} />} >
 							<Route path='student/bookings/:id' element={<SingleBookingPageForStudent />} />
-							<Route path='/studentsonly' element={<p>This pages is for students only.</p>} />
 						</Route>
 
 						{/* Admin Only Routes */}
@@ -102,7 +95,7 @@ function App() {
 						</Route>
 
 						{/* Catch all 404 page */}
-						<Route path='*' element={<h1>We couldn't find that page.</h1>} />
+						<Route path='*' element={<PageNotFound />} />
 					</Route>
 				</Route>
 			</Routes>

@@ -25,6 +25,7 @@ import { PremiumCard } from "../../../ui/PremiumCard";
 import { PremiumButton } from "../../../ui/PremiumButton";
 import { PremiumSkeleton, PremiumEmptyState } from "../../../ui/PremiumFeedback";
 import useStartChat from '../../../hooks/useStartChat';
+import HostChecklist from './HostChecklist';
 import axios from '../../../actions/axios';
 import { isBookingUpcoming } from '../../../utils/bookingStatus';
 import { formatClockTime, formatSessionDate } from '../../../utils/sessionTime';
@@ -205,12 +206,12 @@ const TeacherProfile = (props) => {
                       <PremiumButton
                         style={{ borderRadius: 24, fontWeight: 700, textTransform: 'none' }}
                         component={Link}
-                        to="/FLOW"
+                        to="/flow"
                         startIcon={<AddIcon />
 
                         }
                       >
-                        Studio Time
+                        New studio time
                       </PremiumButton>
                       <Button
                         component={Link}
@@ -257,24 +258,13 @@ const TeacherProfile = (props) => {
       </Box>
 
       <Container maxWidth="lg" sx={{ py: 6 }}>
-        {/* Stripe Onboarding Alert */}
-        {isOwnProfile && !isOnboarded && (
-          <PremiumCard sx={{ mb: 6, bgcolor: 'rgba(0,174,239,0.05)', border: '1px dashed #000000', borderRadius: 2 }}>
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} padding={2} alignItems="center" justifyContent="space-between">
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 800 }}>Set up payouts to start taking bookings</Typography>
-                <Typography variant="body2" color="text.secondary">Guests can't pay for your studio times until Stripe knows where to send your earnings. It takes about 5 minutes.</Typography>
-              </Box>
-              <Button
-                component={Link}
-                to="/payouts"
-                variant="contained"
-                sx={{ borderRadius: 3, fontWeight: 700, px: 4 }}
-              >
-                Set up payouts
-              </Button>
-            </Stack>
-          </PremiumCard>
+        {/* First-run guide for the artist (only on their own profile) */}
+        {isOwnProfile && (
+          <HostChecklist
+            host={teacherInfo}
+            listingCount={sessionCard.length}
+            payoutsReady={teacherInfo.payoutsEnabled === true || isOnboarded}
+          />
         )}
 
         {/* Upcoming Sessions for Host */}
@@ -352,6 +342,7 @@ const TeacherProfile = (props) => {
                         address={course.addressDetails?.line1 || course.address}
                         duration={course.duration}
                         nextSession={course.nextSession ?? null}
+                        paymentsReady={course.paymentsReady !== false}
                       />
                     </Link>
                   </Box>

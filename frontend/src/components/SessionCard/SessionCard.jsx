@@ -23,9 +23,11 @@ function SessionCard(props) {
         profileImage,
         duration,
         nextSession,       // { startDate, startTime, spotsLeft } or null; undefined hides the line
+        paymentsReady = true, // false while the artist finishes payout setup
     } = props;
 
     const nextLine = nextSession === undefined ? null
+        : !paymentsReady ? 'Bookings open soon'
         : nextSession
             ? `${formatSessionDate(nextSession, { weekday: 'short', month: 'short', day: 'numeric' })} · ${formatClockTime(nextSession.startTime)}${nextSession.spotsLeft <= 2 ? ` · ${nextSession.spotsLeft} ${nextSession.spotsLeft === 1 ? 'spot' : 'spots'} left` : ''}`
             : 'New dates coming soon';
@@ -73,7 +75,7 @@ function SessionCard(props) {
     };
 
     return (
-        <PremiumCard sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <PremiumCard hoverable sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ position: 'relative', overflow: 'hidden' }}>
                 {renderImage()}
                 <Box
@@ -156,10 +158,10 @@ function SessionCard(props) {
                     </Stack>
 
                     {nextLine && (
-                        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ color: nextSession ? 'text.primary' : 'text.secondary' }}>
+                        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ color: nextSession && paymentsReady ? 'text.primary' : 'text.secondary' }}>
                             <EventAvailableIcon sx={{ fontSize: 18 }} aria-hidden />
-                            <Typography variant="body2" sx={{ fontWeight: nextSession ? 700 : 500 }}>
-                                {nextSession ? `Next: ${nextLine}` : nextLine}
+                            <Typography variant="body2" sx={{ fontWeight: nextSession && paymentsReady ? 700 : 500 }}>
+                                {nextSession && paymentsReady ? `Next: ${nextLine}` : nextLine}
                             </Typography>
                         </Stack>
                     )}

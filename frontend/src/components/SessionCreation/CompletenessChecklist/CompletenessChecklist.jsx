@@ -34,7 +34,7 @@ export default function CompletenessChecklist({ setActiveStep }) {
             navigate('/edit');
         } else if (item.label === '3+ Photos') {
             setActiveStep(5);
-        } else if (item.label === 'Studio Vibe' || item.label === 'Experience Details') {
+        } else if (item.label === 'Studio Vibe' || item.label === 'Title & description') {
             setActiveStep(1); // SessionTag has the title, description and vibe
         } else if (item.label === 'Availability Set') {
             setActiveStep(3);
@@ -45,7 +45,7 @@ export default function CompletenessChecklist({ setActiveStep }) {
         { label: 'Host Bio', complete: Boolean(description), tip: 'Tell guests about your journey.' },
         { label: '3+ Photos', complete: images.length >= 3, tip: 'Show off your studio space.' },
         { label: 'Studio Vibe', complete: Boolean(studioVibe), tip: 'Describe the atmosphere.' },
-        { label: 'Experience Details', complete: Boolean(courseTitle) && Boolean(courseDescription), tip: 'Clear titles attract more guests.' },
+        { label: 'Title & description', complete: Boolean(courseTitle) && Boolean(courseDescription), tip: 'Clear titles attract more guests.' },
         { label: 'Availability Set', complete: newCourseTimeslots.filter(slot => slot?.date).length > 0, tip: 'Open your doors for bookings.' },
     ];
 
@@ -70,7 +70,7 @@ export default function CompletenessChecklist({ setActiveStep }) {
                     sx={{
                         height: 8,
                         borderRadius: 4,
-                        bgcolor: 'rgba(0,174,239,0.1)',
+                        bgcolor: 'rgba(10, 10, 10, 0.05)',
                         '& .MuiLinearProgress-bar': {
                             borderRadius: 4,
                         }
@@ -123,7 +123,7 @@ export default function CompletenessChecklist({ setActiveStep }) {
             </List>
 
             {percentage < 100 && (
-                <Box sx={{ mt: 3, p: 2, bgcolor: 'rgba(0,174,239,0.05)', borderRadius: 3 }}>
+                <Box sx={{ mt: 3, p: 2, bgcolor: 'rgba(10, 10, 10, 0.025)', borderRadius: 3 }}>
                     <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main', display: 'block' }}>
                         💡 Pro Tip: Complete profiles get 3x more bookings!
                     </Typography>

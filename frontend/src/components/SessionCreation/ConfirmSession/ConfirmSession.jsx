@@ -182,7 +182,7 @@ export const ConfirmSession = (props) => {
                             Your Studio Time is live!
                         </Typography>
                         <Typography variant="h6" color="text.secondary">
-                            Congratulations! Your experience is now discoverable by the community.
+                            It's live! Share the link with your followers so they can book.
                         </Typography>
                     </Box>
 
@@ -274,12 +274,12 @@ export const ConfirmSession = (props) => {
                             <CompletenessChecklist setActiveStep={props.setActiveStep} />
                         </Box>
 
-                        <PremiumCard sx={{ p: 3, bgcolor: 'rgba(0,174,239,0.02)' }}>
+                        <PremiumCard sx={{ p: 3, bgcolor: 'rgba(10, 10, 10, 0.01)' }}>
                             <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
                                 Host Agreement
                             </Typography>
                             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                                By going live, you agree to host this experience as described and follow the Studio Time community guidelines.
+                                By going live, you agree to host this studio time as described and follow the Studio Time community guidelines.
                             </Typography>
                             <Button
                                 variant="contained"
@@ -292,7 +292,7 @@ export const ConfirmSession = (props) => {
                                     fontWeight: 800,
                                     fontSize: '1.1rem',
                                     borderRadius: 3,
-                                    boxShadow: '0 8px 24px rgba(0,174,239,0.25)'
+                                    boxShadow: '0 8px 24px rgba(10, 10, 10, 0.125)'
                                 }}
                             >
                                 {isLoading ? <CircularProgress size={24} color="inherit" aria-label="Publishing" /> : 'Go Live Today'}
@@ -319,7 +319,7 @@ export const ConfirmSession = (props) => {
                             profileImage={teacherInfo?.profileImage?.url}
                             industry={newCourseIndustry}
                             tags={tags}
-                            courseTitle={courseTitle || 'Your Experience Title'}
+                            courseTitle={courseTitle || 'Your studio time title'}
                             icon={newCourseIndustry}
                             price={newCourseCost || 0}
                             firstName={userName}
@@ -329,7 +329,7 @@ export const ConfirmSession = (props) => {
                             zipCode={newCourseAddressZipcode}
                         />
                         <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block', textAlign: 'center' }}>
-                            This is how your experience will appear in search.
+                            This is how your studio time will appear on Explore.
                         </Typography>
                     </Box>
                 </Grid>

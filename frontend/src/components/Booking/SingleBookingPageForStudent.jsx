@@ -61,7 +61,7 @@ function SingleBookingPageForStudent() {
             });
     }, [id, axiosPrivate, backendURL]);
 
-    const handleMessageHost = () => startChat(booking?.teacherID?._id, { personLabel: 'this host' });
+    const handleMessageHost = () => startChat(booking?.teacherID?._id, { personLabel: 'this artist' });
 
     const formatDate = (dateStr) => formatSessionDate(dateStr || '', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
@@ -92,7 +92,7 @@ function SingleBookingPageForStudent() {
                     <Grid item xs={12} md={8}>
                         {isBookingCancelled(booking) && (
                             <Alert severity="warning" sx={{ mb: 3, borderRadius: '12px' }}>
-                                <strong>The host cancelled this session.</strong> {refundMessage(booking)}
+                                <strong>The artist cancelled this session.</strong> {refundMessage(booking)}
                             </Alert>
                         )}
                         <PremiumCard sx={{ p: 4, mb: 4 }}>
@@ -161,7 +161,7 @@ function SingleBookingPageForStudent() {
                                 <Grid item xs={12} sm={6}>
                                     <Box>
                                         <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1, display: 'block', mb: 1 }}>
-                                            Host Info
+                                            Your artist
                                         </Typography>
                                         <Stack direction="row" spacing={2} alignItems="center">
                                             <Avatar
@@ -179,7 +179,7 @@ function SingleBookingPageForStudent() {
                                                         sx={{ fontWeight: 700, p: 0, textTransform: 'none' }}
                                                         onClick={handleMessageHost}
                                                     >
-                                                        Message Host
+                                                        Message artist
                                                     </Button>
                                                 )}
                                             </Box>
@@ -192,7 +192,7 @@ function SingleBookingPageForStudent() {
                         <PremiumSectionHeader title="What to bring" />
                         <PremiumCard sx={{ p: 3, mb: 4 }}>
                             <Typography variant="body1" color="text.secondary">
-                                {booking?.courseID?.whatToBring || "The host hasn't specified anything special to bring. Just yourself and a creative spirit!"}
+                                {booking?.courseID?.whatToBring || "The artist hasn't specified anything special to bring. Just yourself and a creative spirit!"}
                             </Typography>
                         </PremiumCard>
 
@@ -244,7 +244,7 @@ function SingleBookingPageForStudent() {
                                 <PremiumCard sx={{ p: 3, bgcolor: 'primary.main', color: 'white' }}>
                                     <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>Need help?</Typography>
                                     <Typography variant="body2" sx={{ mb: 2, opacity: 0.9 }}>
-                                        If you have questions about your booking, message the host directly.
+                                        If you have questions about your booking, message the artist directly.
                                     </Typography>
                                     <Button
                                         variant="contained"
@@ -252,7 +252,7 @@ function SingleBookingPageForStudent() {
                                         sx={{ bgcolor: 'white', color: 'primary.main', fontWeight: 800, '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' } }}
                                         onClick={handleMessageHost}
                                     >
-                                        Contact Host
+                                        Contact artist
                                     </Button>
                                 </PremiumCard>
                             )}

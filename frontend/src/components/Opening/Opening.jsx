@@ -190,6 +190,14 @@ const Opening = () => {
 
 						{/* Secondary Action: Sign Up */}
 						<Box sx={{ mt: 3, textAlign: 'center' }}>
+							<Button
+								component={LinkRouter}
+								to="/explore"
+								variant="text"
+								sx={{ textTransform: 'none', fontWeight: 700, mb: 1 }}
+							>
+								Just browsing? Explore studio times →
+							</Button>
 							<Typography variant="body2" sx={{ color: 'text.secondary' }}>
 								New here?{' '}
 								<LinkRouter

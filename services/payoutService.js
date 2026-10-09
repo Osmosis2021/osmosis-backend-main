@@ -77,12 +77,41 @@ const createOnboardingLink = async (user) => {
     return link.url;
 };
 
+/** Saves Stripe's payouts_enabled on the user when it changed. */
+const syncPayoutsFlag = async (user, account) => {
+    const enabled = Boolean(account?.payouts_enabled);
+    if (user.payoutsEnabled !== enabled) {
+        user.payoutsEnabled = enabled;
+        await user.save();
+    }
+    return enabled;
+};
+
+/**
+ * Fills in payoutsEnabled for hosts we haven't checked with Stripe yet (e.g. hosts who
+ * onboarded before the flag existed). Never throws; unknown hosts stay unknown.
+ */
+const refreshUnknownPayoutFlags = async (users) => {
+    if (!stripe.isConfigured) return;
+    const unknown = users.filter((u) => u?.stripeID && typeof u.payoutsEnabled !== 'boolean' && typeof u.save === 'function');
+    await Promise.all(unknown.map(async (user) => {
+        try {
+            await syncPayoutsFlag(user, await stripe.accounts.retrieve(user.stripeID));
+        } catch (err) {
+            if (isMissingAccountError(err)) {
+                user.payoutsEnabled = false;
+                await user.save().catch(() => {});
+            }
+        }
+    }));
+};
+
 /** Plain-language payout status for the host's own screens. */
 const getPayoutStatus = async (user) => {
     if (!user.stripeID) return { state: 'not_started', payoutsEnabled: false, mode: stripe.stripeMode };
     try {
         const account = await stripe.accounts.retrieve(user.stripeID);
-        const payoutsEnabled = Boolean(account.payouts_enabled);
+        const payoutsEnabled = await syncPayoutsFlag(user, account);
         const detailsSubmitted = Boolean(account.details_submitted);
         const due = account.requirements?.currently_due || [];
         // ready: can be paid out · in_progress: started but hasn't finished Stripe's form
@@ -108,4 +137,4 @@ const createDashboardLink = async (user) => {
     return link.url;
 };
 
-module.exports = { ensureConnectedAccount, createOnboardingLink, getPayoutStatus, createDashboardLink };
+module.exports = { ensureConnectedAccount, createOnboardingLink, getPayoutStatus, createDashboardLink, syncPayoutsFlag, refreshUnknownPayoutFlags };

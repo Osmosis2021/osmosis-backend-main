@@ -4,7 +4,7 @@ import BrushIcon from '@mui/icons-material/Brush';
 import EventIcon from '@mui/icons-material/Event';
 
 export const ROLE_OPTIONS = [
-    { value: 'artist', label: 'Artist', description: 'Host creative studio experiences', Icon: BrushIcon },
+    { value: 'artist', label: 'Artist', description: 'Host studio time in your space', Icon: BrushIcon },
     { value: 'guest', label: 'Guest', description: 'Explore & book art sessions', Icon: EventIcon },
 ];
 

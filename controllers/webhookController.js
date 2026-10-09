@@ -1,6 +1,7 @@
 const env = require('../config/env');
 const stripe = require('../services/stripeClient');
 const bookingService = require('../services/bookingService');
+const User = require('../models/user');
 
 const STRIPE_WEBHOOK_SECRET = env.STRIPE_WEBHOOK_SECRET;
 
@@ -33,6 +34,14 @@ const handleWebhook = async (req, res) => {
                 // Acknowledge anyway: retrying won't help, and any refund has already been attempted.
                 console.error(`[webhook] Could not create booking for ${paymentIntent.id}:`, err.message);
             }
+            break;
+        }
+        // A connected (host) account changed, e.g. finished onboarding or Stripe paused payouts.
+        // Requires the webhook to also listen to events on connected accounts.
+        case 'account.updated': {
+            const account = event.data.object;
+            await User.updateOne({ stripeID: account.id }, { $set: { payoutsEnabled: Boolean(account.payouts_enabled) } })
+                .catch((err) => console.error('[webhook] account.updated failed:', err.message));
             break;
         }
         default:

@@ -188,6 +188,7 @@ export const ReserveModule = ({
                     teacherUserName={courseData.userName}
                     studentUserName={userName}
                     stripeID={teacherInfo?.stripeID}
+                    paymentsReady={teacherInfo?.payoutsEnabled === true}
                     fullWidth
                 />
                 <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block', textAlign: 'center' }}>

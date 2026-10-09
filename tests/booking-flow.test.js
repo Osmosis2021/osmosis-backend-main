@@ -151,6 +151,24 @@ describe('Browse data', () => {
     });
 });
 
+describe('Payout readiness', () => {
+    it('marks listings bookable only when the artist can receive payouts', async () => {
+        let res = await request(app).get('/course/getClasses').expect(200);
+        expect(res.body[0].paymentsReady).toBe(false);
+
+        await User.updateOne({ _id: host._id }, { payoutsEnabled: true });
+        res = await request(app).get('/course/getClasses').expect(200);
+        expect(res.body[0].paymentsReady).toBe(true);
+    });
+
+    it('updates the flag when Stripe reports a host account change', async () => {
+        await User.updateOne({ _id: host._id }, { stripeID: 'acct_host' });
+        stripe.webhooks.constructEvent.mockReturnValue({ type: 'account.updated', data: { object: { id: 'acct_host', payouts_enabled: true } } });
+        await request(app).post('/stripe/webhook').set('stripe-signature', 'sig').set('Content-Type', 'application/json').send('{}').expect(200);
+        expect((await User.findById(host._id)).payoutsEnabled).toBe(true);
+    });
+});
+
 describe('Host stats', () => {
     it('reports only real numbers', async () => {
         const fresh = await request(app).get(`/course/hostStats/${host.userName}`).expect(200);

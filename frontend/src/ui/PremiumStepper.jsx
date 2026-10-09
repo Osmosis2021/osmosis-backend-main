@@ -66,7 +66,7 @@ export const PremiumStepper = ({ activeStep, steps }) => {
                     sx={{
                         height: 8,
                         borderRadius: 4,
-                        bgcolor: 'rgba(0,174,239,0.1)',
+                        bgcolor: 'rgba(10, 10, 10, 0.05)',
                         '& .MuiLinearProgress-bar': {
                             borderRadius: 4,
                         }

@@ -75,7 +75,7 @@ export default function SessionTag(props) {
 				{/* Section 1: The Core Experience */}
 				<Box>
 					<Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 1.5 }}>
-						The Experience
+						About this studio time
 					</Typography>
 					<Stack spacing={3} sx={{ mt: 2 }}>
 						<TextField

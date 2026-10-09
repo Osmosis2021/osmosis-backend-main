@@ -16,7 +16,6 @@ import {
   IconButton,
   TextField,
   InputAdornment,
-  Switch,
   Stack,
   Accordion,
   AccordionSummary,
@@ -136,12 +135,6 @@ export default function Settings() {
   const [showSecPassword, setShowSecPassword] = useState({ current: false, new: false, confirm: false });
 
   // Notification State
-  const [notifications, setNotifications] = useState({
-    emailAlerts: true,
-    smsMessages: false,
-    inAppAlerts: true,
-    weeklySummary: true
-  });
 
   // Help/Contact State
   const [helpContact, setHelpContact] = useState({ subject: '', message: '' });
@@ -183,9 +176,6 @@ export default function Settings() {
     if (userInfo.email && !email_) setEmail_(userInfo.email);
     if (userInfo.description && !description_) setDescription_(userInfo.description);
     if (userInfo.phoneNumber !== undefined && !phoneNumber_) setPhoneNumber_(userInfo.phoneNumber || '');
-    if (userInfo.smsEnabled !== undefined) {
-      setNotifications(prev => ({ ...prev, smsMessages: userInfo.smsEnabled }));
-    }
   }, [userInfo, firstName_, lastName_, userName_, email_, description_, phoneNumber_]);
 
   // Fetch Stripe Info (on Demand or Mount)
@@ -362,33 +352,6 @@ export default function Settings() {
       console.error(error);
       const errMsg = error.response?.data?.message || 'Error updating password. Please try again.';
       showToast(errMsg, 'error');
-    }
-  };
-
-  // Notification toggle handler
-  const handleNotificationChange = (field) => {
-    setNotifications(prev => ({ ...prev, [field]: !prev[field] }));
-  };
-
-  // Notification update handler
-  const handleNotificationSave = async () => {
-    try {
-      const response = await axiosPrivate.put(`user/updateProfile/${userID}`, {
-        newInfo: {
-          smsEnabled: notifications.smsMessages
-        }
-      });
-      if (response.data.success) {
-        showToast('Notification preferences saved!', 'success');
-        if (response.data.user) {
-          setUserInfo(response.data.user);
-        }
-      } else {
-        showToast('Failed to save preferences', 'error');
-      }
-    } catch (err) {
-      console.error(err);
-      showToast('Error saving preferences', 'error');
     }
   };
 
@@ -979,82 +942,24 @@ export default function Settings() {
                 Notification Preferences
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Decide how and when you want to receive booking confirmations and class schedules.
+                How Studio Time keeps you updated about your bookings.
               </Typography>
             </Box>
 
             <Divider />
 
-            <Stack spacing={3}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>Email Alerts</Typography>
-                  <Typography variant="body2" color="text.secondary">Receive message replies, session receipts and booking approvals via email.</Typography>
-                </Box>
-                <Switch
-                  checked={notifications.emailAlerts}
-                  onChange={() => handleNotificationChange('emailAlerts')}
-                  color="primary"
-                />
+            {/* Only what actually happens today; no switches for features that don't exist yet. */}
+            <Stack spacing={2}>
+              <Box sx={{ p: 2.5, border: '1px solid', borderColor: 'divider', borderRadius: '12px' }}>
+                <Typography sx={{ fontWeight: 700 }}>Email</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  We email you at <strong>{userInfo.email || 'your account email'}</strong> about bookings, cancellations,
+                  refunds and account security. These emails are always on so you never miss a change to a session.
+                </Typography>
               </Box>
-
-              <Divider />
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>SMS Text Reminders</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Get quick automated text updates 1 hour before scheduled sessions.
-                    <br />
-                    <span style={{ color: '#D32F2F', fontWeight: 600 }}>
-                      (SMS service currently disabled - backend service integration pending)
-                    </span>
-                  </Typography>
-                </Box>
-                <Switch
-                  disabled={true}
-                  checked={notifications.smsMessages}
-                  onChange={() => handleNotificationChange('smsMessages')}
-                  color="primary"
-                />
-              </Box>
-
-              <Divider />
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>In-App Push Alerts</Typography>
-                  <Typography variant="body2" color="text.secondary">Enable badge icons and pop-ups on mobile apps when bookings occur.</Typography>
-                </Box>
-                <Switch
-                  checked={notifications.inAppAlerts}
-                  onChange={() => handleNotificationChange('inAppAlerts')}
-                  color="primary"
-                />
-              </Box>
-
-              <Divider />
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>Weekly Activty Digest</Typography>
-                  <Typography variant="body2" color="text.secondary">Receive a Sunday review summarizing classes completed and payout tallies.</Typography>
-                </Box>
-                <Switch
-                  checked={notifications.weeklySummary}
-                  onChange={() => handleNotificationChange('weeklySummary')}
-                  color="primary"
-                />
-              </Box>
-
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleNotificationSave}
-                sx={{ py: 1.5, alignSelf: 'flex-start', borderRadius: '12px', mt: 2 }}
-              >
-                Save Preferences
-              </Button>
+              <Typography variant="body2" color="text.secondary">
+                More ways to get updates, like text reminders, are coming soon.
+              </Typography>
             </Stack>
           </Stack>
         );

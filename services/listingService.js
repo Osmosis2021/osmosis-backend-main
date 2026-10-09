@@ -2,6 +2,8 @@ const Course = require('../models/course');
 const CourseTimeslot = require('../models/courseTimeslot');
 const { PUBLIC_FIELDS } = require('../models/user');
 const Booking = require('../models/booking');
+const User = require('../models/user');
+const payoutService = require('./payoutService');
 const { INACTIVE_STATUSES, DEFAULT_TIMEZONE, effectiveStartAt } = require('./sessionTime');
 
 // Upcoming, still-bookable sessions for the given courses, keyed by course id and sorted by start.
@@ -35,11 +37,19 @@ const getAllListings = async () => withNextSessions(await Course.find().populate
 
 const withNextSessions = async (courses) => {
     const sessions = await upcomingSessionsByCourse(courses);
+    const hosts = await User.find({ _id: { $in: courses.map((c) => c.teacherID?._id || c.teacherID) } });
+    await payoutService.refreshUnknownPayoutFlags(hosts);
+    const payoutsById = new Map(hosts.map((h) => [String(h._id), h.payoutsEnabled === true]));
     return courses.map((course) => {
         const upcoming = sessions.get(String(course._id)) || [];
         const open = upcoming.find(({ slot }) => (slot.enrollment || 0) < (slot.capacity || 1));
+        const json = course.toJSON();
+        const hostId = String(course.teacherID?._id || course.teacherID);
+        if (json.teacherID && typeof json.teacherID === 'object') json.teacherID.payoutsEnabled = payoutsById.get(hostId);
         return {
-            ...course.toJSON(),
+            ...json,
+            // false: the artist hasn't finished payout setup, so sessions can't be booked yet
+            paymentsReady: payoutsById.get(hostId) || false,
             upcomingSessionCount: upcoming.length,
             nextSession: open ? {
                 _id: open.slot._id,

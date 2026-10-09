@@ -8,6 +8,7 @@ const authService = require('../services/authService');
 const { REFRESH_COOKIE_OPTIONS } = require('../services/authService');
 const emailService = require('../services/emailService');
 const { verifyGoogleCredential } = require('../services/googleAuth');
+const payoutService = require('../services/payoutService');
 const attemptLimiter = require('../services/attemptLimiter');
 const { requireAuth, optionalAuth, getBearerToken, verifyAccessToken } = require('../middleware/auth');
 
@@ -89,6 +90,7 @@ router.get('/getUserInfo/:userName', optionalAuth, async (req, res, next) => {
     try {
         const { userName } = req.params
         const data = await User.findOne({ userName });
+        if (data?.isTeacher) await payoutService.refreshUnknownPayoutFlags([data]);
         if (data) {
             const isOwner = req.currentUser && String(req.currentUser._id) === String(data._id);
             res.json(isOwner ? data : pickPublicFields(data))

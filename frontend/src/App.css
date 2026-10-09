@@ -27,3 +27,13 @@ body {
     font-size: max(16px, 1em) !important;
   }
 }
+
+/* Visible keyboard focus everywhere (MUI removes the browser default on many controls). */
+.Mui-focusVisible,
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid #0A0A0A;
+  outline-offset: 2px;
+}

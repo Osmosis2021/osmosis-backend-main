@@ -1,4 +1,5 @@
 import {
+	IconButton,
 	Typography,
 	Grid,
 	Stack,
@@ -8,6 +9,8 @@ import {
 	Fade
 } from '@mui/material';
 import React, { useEffect } from 'react';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import useStore from '../../../store';
 import { PremiumCard } from '../../../ui/PremiumCard';
 import { PremiumSectionHeader } from '../../../ui/PremiumSectionHeader';
@@ -23,14 +26,14 @@ const CAPACITY_TIERS = [
 	{
 		id: 'moderate',
 		label: 'Moderate',
-		range: '3–5 guests',
+		range: '4–5 guests',
 		description: 'Balanced energy and interaction.',
 		defaultValue: 4
 	},
 	{
 		id: 'large',
 		label: 'Large',
-		range: '5+ guests',
+		range: '6+ guests',
 		description: 'Group-focused, workshop-style sessions.',
 		defaultValue: 8
 	}
@@ -60,8 +63,15 @@ function Capacity(props) {
 		}
 	};
 
-	const totalEarnings = (Number(capacity) || 0) * (Number(newCourseCost) || 0);
-	const studioTimeFee = totalEarnings * 0.1;
+	const MAX_CAPACITY = 100;
+	const setGuests = (value) => setCapacity(Math.min(MAX_CAPACITY, Math.max(1, value)));
+
+	// Matches the platform fee charged at checkout: 9.9% of each booking plus $0.30.
+	// Estimated as if every spot were a separate booking (the worst case for the host).
+	const guests = Number(capacity) || 0;
+	const totalEarnings = guests * (Number(newCourseCost) || 0);
+	const studioTimeFee = totalEarnings * 0.099 + guests * 0.3;
+	const hostTakeHome = Math.max(0, totalEarnings - studioTimeFee);
 
 	// Determine current tier for styling
 	const getActiveTier = () => {
@@ -92,8 +102,14 @@ function Capacity(props) {
 							return (
 								<Grid item xs={12} sm={4} key={tier.id}>
 									<PremiumCard
+										component="button"
+										type="button"
 										onClick={() => handleTierSelect(tier)}
+										aria-pressed={selected}
 										sx={{
+											width: '100%',
+											font: 'inherit',
+											color: 'inherit',
 											p: 3,
 											height: '100%',
 											borderColor: selected ? 'text.primary' : 'rgba(0,0,0,0.05)',
@@ -119,14 +135,30 @@ function Capacity(props) {
 							);
 						})}
 					</Grid>
+
+					{/* Exact number, for when the presets aren't quite right */}
+					<Stack direction="row" alignItems="center" justifyContent="center" spacing={2} sx={{ mt: 3 }}>
+						<Typography id="guests-per-session-label" sx={{ fontWeight: 700 }}>Guests per session</Typography>
+						<IconButton aria-label="Fewer guests" onClick={() => setGuests(guests - 1)} disabled={guests <= 1} sx={{ border: '1px solid', borderColor: 'divider' }}>
+							<RemoveIcon />
+						</IconButton>
+						<Typography aria-live="polite" aria-labelledby="guests-per-session-label" sx={{ fontWeight: 800, fontSize: '1.25rem', minWidth: 32, textAlign: 'center' }}>
+							{guests}
+						</Typography>
+						<IconButton aria-label="More guests" onClick={() => setGuests(guests + 1)} disabled={guests >= MAX_CAPACITY} sx={{ border: '1px solid', borderColor: 'divider' }}>
+							<AddIcon />
+						</IconButton>
+					</Stack>
 				</Box>
 
 				{/* Pricing Input */}
 				<Box sx={{ maxWidth: 400, mx: 'auto', width: '100%', textAlign: 'center' }}>
-					<Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 1.5, mb: 2, display: 'block' }}>
+					<Typography component="label" htmlFor="wizard-price" variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 1.5, mb: 2, display: 'block' }}>
 						Price per guest
 					</Typography>
 					<TextField
+						id="wizard-price"
+						inputProps={{ inputMode: 'numeric', 'aria-describedby': 'wizard-price-help' }}
 						fullWidth
 						variant="outlined"
 						value={newCourseCost}
@@ -152,6 +184,10 @@ function Capacity(props) {
 					/>
 				</Box>
 
+				<Typography id="wizard-price-help" variant="caption" color="text.secondary" sx={{ textAlign: 'center', mt: -4 }}>
+					Whole dollars. Guests see this price when booking.
+				</Typography>
+
 				{/* Earnings Preview */}
 				<Fade in={totalEarnings > 0}>
 					<Box sx={{
@@ -162,18 +198,19 @@ function Capacity(props) {
 						bgcolor: 'rgba(0,0,0,0.01)'
 					}}>
 						<Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
-							Estimated session earnings
+							If every spot is booked, you'd receive about
 						</Typography>
 						<Stack direction="row" spacing={1} justifyContent="center" alignItems="baseline">
 							<Typography variant="h4" sx={{ fontWeight: 800 }}>
-								${totalEarnings}
+								${hostTakeHome.toFixed(0)}
 							</Typography>
 							<Typography variant="body2" color="text.secondary">
-								total
+								per session
 							</Typography>
 						</Stack>
 						<Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-							{capacity} guests × ${newCourseCost} per guest. Studio Time fee (10%): ${studioTimeFee.toFixed(0)}
+							{guests} {guests === 1 ? 'guest' : 'guests'} × ${newCourseCost} = ${totalEarnings}, minus the Studio Time fee
+							(9.9% + $0.30 per booking, about ${studioTimeFee.toFixed(2)}).
 						</Typography>
 					</Box>
 				</Fade>

@@ -29,7 +29,7 @@ export default function DateDrawer(props) {
         '&:hover': {
             borderColor: '#000000',
             transform: 'translateY(-4px)',
-            boxShadow: '0 8px 24px rgba(0,174,239,0.1)'
+            boxShadow: '0 8px 24px rgba(10, 10, 10, 0.05)'
         }
     }));
 
@@ -142,7 +142,7 @@ export default function DateDrawer(props) {
                                             sx={{
                                                 fontWeight: 700,
                                                 color: props.selectedTimeslotID === availability._id ? 'rgba(255,255,255,0.9)' : 'primary.main',
-                                                bgcolor: props.selectedTimeslotID === availability._id ? 'rgba(255,255,255,0.2)' : 'rgba(0,174,239,0.05)',
+                                                bgcolor: props.selectedTimeslotID === availability._id ? 'rgba(255,255,255,0.2)' : 'rgba(10, 10, 10, 0.025)',
                                                 px: 1.5,
                                                 py: 0.5,
                                                 borderRadius: 10

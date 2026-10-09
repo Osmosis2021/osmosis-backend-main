@@ -1,6 +1,4 @@
-export { default as Role } from './Opening/Role.jsx';
 export { default as Opening } from './Opening/Opening.jsx';
-export { default as Major } from './Student/Major';
 export { default as GetClasses } from './Student/GetClasses.jsx';
 export { default as Address } from './SessionCreation/Address/Address.jsx';
 export { default as Cost } from './SessionCreation/Cost/Cost';

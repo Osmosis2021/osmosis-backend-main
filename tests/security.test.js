@@ -391,6 +391,20 @@ describe('Payments', () => {
         expect(options.customer).toBe('cus_guest');
     });
 
+    it("won't take payment for an artist who hasn't finished payout setup", async () => {
+        const host = await makeUser({ isTeacher: true, stripeID: 'acct_host' });
+        const guest = await makeUser({ isStudent: true });
+        const course = await makeCourse(host);
+        const slot = await CourseTimeslot.create({ courseID: course._id, capacity: 4, enrollment: 0, startTime: '14:00', startDate: new Date('2030-01-05') });
+        stripe.accounts.retrieve.mockResolvedValue({ payouts_enabled: false });
+        const res = await request(app).post('/stripe/create-payment-intent').set('Authorization', `Bearer ${tokenFor(guest)}`)
+            .send({ courseID: String(course._id), timeslotID: String(slot._id), guests: 1 })
+            .expect(409);
+        expect(res.body.error).toMatch(/still setting up payments/);
+        expect(stripe.paymentIntents.create).not.toHaveBeenCalled();
+        expect((await User.findById(host._id)).payoutsEnabled).toBe(false);
+    });
+
     it('requires sign-in to start a payment', async () => {
         await request(app).post('/stripe/create-payment-intent').send({ courseID: new mongoose.Types.ObjectId().toString(), guests: 1 }).expect(401);
     });

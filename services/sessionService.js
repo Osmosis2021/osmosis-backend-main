@@ -149,8 +149,8 @@ const sendCancellationEmail = async ({ booking, course, session, note }) => {
     const message = `
         <h3>Your Studio Time session was cancelled</h3>
         <p>Hi ${escapeHtml(guest.firstName) || 'there'},</p>
-        <p>Unfortunately the host has cancelled <strong>${escapeHtml(course.courseTitle)}</strong> on ${escapeHtml(when)}.</p>
-        ${note ? `<p>Message from the host: “${escapeHtml(note)}”</p>` : ''}
+        <p>Unfortunately the artist has cancelled <strong>${escapeHtml(course.courseTitle)}</strong> on ${escapeHtml(when)}.</p>
+        ${note ? `<p>Message from the artist: “${escapeHtml(note)}”</p>` : ''}
         ${refundLine(booking.refundStatus, booking.total)}
         <p>We're sorry for the change of plans. You can find other sessions at <a href="https://getstudiotime.com/explore">getstudiotime.com</a>.</p>
         <p>The Studio Time Team</p>

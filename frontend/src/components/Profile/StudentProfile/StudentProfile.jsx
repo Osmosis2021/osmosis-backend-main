@@ -80,7 +80,7 @@ const StudentProfile = () => {
     return <Chip label="Upcoming" size="small" color="primary" sx={{ fontWeight: 700 }} />;
   };
 
-  const ReservationItem = ({ booking }) => (
+  const BookingItem = ({ booking }) => (
     <PremiumCard sx={{ p: 0, mb: 2, overflow: 'hidden' }}>
       <Grid container>
         <Grid item xs={12} md={3}>
@@ -222,15 +222,15 @@ const StudentProfile = () => {
             </PremiumCard>
           </Grid>
 
-          {/* Reservations Content */}
+          {/* Bookings */}
           <Grid item xs={12} md={8}>
             <PremiumSectionHeader
-              title="My Reservations"
+              title="My bookings"
               subtitle="Manage your upcoming and past studio sessions"
             />
 
             <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
-              <Tabs value={tabValue} onChange={handleTabChange} aria-label="reservation tabs">
+              <Tabs value={tabValue} onChange={handleTabChange} aria-label="Booking tabs">
                 <Tab label={`Upcoming (${sortedBookings.upcoming.length})`} sx={{ fontWeight: 700, textTransform: 'none' }} />
                 <Tab label={`Past (${sortedBookings.past.length})`} sx={{ fontWeight: 700, textTransform: 'none' }} />
               </Tabs>
@@ -240,13 +240,13 @@ const StudentProfile = () => {
               <Box>
                 {sortedBookings.upcoming.length > 0 ? (
                   sortedBookings.upcoming.map(booking => (
-                    <ReservationItem key={booking._id} booking={booking} />
+                    <BookingItem key={booking._id} booking={booking} />
                   ))
                 ) : (
                   <PremiumEmptyState
                     title="No upcoming sessions"
-                    subtitle="Explore the studio and book your first experience today."
-                    actionLabel="Explore Experiences"
+                    subtitle="Find a studio that inspires you and book your first session."
+                    actionLabel="Explore studio times"
                     onAction={() => navigate('/explore')}
                   />
                 )}
@@ -257,12 +257,12 @@ const StudentProfile = () => {
               <Box>
                 {sortedBookings.past.length > 0 ? (
                   sortedBookings.past.map(booking => (
-                    <ReservationItem key={booking._id} booking={booking} />
+                    <BookingItem key={booking._id} booking={booking} />
                   ))
                 ) : (
                   <PremiumEmptyState
                     title="No past sessions"
-                    subtitle="Your completed experiences will appear here."
+                    subtitle="Sessions you\'ve been to will appear here."
                   />
                 )}
               </Box>

@@ -11,6 +11,8 @@ import ViewListIcon from '@mui/icons-material/ViewList';
 import EventBusyIcon from '@mui/icons-material/EventBusy';
 import { sessionStart } from '../../utils/sessionTime';
 
+const isBookable = (course) => Boolean(course.nextSession && course.paymentsReady);
+
 const CardSkeleton = () => (
     <Box aria-hidden>
         <Skeleton variant="rounded" height={200} sx={{ borderRadius: '16px 16px 0 0' }} />
@@ -49,10 +51,10 @@ export default function Explore() {
         if (params.get('view') === 'map') setView('map');
     }, [location.search]);
 
-    // Listings you can book first (soonest date first), then ones waiting for new dates.
+    // Listings you can book now first (soonest date first), then ones waiting for dates or payouts.
     const sorted = useMemo(() => [...classes].sort((a, b) => {
-        if (Boolean(a.nextSession) !== Boolean(b.nextSession)) return a.nextSession ? -1 : 1;
-        if (!a.nextSession) return 0;
+        if (isBookable(a) !== isBookable(b)) return isBookable(a) ? -1 : 1;
+        if (!a.nextSession || !b.nextSession) return a.nextSession ? -1 : b.nextSession ? 1 : 0;
         return sessionStart(a.nextSession) - sessionStart(b.nextSession);
     }), [classes]);
 
@@ -87,7 +89,7 @@ export default function Explore() {
                     </Typography>
                     {isTeacher && userName && (
                         <Button component={RouterLink} to="/flow" variant="contained" sx={{ mt: 1, textTransform: 'none', fontWeight: 700, borderRadius: '12px' }}>
-                            Host the first studio time
+                            List the first studio time
                         </Button>
                     )}
                 </Stack>
@@ -124,6 +126,7 @@ export default function Explore() {
                                 duration={course?.duration}
                                 city={course?.addressDetails?.city || course?.city}
                                 nextSession={course?.nextSession ?? null}
+                                paymentsReady={course?.paymentsReady !== false}
                             />
                         </Box>
                     </Grid>

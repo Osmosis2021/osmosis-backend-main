@@ -96,6 +96,11 @@ const UserSchema = new mongoose.Schema(
 		googleId: {
 			type: String,
 			default: ''
+		},
+		// Cached from Stripe: can this host receive payouts (and so take bookings)?
+		// Unset means "not checked yet".
+		payoutsEnabled: {
+			type: Boolean,
 		}
 
 	},
@@ -115,7 +120,7 @@ const UserSchema = new mongoose.Schema(
 const PRIVATE_FIELDS = ['password', 'refreshToken', 'resetCode', 'resetCodeExpires', 'emailVerificationCode'];
 
 // Safe to show to other users (profile pages, listings, chats, bookings).
-const PUBLIC_FIELDS = '_id firstName lastName userName profileImage description industries generalTags specificTags stars isTeacher isStudent stripeID createdAt';
+const PUBLIC_FIELDS = '_id firstName lastName userName profileImage description industries generalTags specificTags stars isTeacher isStudent stripeID payoutsEnabled createdAt';
 
 const pickPublicFields = (userDoc) => {
 	if (!userDoc) return userDoc;

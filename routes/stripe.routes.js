@@ -9,9 +9,6 @@ const payoutService = require('../services/payoutService');
 const { INACTIVE_STATUSES, effectiveStartAt } = require('../services/sessionTime');
 
 
-// Platform account that holds payments for hosts who have not finished Stripe onboarding.
-const UNONBOARDED_HOST_HOLDING_ACCOUNT = 'acct_1OnmPHI0y4kZR3uX';
-
 router.get('/config', (req, res) => {
     res.send({ publishableKey: stripe.publishableKey, mode: stripe.stripeMode });
 });
@@ -189,7 +186,7 @@ router.post('/create-payment-intent', requireAuth, async (req, res) => {
             return res.status(409).json({ error: 'Sorry, there are not enough spots left in this session.' });
         }
 
-        const host = await User.findById(course.teacherID).select('stripeID');
+        const host = await User.findById(course.teacherID);
         if (!host?.stripeID) {
             return res.status(400).json({ error: "This artist hasn't enabled payments yet." });
         }
@@ -200,10 +197,13 @@ router.post('/create-payment-intent', requireAuth, async (req, res) => {
             return res.status(400).json({ error: 'This studio time does not have a valid price.' });
         }
 
-        // Retrieve account info and determine if onboarded (payouts enabled)
+        // Hosts can only take bookings once Stripe can pay them out.
         const stripeAccountData = await stripe.accounts.retrieve(host.stripeID)
-        const payoutsEnabled = stripeAccountData?.payouts_enabled
-        const destinationAccount = payoutsEnabled ? host.stripeID : UNONBOARDED_HOST_HOLDING_ACCOUNT
+        const payoutsEnabled = await payoutService.syncPayoutsFlag(host, stripeAccountData)
+        if (!payoutsEnabled) {
+            return res.status(409).json({ error: "This artist is still setting up payments, so this session can't be booked yet. Check back soon!" });
+        }
+        const destinationAccount = host.stripeID
 
         const guest = req.currentUser;
         let paymentIntentOptions = {

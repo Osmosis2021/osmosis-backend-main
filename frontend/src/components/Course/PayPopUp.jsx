@@ -105,7 +105,9 @@ export default function PayPopUp(props) {
   const hasDate = Boolean(props.selectedDateAndTime?.startDate);
   const isOwnListing = Boolean(userID) && props.teacherUserName === userName;
   // Signed-out guests can tap through to log in; everything else must be ready to pay.
-  const isDisabled = !hasDate || isOwnListing || (Boolean(userID) && !props.stripeID);
+  // Artists can only take bookings once Stripe can pay them out.
+  const paymentsReady = Boolean(props.paymentsReady && props.stripeID);
+  const isDisabled = !hasDate || isOwnListing || !paymentsReady;
 
   const handleReserveClick = () => {
     if (!userID) {
@@ -130,28 +132,28 @@ export default function PayPopUp(props) {
           fontWeight: 800,
           fontSize: '1.1rem',
           textTransform: 'none',
-          boxShadow: '0 8px 24px rgba(0,174,239,0.25)',
+          boxShadow: '0 8px 24px rgba(10, 10, 10, 0.125)',
           '&:hover': {
-            boxShadow: '0 12px 32px rgba(0,174,239,0.35)',
+            boxShadow: '0 12px 32px rgba(10, 10, 10, 0.175)',
           },
           '&.Mui-disabled': {
-            bgcolor: !props.stripeID ? 'action.disabledBackground' : undefined
+            bgcolor: !paymentsReady ? 'action.disabledBackground' : undefined
           }
         }}
       >
-        {!hasDate ? "Choose a date to continue" :
-          isOwnListing ? "This is your studio time" :
-            !userID ? "Log in to reserve" :
-              !props.stripeID ? "Payments unavailable" : "Reserve now"}
+        {isOwnListing ? "This is your studio time" :
+          !paymentsReady ? "Bookings open soon" :
+            !hasDate ? "Choose a date to continue" :
+              !userID ? "Log in to reserve" : "Reserve now"}
       </Button>
-      {!userID && hasDate && (
+      {!userID && hasDate && paymentsReady && (
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
           You'll come right back here after logging in.
         </Typography>
       )}
-      {!props.stripeID && userID && props.selectedDateAndTime?.startDate && (
-        <Typography variant="caption" color="error" sx={{ display: 'block', mt: 1, textAlign: 'center', fontWeight: 600 }}>
-          This artist hasn't enabled payments yet.
+      {!paymentsReady && !isOwnListing && (
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
+          This artist is still setting up payments. Check back soon, or message them in the meantime.
         </Typography>
       )}
 
@@ -188,7 +190,7 @@ export default function PayPopUp(props) {
           zIndex: 1, // Keep above scrollable content
         }}>
           <Typography sx={{ fontWeight: 800 }} variant="h6">
-            {isSuccess ? 'Reservation Confirmed' : 'Checkout'}
+            {isSuccess ? 'Booking confirmed' : 'Checkout'}
           </Typography>
           <IconButton onClick={handleClose} size="small" sx={{ bgcolor: '#F5F5F5' }}>
             <CloseIcon fontSize="small" />
@@ -209,7 +211,7 @@ export default function PayPopUp(props) {
 
                   <PremiumCard sx={{ p: 3, textAlign: 'left', mb: 4, width: '100%', maxWidth: 450 }}>
                     <Typography variant="overline" sx={{ fontWeight: 800, color: 'text.secondary', letterSpacing: 1 }}>
-                      Reservation Details
+                      Booking details
                     </Typography>
                     <Stack spacing={2} sx={{ mt: 2 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -301,7 +303,7 @@ export default function PayPopUp(props) {
 
                     <Box sx={{ px: 1 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4 }}>
-                        By confirming your reservation, you agree to the Studio Time Guest Policy and host's cancellation terms.
+                        By booking, you agree to the Studio Time Terms of Service and this studio time's cancellation policy.
                       </Typography>
                     </Box>
                   </Stack>
@@ -342,7 +344,7 @@ export default function PayPopUp(props) {
                       overflow: 'visible', // ✅ ensure stripe not clipped
                       '&:focus-within': {
                         borderColor: 'primary.main',
-                        boxShadow: '0 0 0 4px rgba(0,174,239,0.05)'
+                        boxShadow: '0 0 0 4px rgba(10, 10, 10, 0.025)'
                       }
                     }}>
                       <Payment

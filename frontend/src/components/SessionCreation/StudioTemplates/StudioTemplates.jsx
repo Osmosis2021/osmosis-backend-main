@@ -96,7 +96,7 @@ export default function StudioTemplates(props) {
         <Box sx={{ py: 4 }}>
             <PremiumSectionHeader
                 title="Choose a Template"
-                subtitle="Start with a pre-filled experience and customize it later."
+                subtitle="Start from a template and make it your own. You can change everything later."
                 align="center"
             />
 
@@ -112,7 +112,7 @@ export default function StudioTemplates(props) {
                                     width: 56,
                                     height: 56,
                                     borderRadius: 3,
-                                    bgcolor: 'rgba(0,174,239,0.1)',
+                                    bgcolor: 'rgba(10, 10, 10, 0.05)',
                                     color: 'primary.main',
                                     display: 'flex',
                                     alignItems: 'center',
@@ -130,7 +130,7 @@ export default function StudioTemplates(props) {
                                     <Typography variant="caption" sx={{
                                         fontWeight: 700,
                                         color: 'primary.main',
-                                        bgcolor: 'rgba(0,174,239,0.05)',
+                                        bgcolor: 'rgba(10, 10, 10, 0.025)',
                                         px: 1.5,
                                         py: 0.5,
                                         borderRadius: 2

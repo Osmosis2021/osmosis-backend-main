@@ -44,7 +44,7 @@ const sendBookingEmailsUnsafe = async ({ booking, course, timeslot, guest, host 
                 ${address}
                 <p><strong>Guests:</strong> ${guests}<br/><strong>Paid:</strong> $${booking.total}</p>
                 ${course.whatToBring ? `<p><strong>What to bring:</strong> ${escapeHtml(course.whatToBring)}</p>` : ''}
-                <p>Questions? You can message your host in the Studio Time app. <a href="${listingUrl}">View the listing</a>.</p>
+                <p>Questions? You can message the artist in the Studio Time app. <a href="${listingUrl}">View the listing</a>.</p>
                 <p>See you there,<br/>The Studio Time Team</p>
             `,
         }));
