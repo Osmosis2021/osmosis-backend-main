@@ -1,29 +1,22 @@
-import {
-    Box,
-    Container,
-    Typography,
-    Stack,
-    Grid,
-    Avatar,
-    Divider,
-    Button,
-    Chip
-} from '@mui/material'
+import { Alert, Box, Container, Divider, Grid, Rating, Stack, Typography } from '@mui/material'
 import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import TopNavBar from '../TopNavBar/TopNavBar';
-import MessageIcon from '@mui/icons-material/Message';
+import { useParams } from 'react-router-dom'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import GroupIcon from '@mui/icons-material/Group';
+import TopNavBar from '../TopNavBar/TopNavBar';
 import useStore from '../../store';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
-import { PremiumCard } from '../../ui/PremiumCard';
-import { PremiumSectionHeader } from '../../ui/PremiumSectionHeader';
 import { PremiumBackButton } from '../../ui/PremiumBackButton';
+import Mascot from '../../ui/Mascot';
 import useStartChat from '../../hooks/useStartChat';
-import { bookingStatusChip } from '../../utils/bookingStatus';
-import { formatClockTime, formatSessionDate } from '../../utils/sessionTime';
+import { isBookingCancelled } from '../../utils/bookingStatus';
+import {
+    BookingHeader, BookingSection, InfoRow, PersonRow, PriceRow,
+    bookingWhen, formatMoney, guestsLabel, studioAddress,
+} from './BookingParts';
 
+/** A booking as the artist sees it. */
 function SingleBookingPage() {
     const axiosPrivate = useAxiosPrivate();
     const { id } = useParams()
@@ -31,7 +24,6 @@ function SingleBookingPage() {
     const [booking, setBooking] = useState(null);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const navigate = useNavigate();
     const startChat = useStartChat();
 
     useEffect(() => {
@@ -53,175 +45,87 @@ function SingleBookingPage() {
 
     const handleMessageStudent = () => startChat(booking?.studentID?._id, { personLabel: 'this guest' });
 
-    const formatDate = (dateStr) => formatSessionDate(dateStr || '', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-
     if (isLoading) return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#FAFAFA' }}>
-            <Typography variant="h6" color="text.secondary">Loading booking details...</Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh' }} role="status" aria-label="Loading booking">
+            <Mascot size={72} />
         </Box>
     );
 
     if (error || !booking) return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: '#FAFAFA', p: 3 }}>
-            <Typography variant="h5" sx={{ fontWeight: 800, mb: 2 }}>Oops!</Typography>
-            <Typography color="text.secondary" sx={{ mb: 3 }}>{error || "We couldn't find this booking."}</Typography>
-            <PremiumBackButton fallback="/bookings" />
-        </Box>
+        <Container maxWidth="sm" sx={{ py: 10, textAlign: 'center' }}>
+            <Stack spacing={2} alignItems="center">
+                <Mascot size={80} motion="rock" />
+                <Typography variant="h5" component="h1" sx={{ fontWeight: 800 }}>We couldn't open this booking</Typography>
+                <Typography color="text.secondary">{error || "We couldn't find this booking."}</Typography>
+                <PremiumBackButton fallback="/bookings" />
+            </Stack>
+        </Container>
     );
 
+    const course = booking.courseID || {};
+    const address = studioAddress(course);
+    const cancelled = isBookingCancelled(booking);
+
     return (
-        <Box sx={{ bgcolor: '#FAFAFA', minHeight: '100vh', pb: 10 }}>
-            <TopNavBar />
+        <>
+        <TopNavBar />
+        <Container maxWidth="md" sx={{ py: { xs: 2, md: 5 }, px: { xs: 2, md: 3 } }}>
+            <Box sx={{ mb: 2 }}>
+                <PremiumBackButton fallback="/bookings" />
+            </Box>
 
-            <Container maxWidth="md" sx={{ mt: { xs: 4, md: 8 } }}>
-                <Box sx={{ mb: 4 }}>
-                    <PremiumBackButton fallback="/bookings" />
-                </Box>
+            <Grid container spacing={{ xs: 2, md: 3 }}>
+                <Grid item xs={12} md={7}>
+                    <Stack spacing={2}>
+                        {cancelled && (
+                            <Alert severity="warning" sx={{ borderRadius: '12px' }}>
+                                {booking.status === 'cancelled by guest'
+                                    ? 'Your guest cancelled this booking and was refunded. Their spots are open again.'
+                                    : 'You cancelled this session. Your guest was refunded and emailed.'}
+                            </Alert>
+                        )}
 
-                <Grid container spacing={4}>
-                    <Grid item xs={12} md={8}>
-                        <PremiumCard sx={{ p: 4, mb: 4 }}>
-                            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-                                <Chip
-                                    label={bookingStatusChip(booking).label}
-                                    color="success"
-                                    sx={{ fontWeight: 800, borderRadius: 2 }}
-                                />
-                                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
-                                    Booking ID: {id.toUpperCase()}
-                                </Typography>
+                        <BookingHeader booking={booking} perspective="host" />
+
+                        <BookingSection title="Details">
+                            <Stack spacing={2}>
+                                <InfoRow icon={<CalendarTodayIcon fontSize="small" />} primary={bookingWhen(booking, { long: true })} />
+                                <InfoRow icon={<GroupIcon fontSize="small" />} primary={guestsLabel(booking.numberOfGuests)} />
+                                <InfoRow icon={<LocationOnIcon fontSize="small" />} primary={address.line1} secondary={address.line2} />
                             </Stack>
+                        </BookingSection>
 
-                            <Typography variant="h3" sx={{ fontWeight: 900, mb: 2 }}>
-                                {booking?.courseID?.courseTitle}
-                            </Typography>
+                        <BookingSection title="Your guest">
+                            <PersonRow person={booking.studentID} messageLabel="Message" onMessage={handleMessageStudent} />
+                        </BookingSection>
 
-                            <Stack direction="row" spacing={1} sx={{ mb: 4 }}>
-                                {booking?.courseID?.tags?.map((tag, index) => (
-                                    <Chip key={index} label={`#${tag}`} size="small" variant="outlined" sx={{ fontWeight: 600 }} />
-                                ))}
-                            </Stack>
-
-                            <Divider sx={{ mb: 4 }} />
-
-                            <Grid container spacing={4}>
-                                <Grid item xs={12} sm={6}>
-                                    <Stack spacing={3}>
-                                        <Box>
-                                            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1, display: 'block', mb: 1 }}>
-                                                Date & Time
-                                            </Typography>
-                                            <Stack direction="row" spacing={1.5} alignItems="center">
-                                                <CalendarTodayIcon color="primary" />
-                                                <Box>
-                                                    <Typography variant="body1" sx={{ fontWeight: 700 }}>
-                                                        {formatDate(booking.date)}
-                                                    </Typography>
-                                                    <Typography variant="body2" color="text.secondary">
-                                                        at {formatClockTime(booking.time) || booking.time}
-                                                    </Typography>
-                                                </Box>
-                                            </Stack>
-                                        </Box>
-
-                                        <Box>
-                                            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1, display: 'block', mb: 1 }}>
-                                                Location
-                                            </Typography>
-                                            <Stack direction="row" spacing={1.5} alignItems="center">
-                                                <LocationOnIcon color="primary" />
-                                                <Box>
-                                                    <Typography variant="body1" sx={{ fontWeight: 700 }}>
-                                                        {booking?.courseID?.addressDetails?.line1 || booking?.courseID?.addressDetails || booking?.courseID?.city || "Location details provided"}
-                                                    </Typography>
-                                                    <Typography variant="body2" color="text.secondary">
-                                                        {booking?.courseID?.addressDetails?.city || booking?.courseID?.city}, {booking?.courseID?.addressDetails?.state || booking?.courseID?.state} {booking?.courseID?.addressDetails?.zipCode || booking?.courseID?.zipCode}
-                                                    </Typography>
-                                                </Box>
-                                            </Stack>
-                                        </Box>
-                                    </Stack>
-                                </Grid>
-
-                                <Grid item xs={12} sm={6}>
-                                    <Box>
-                                        <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1, display: 'block', mb: 1 }}>
-                                            Guest Info
-                                        </Typography>
-                                        <Stack direction="row" spacing={2} alignItems="center">
-                                            <Avatar
-                                                src={booking?.studentID?.profileImage?.url}
-                                                sx={{ width: 56, height: 56, border: '2px solid white', boxShadow: 1 }}
-                                            />
-                                            <Box>
-                                                <Typography variant="body1" sx={{ fontWeight: 700 }}>
-                                                    {booking?.studentID?.firstName} {booking?.studentID?.lastName}
-                                                </Typography>
-                                                <Button
-                                                    size="small"
-                                                    startIcon={<MessageIcon />}
-                                                    sx={{ fontWeight: 700, p: 0, textTransform: 'none' }}
-                                                    onClick={handleMessageStudent}
-                                                >
-                                                    Message Guest
-                                                </Button>
-                                            </Box>
-                                        </Stack>
-                                    </Box>
-                                </Grid>
-                            </Grid>
-                        </PremiumCard>
-
-                        <PremiumSectionHeader title="What to bring" />
-                        <PremiumCard sx={{ p: 3, mb: 4 }}>
-                            <Typography variant="body1" color="text.secondary">
-                                {booking?.courseID?.whatToBring || "The host hasn't specified anything special to bring. Just yourself and a creative spirit!"}
-                            </Typography>
-                        </PremiumCard>
-                    </Grid>
-
-                    <Grid item xs={12} md={4}>
-                        <Stack spacing={3} sx={{ position: 'sticky', top: 100 }}>
-                            <PremiumCard sx={{ p: 3 }}>
-                                <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>Payment Summary</Typography>
-                                <Stack spacing={2}>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <Typography color="text.secondary">Price per guest</Typography>
-                                        <Typography sx={{ fontWeight: 700 }}>${booking?.courseID?.pricePerStudent}</Typography>
-                                    </Box>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <Typography color="text.secondary">Guests</Typography>
-                                        <Typography sx={{ fontWeight: 700 }}>{booking?.numberOfGuests}</Typography>
-                                    </Box>
-                                    <Divider />
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>Total Paid</Typography>
-                                        <Typography variant="subtitle1" sx={{ fontWeight: 900, color: 'primary.main' }}>
-                                            ${booking?.total}
-                                        </Typography>
-                                    </Box>
-                                </Stack>
-                            </PremiumCard>
-
-                            <PremiumCard sx={{ p: 3, bgcolor: 'primary.main', color: 'white' }}>
-                                <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>Need help?</Typography>
-                                <Typography variant="body2" sx={{ mb: 2, opacity: 0.9 }}>
-                                    If you have questions about your booking, message the host directly.
-                                </Typography>
-                                <Button
-                                    variant="contained"
-                                    fullWidth
-                                    sx={{ bgcolor: 'white', color: 'primary.main', fontWeight: 800, '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' } }}
-                                    onClick={() => navigate('/chat')}
-                                >
-                                    Contact Guest
-                                </Button>
-                            </PremiumCard>
-                        </Stack>
-                    </Grid>
+                        {booking.ratedAndReviewed && (
+                            <BookingSection title="Their review">
+                                <Rating value={booking.rating || 0} readOnly size="small" />
+                                {booking.review && <Typography color="text.secondary" sx={{ mt: 1 }}>{booking.review}</Typography>}
+                            </BookingSection>
+                        )}
+                    </Stack>
                 </Grid>
-            </Container>
-        </Box>
+
+                <Grid item xs={12} md={5}>
+                    <Stack spacing={2} sx={{ position: { md: 'sticky' }, top: { md: 24 } }}>
+                        <BookingSection title="Payment">
+                            <Stack spacing={1}>
+                                <PriceRow label={`${guestsLabel(booking.numberOfGuests)} × ${formatMoney(course.pricePerStudent)}`} value={formatMoney((course.pricePerStudent || 0) * (booking.numberOfGuests || 1))} />
+                                <Divider sx={{ my: 0.5 }} />
+                                <PriceRow label="Guest paid" value={formatMoney(booking.total)} strong />
+                            </Stack>
+                        </BookingSection>
+                        <Typography variant="caption" color="text.secondary" sx={{ px: 0.5 }}>
+                            Booking reference {String(booking._id).slice(-8).toUpperCase()}
+                            {booking.timestamp ? ` · booked ${new Date(booking.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : ''}
+                        </Typography>
+                    </Stack>
+                </Grid>
+            </Grid>
+        </Container>
+        </>
     )
 }
 

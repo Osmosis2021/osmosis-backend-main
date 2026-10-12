@@ -24,6 +24,9 @@ const BookingSchema = new mongoose.Schema({
     // 'refunded' | 'manual' (needs a refund from the Stripe dashboard) | 'failed' | 'not_needed'
     refundStatus: { type: String },
     cancelledAt: { type: Date },
+    reviewedAt: { type: Date },
+    // When the "how was it?" email went out (set once, so it is never sent twice).
+    reviewRequestSentAt: { type: Date },
     // date: { startDate: {type: String}, startTime: {type: String},},
     // checkIn: {type: TimeRanges, required: true},
     // checkOut: {type: TimeRanges, required: true},

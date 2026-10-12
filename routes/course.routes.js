@@ -1,9 +1,9 @@
 const router = require('express').Router()
 const Course = require('../models/course')
-const Booking = require('../models/booking');
 
 const listingService = require('../services/listingService');
 const sharePreviewService = require('../services/sharePreviewService');
+const reviewService = require('../services/reviewService');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
 const mongoose = require('mongoose');
 const CourseTimeslot = require('../models/courseTimeslot');
@@ -148,61 +148,15 @@ router.post('/registerCourse', requireAuth, requireTeacher, async (req, res, nex
 });
 
 
-// POST RATING/REVIEWS 
-// Keeping this as is for now as it touches Booking model heavily and might belong in BookingService later.
-// Or should I move it? The user said "create/update Experience". 
-// This updates Course feedback but primarily Booking. I'll leave it or move it?
-// The prompt said "createExperience, updateExperience, deleteExperience, upload/attach photos".
-// It didn't explicitly say "reviews". I'll leave reviews here for now to minimize risk.
-
-router.put('/sendReview/:bookingID', requireAuth, async (req, res) => {
-    const { rating, writtenReview } = req.body.feedback || {};
-    const userID = req.currentUser._id;
-    const bookingID = req.params.bookingID;
-
+// POST RATING/REVIEWS (older path; the app now uses POST /booking/:bookingID/review)
+router.put('/sendReview/:bookingID', requireAuth, async (req, res, next) => {
     try {
-        const booking = await Booking.findById(bookingID);
-        if (!booking) {
-            return res.status(404).json({ error: 'Booking not found.' });
-        }
-        if (booking.studentUserName !== req.currentUser.userName) {
-            return res.status(403).json({ error: 'You can only review your own bookings.' });
-        }
-        if (booking.ratedAndReviewed) {
-            return res.status(400).json({ error: 'You have already reviewed this booking.' });
-        }
-
-        const updatedBooking = await Booking.findByIdAndUpdate(
-            bookingID,
-            {
-                rating,
-                review: writtenReview,
-                ratedAndReviewed: true,
-            },
-            { new: true }
-        );
-
-        const updatedCourse = await Course.findByIdAndUpdate(
-            updatedBooking.courseID,
-            {
-                $addToSet: {
-                    feedback: {
-                        rating,
-                        reviews: writtenReview,
-                        studentID: userID
-                    }
-                },
-            },
-            { new: true }
-        )
-
-        res.json({
-            updatedBooking,
-            updatedCourse
-        })
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'An error occurred while updating the review.' });
+        const { rating, writtenReview } = req.body.feedback || {};
+        const updatedBooking = await reviewService.submitReview(req.params.bookingID, req.currentUser, { rating, text: writtenReview });
+        res.json({ updatedBooking });
+    } catch (err) {
+        if (err.status) return res.status(err.status).json({ error: err.message });
+        next(err);
     }
 })
 

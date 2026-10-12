@@ -58,8 +58,8 @@ const initSocket = (server) => {
                 if (!mongoose.isValidObjectId(messageId)) return;
 
                 const message = await Message.findById(messageId)
-                    .populate('sender', 'userName profileImage')
-                    .populate({ path: 'chat', populate: { path: 'users', select: '_id userName profileImage' } });
+                    .populate('sender', 'userName firstName lastName profileImage')
+                    .populate({ path: 'chat', select: '-lastEmailedAt', populate: { path: 'users', select: '_id userName firstName lastName profileImage isTeacher' } });
                 if (!message || String(message.sender?._id) !== userId) return;
 
                 message.chat.users.forEach((user) => {

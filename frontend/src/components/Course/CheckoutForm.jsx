@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import LockIcon from '@mui/icons-material/Lock';
 import { PremiumButton } from "../../ui/PremiumButton";
 
 export default function CheckoutForm({ clientSecret, bookThisCourse, onBookingSuccess }) {
@@ -87,7 +88,7 @@ export default function CheckoutForm({ clientSecret, bookThisCourse, onBookingSu
   return (
     <form id="payment-form" onSubmit={handleSubmit}>
       <Stack spacing={3}>
-        <Box sx={{ minHeight: 240, width: '100%' }}>
+        <Box sx={{ minHeight: 220, width: '100%' }}>
           <PaymentElement options={{ layout: 'tabs' }} />
         </Box>
 
@@ -114,9 +115,10 @@ export default function CheckoutForm({ clientSecret, bookThisCourse, onBookingSu
           )}
         </PremiumButton>
 
-        <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', display: 'block' }}>
-          Secure payment powered by Stripe
-        </Typography>
+        <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center" sx={{ color: 'text.secondary' }}>
+          <LockIcon sx={{ fontSize: 14 }} aria-hidden />
+          <Typography variant="caption">Secure, encrypted payment by Stripe</Typography>
+        </Stack>
       </Stack>
     </form>
   );

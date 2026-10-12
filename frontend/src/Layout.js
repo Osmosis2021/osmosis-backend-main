@@ -6,6 +6,7 @@ import './Layout.css'
 import { useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import useAuth from './hooks/useAuth';
+import useMessagingSync from './hooks/useMessagingSync';
 
 const Layout = () => {
     const { platform } = useStore();
@@ -14,6 +15,7 @@ const Layout = () => {
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const { userID, setSocket } = useStore();
     const { auth } = useAuth();
+    useMessagingSync();
 
     // Keep the latest access token available to the socket without reconnecting on every refresh.
     const accessTokenRef = useRef(auth?.accessToken);

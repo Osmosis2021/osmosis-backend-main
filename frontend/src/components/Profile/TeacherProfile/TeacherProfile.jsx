@@ -21,14 +21,13 @@ import "./TeacherProfile.css";
 import useAxiosPrivate from "../../../hooks/useAxiosPrivate";
 import useLogout from "../../../hooks/useLogout";
 import { PremiumSectionHeader } from "../../../ui/PremiumSectionHeader";
-import { PremiumCard } from "../../../ui/PremiumCard";
 import { PremiumButton } from "../../../ui/PremiumButton";
 import { PremiumSkeleton, PremiumEmptyState } from "../../../ui/PremiumFeedback";
 import useStartChat from '../../../hooks/useStartChat';
 import HostChecklist from './HostChecklist';
 import axios from '../../../actions/axios';
 import { isBookingUpcoming } from '../../../utils/bookingStatus';
-import { formatClockTime, formatSessionDate } from '../../../utils/sessionTime';
+import { BookingListItem } from '../../Booking/BookingParts';
 
 const handleJsonResponse = async (res) => {
   if (!res.ok) {
@@ -192,7 +191,7 @@ const TeacherProfile = (props) => {
                   </Typography>
                 )}
 
-                <Stack direction="row" spacing={2}>
+                <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1.5, '& > *': { whiteSpace: 'nowrap' } }}>
                   {!isOwnProfile && (
                     <PremiumButton
                       startIcon={<MessageIcon />}
@@ -220,7 +219,7 @@ const TeacherProfile = (props) => {
                         startIcon={<EditIcon />}
                         sx={{ borderRadius: 3, fontWeight: 700, textTransform: 'none' }}
                       >
-                        Edit Profile
+                        Edit profile
                       </Button>
                     </>
                   )}
@@ -270,24 +269,13 @@ const TeacherProfile = (props) => {
         {/* Upcoming Sessions for Host */}
         {isOwnProfile && bookings.length > 0 && (
           <Box sx={{ mb: 8 }}>
-            <PremiumSectionHeader title="Your Upcoming Sessions" subtitle="Manage your upcoming studio visits." />
-            <Grid container spacing={3}>
+            <PremiumSectionHeader title="Upcoming bookings" subtitle="Guests coming to your studio. Tap one for details or to message them." />
+            <Grid container spacing={2}>
               {bookings
                 .filter(b => isBookingUpcoming(b))
                 .map(booking => (
                   <Grid item xs={12} md={6} key={booking._id}>
-                    <PremiumCard component={Link} to={`/teacher/bookings/${booking?._id}`} sx={{ textDecoration: 'none' }}>
-                      <Stack direction="row" spacing={2} alignItems="center">
-                        <Avatar src={booking?.studentID?.profileImage?.url} sx={{ width: 56, height: 56 }} />
-                        <Box sx={{ flex: 1 }}>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>{booking?.courseID?.courseTitle}</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {formatSessionDate(booking.date || '')} at {formatClockTime(booking.time) || booking.time}
-                          </Typography>
-                        </Box>
-                        <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main' }}>${booking.total}</Typography>
-                      </Stack>
-                    </PremiumCard>
+                    <BookingListItem booking={booking} perspective="host" />
                   </Grid>
                 ))}
             </Grid>

@@ -276,25 +276,31 @@ const Course = () => {
 						<Box sx={{ mb: 6 }}>
 							<PremiumSectionHeader
 								title="Reviews"
-								subtitle={courseData?.feedback?.length > 0 ? `${rating} average rating from ${courseData?.feedback?.length} reviews` : "No reviews yet"}
+								subtitle={courseData?.feedback?.length > 0
+									? `${rating} average from ${courseData.feedback.length} ${courseData.feedback.length === 1 ? 'review' : 'reviews'}`
+									: "No reviews yet. Be one of the first guests!"}
 							/>
 							{courseData?.feedback?.length > 0 && (
-								<Grid container spacing={2}>
-									{courseData.feedback.map((rev) => (
-										<Grid item xs={12} key={rev._id}>
-											<Box sx={{ p: 2, borderRadius: 3, border: '1px solid #F0F0F0' }}>
-												<Stack direction="row" spacing={2}>
-													<Avatar src={rev?.studentID?.profileImage?.url} />
-													<Box>
-														<Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{rev?.studentID?.userName}</Typography>
-														<Rating value={rev.rating} readOnly size="small" sx={{ mb: 1 }} />
-														<Typography variant="body2">{rev.reviews}</Typography>
+								<Stack spacing={1.5}>
+									{[...courseData.feedback].reverse().map((rev) => {
+										const first = rev?.studentID?.firstName || 'Guest';
+										const initial = rev?.studentID?.lastName ? ` ${rev.studentID.lastName[0]}.` : '';
+										const when = rev.createdAt ? new Date(rev.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : null;
+										return (
+											<Box key={rev._id} sx={{ p: 2, borderRadius: '12px', bgcolor: 'background.paper' }}>
+												<Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
+													<Avatar src={rev?.studentID?.profileImage?.url} alt="" sx={{ width: 36, height: 36 }} />
+													<Box sx={{ minWidth: 0 }}>
+														<Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.2 }}>{first}{initial}</Typography>
+														{when && <Typography variant="caption" color="text.secondary">{when}</Typography>}
 													</Box>
 												</Stack>
+												<Rating value={rev.rating} readOnly size="small" />
+												{rev.reviews && <Typography variant="body2" sx={{ mt: 0.5, whiteSpace: 'pre-line' }}>{rev.reviews}</Typography>}
 											</Box>
-										</Grid>
-									))}
-								</Grid>
+										);
+									})}
+								</Stack>
 							)}
 						</Box>
 

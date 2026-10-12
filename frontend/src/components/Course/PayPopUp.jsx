@@ -11,20 +11,17 @@ import {
   Box,
   Divider,
   Slide,
-  Fade,
-  Paper
+  Fade
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import MessageIcon from '@mui/icons-material/Message';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import LockIcon from '@mui/icons-material/Lock';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import useStore from '../../store';
 import Payment from './Payment';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 import { PremiumButton } from '../../ui/PremiumButton';
-import { PremiumCard } from '../../ui/PremiumCard';
 import { useTheme, useMediaQuery, Grid } from '@mui/material';
 import useStartChat from '../../hooks/useStartChat';
 import { formatSessionDate } from '../../utils/sessionTime';
@@ -32,6 +29,13 @@ import Mascot from '../../ui/Mascot';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMPTY_GUEST = { firstName: '', lastName: '', email: '' };
+
+const SummaryRow = ({ label, value }) => (
+  <Stack direction="row" justifyContent="space-between" spacing={2}>
+    <Typography variant="body2" color="text.secondary">{label}</Typography>
+    <Typography variant="body2" sx={{ fontWeight: 700, textAlign: 'right' }}>{value}</Typography>
+  </Stack>
+);
 
 /** Name and email for booking without an account. */
 function GuestDetailsForm({ value, onSubmit, onLogIn }) {
@@ -217,42 +221,44 @@ export default function PayPopUp(props) {
         open={open}
         onClose={handleClose}
         TransitionComponent={Transition}
+        aria-labelledby="checkout-title"
+        // Above the phone's sticky Reserve bar and bottom navigation (which otherwise cover the
+        // bottom of checkout). Toasts and confirmation dialogs still sit above this.
+        sx={{ zIndex: 200000 }}
         PaperProps={{
           sx: {
-            bgcolor: isSuccess ? 'background.paper' : '#FAFAFA',
-            borderRadius: isMobile ? 0 : 5,
+            bgcolor: 'background.default',
+            borderRadius: isMobile ? 0 : '16px',
             boxShadow: isMobile ? 'none' : '0 24px 64px rgba(0,0,0,0.15)',
-            overflow: 'visible',          // ✅ do NOT clip Stripe
+            overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
-            maxHeight: isMobile ? '100vh' : 'calc(100vh - 64px)',
+            maxHeight: isMobile ? '100dvh' : 'calc(100dvh - 64px)',
             minHeight: 0,
           }
         }}
       >
-        {/* Unified Mobile/Desktop Header */}
         <Box sx={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           px: { xs: 2, md: 3 },
-          py: 2,
-          bgcolor: 'background.paper',
-          borderRadius: isMobile ? 0 : 5,
-          borderBottom: '1px solid #F0F0F0',
-          zIndex: 1, // Keep above scrollable content
+          py: 1.5,
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          flexShrink: 0,
         }}>
-          <Typography sx={{ fontWeight: 800 }} variant="h6">
+          <Typography id="checkout-title" sx={{ fontWeight: 800 }} variant="h6" component="h2">
             {isSuccess ? 'Booking confirmed' : 'Checkout'}
           </Typography>
-          <IconButton onClick={handleClose} size="small" sx={{ bgcolor: '#F5F5F5' }}>
+          <IconButton onClick={handleClose} size="small" aria-label={isSuccess ? 'Close' : 'Close checkout'} sx={{ bgcolor: 'background.paper' }}>
             <CloseIcon fontSize="small" />
           </IconButton>
         </Box>
 
-        <Box sx={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+        <Box sx={{ flex: 1, overflowY: 'auto', minHeight: 0, pb: 'env(safe-area-inset-bottom)' }}>
 
-          <Container maxWidth={isSuccess ? "sm" : "md"} sx={{ py: { xs: 3, md: 4 } }}>
+          <Container maxWidth={isSuccess ? "sm" : "md"} sx={{ py: { xs: 2.5, md: 4 }, px: { xs: 2, md: 3 } }}>
             {isSuccess ? (
               <Fade in={true} timeout={400}>
                 <Box sx={{ textAlign: 'center', mx: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', py: 4 }}>
@@ -273,25 +279,13 @@ export default function PayPopUp(props) {
                     </Alert>
                   )}
 
-                  <PremiumCard sx={{ p: 3, textAlign: 'left', mb: 4, width: '100%', maxWidth: 450 }}>
-                    <Typography variant="overline" sx={{ fontWeight: 800, color: 'text.secondary', letterSpacing: 1 }}>
-                      Booking details
-                    </Typography>
-                    <Stack spacing={2} sx={{ mt: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary">Artist</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{props.teacherFullName}</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary">Date</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{formatDate(props.selectedDateAndTime.startDate)}</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary">Time</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{timeConverter(props.selectedDateAndTime.startTime)}</Typography>
-                      </Box>
+                  <Box sx={{ p: 2.5, textAlign: 'left', mb: 4, width: '100%', maxWidth: 450, bgcolor: 'background.paper', borderRadius: '12px' }}>
+                    <Stack spacing={1.5}>
+                      <SummaryRow label="Artist" value={props.teacherFullName} />
+                      <SummaryRow label="Date" value={formatDate(props.selectedDateAndTime.startDate)} />
+                      <SummaryRow label="Time" value={timeConverter(props.selectedDateAndTime.startTime)} />
                     </Stack>
-                  </PremiumCard>
+                  </Box>
 
                   {guestResult ? (
                     <Stack spacing={2} sx={{ width: '100%', maxWidth: 450 }}>
@@ -333,7 +327,7 @@ export default function PayPopUp(props) {
                           onClick={() => navigate(`/students/${userName}`)}
                           sx={{ py: 1.5, borderRadius: 3, fontWeight: 700, textTransform: 'none' }}
                         >
-                          Return to Dashboard
+                          My bookings
                         </Button>
                       </Stack>
                     </Stack>
@@ -341,128 +335,64 @@ export default function PayPopUp(props) {
                 </Box>
               </Fade>
             ) : (
-              <Grid container spacing={{ xs: 4, md: 6 }}>
-                {/* Left Column: Summary */}
+              <Grid container spacing={{ xs: 3, md: 5 }}>
+                {/* Summary: one soft panel, no nested borders */}
                 <Grid item xs={12} md={5}>
-                  <Stack spacing={3}>
-                    <Box>
-                      <Typography variant="h5" sx={{ fontWeight: 900, mb: 0.5, lineHeight: 1.2 }}>
-                        {props.courseTitle}
-                      </Typography>
-                      <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 600 }}>
-                        Hosted by {props.teacherFullName}
-                      </Typography>
-                    </Box>
-
-                    <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid #EEE', bgcolor: 'white' }}>
-                      <Typography variant="overline" sx={{ fontWeight: 800, color: 'text.secondary', display: 'block', mb: 2 }}>
-                        Summary
-                      </Typography>
-                      <Stack spacing={2}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="body2" color="text.secondary">Date</Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 700 }}>{formatDate(props.selectedDateAndTime.startDate)}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="body2" color="text.secondary">Time</Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 700 }}>{timeConverter(props.selectedDateAndTime.startTime)}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="body2" color="text.secondary">Guests</Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 700 }}>{props.guests}</Typography>
-                        </Box>
-                        <Divider sx={{ my: 1 }} />
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 900, textTransform: 'uppercase' }}>Total Due</Typography>
-                          <Typography variant="h5" sx={{ fontWeight: 900, color: 'text.primary' }}>${props.total}</Typography>
-                        </Box>
-                      </Stack>
-                    </Paper>
-
-                    <Box sx={{ px: 1 }}>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4 }}>
-                        <strong>Free cancellation until the day before your session</strong> for a full refund.
-                        By booking, you agree to the Studio Time <Link to="/termsofservice">Terms of Service</Link>.
-                      </Typography>
-                    </Box>
-                  </Stack>
+                  <Box sx={{ bgcolor: 'background.paper', borderRadius: '12px', p: { xs: 2.5, md: 3 } }}>
+                    <Typography variant="h6" component="p" sx={{ fontWeight: 800, lineHeight: 1.25 }}>
+                      {props.courseTitle}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                      Hosted by {props.teacherFullName}
+                    </Typography>
+                    <Divider sx={{ my: 2 }} />
+                    <Stack spacing={1.25}>
+                      <SummaryRow label="Date" value={formatDate(props.selectedDateAndTime.startDate)} />
+                      <SummaryRow label="Time" value={timeConverter(props.selectedDateAndTime.startTime)} />
+                      <SummaryRow label="Guests" value={`${props.guests} × $${props.pricePerStudent}`} />
+                    </Stack>
+                    <Divider sx={{ my: 2 }} />
+                    <Stack direction="row" justifyContent="space-between" alignItems="baseline">
+                      <Typography sx={{ fontWeight: 800 }}>Total</Typography>
+                      <Typography variant="h5" component="p" sx={{ fontWeight: 900 }}>${props.total}</Typography>
+                    </Stack>
+                  </Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.5, mt: 1.5, px: 0.5 }}>
+                    <strong>Free cancellation until the day before your session</strong> for a full refund.
+                    By booking, you agree to the Studio Time <Link to="/termsofservice">Terms of Service</Link>.
+                  </Typography>
                 </Grid>
 
-                {/* Right Column: Payment */}
+                {/* Details and payment, straight on the page */}
                 <Grid item xs={12} md={7}>
-                  <PremiumCard sx={{ p: { xs: 2.5, md: 4 }, bgcolor: 'white', height: '100%', overflow: 'visible' }}>
-                    <Box sx={{ mb: 3 }}>
-                      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 800 }}>{isGuestCheckout && !guestDetails ? 'Your details' : 'Payment'}</Typography>
-                        <Box sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.5,
-                          px: 1,
-                          py: 0.3,
-                          bgcolor: 'success.light',
-                          color: 'success.dark',
-                          borderRadius: 1,
-                          opacity: 0.8
-                        }}>
-                          <LockIcon sx={{ fontSize: 12 }} />
-                          <Typography sx={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Secure</Typography>
-                        </Box>
-                      </Stack>
-                      <Typography variant="body2" color="text.secondary">
-                        Your payment information is encrypted and secure.
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{
-                      p: 2,
-                      borderRadius: 3,
-                      border: '1px solid #E0E0E0',
-                      bgcolor: '#FCFCFC',
-                      transition: 'border-color 0.2s ease',
-                      overflow: 'visible', // ✅ ensure stripe not clipped
-                      '&:focus-within': {
-                        borderColor: 'primary.main',
-                        boxShadow: '0 0 0 4px rgba(10, 10, 10, 0.025)'
-                      }
-                    }}>
-                      {isGuestCheckout && !guestDetails ? (
-                        <GuestDetailsForm value={guestDetails} onSubmit={setGuestDetails} onLogIn={goToLogin} />
-                      ) : (
-                        <Stack spacing={2}>
-                          {isGuestCheckout && (
-                            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-                              <Typography variant="body2" color="text.secondary" sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
-                                Booking as <strong>{guestDetails.firstName} {guestDetails.lastName}</strong> · {guestDetails.email}
-                              </Typography>
-                              <Button size="small" onClick={() => setGuestDetails(null)} sx={{ textTransform: 'none', fontWeight: 700, flexShrink: 0 }}>
-                                Edit
-                              </Button>
-                            </Stack>
-                          )}
-                          <Payment
-                            item={props}
-                            guest={isGuestCheckout ? guestDetails : null}
-                            paymentMetadata={paymentMetadata}
-                            stripeID={props.stripeID}
-                            bookThisCourse={bookThisCourse}
-                            onBookingSuccess={handleBookingSuccess}
-                          />
+                  <Typography variant="h6" component="h3" sx={{ fontWeight: 800, mb: 2 }}>
+                    {isGuestCheckout && !guestDetails ? 'Your details' : 'Payment'}
+                  </Typography>
+                  {isGuestCheckout && !guestDetails ? (
+                    <GuestDetailsForm value={guestDetails} onSubmit={setGuestDetails} onLogIn={goToLogin} />
+                  ) : (
+                    <Stack spacing={2}>
+                      {isGuestCheckout && (
+                        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}
+                          sx={{ px: 1.5, py: 1, bgcolor: 'background.paper', borderRadius: '10px' }}>
+                          <Typography variant="body2" color="text.secondary" sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+                            Booking as <strong>{guestDetails.firstName} {guestDetails.lastName}</strong> · {guestDetails.email}
+                          </Typography>
+                          <Button size="small" onClick={() => setGuestDetails(null)} sx={{ textTransform: 'none', fontWeight: 700, flexShrink: 0 }}>
+                            Edit
+                          </Button>
                         </Stack>
                       )}
-                    </Box>
-
-                    <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 3, opacity: 0.6 }}>
-                      {['visa', 'mastercard', 'amex', 'applepay'].map((brand) => (
-                        <Box
-                          key={brand}
-                          component="img"
-                          src={`https://js.stripe.com/v3/fingerprinted/img/checkout-payment-methods/${brand}-8466657906d4e2d3d0f0119e7a836ca3.svg`}
-                          sx={{ height: 20, filter: 'grayscale(1)' }}
-                        />
-                      ))}
+                      <Payment
+                        item={props}
+                        guest={isGuestCheckout ? guestDetails : null}
+                        paymentMetadata={paymentMetadata}
+                        stripeID={props.stripeID}
+                        bookThisCourse={bookThisCourse}
+                        onBookingSuccess={handleBookingSuccess}
+                      />
                     </Stack>
-                  </PremiumCard>
+                  )}
                 </Grid>
               </Grid>
             )}

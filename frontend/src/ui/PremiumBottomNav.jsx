@@ -12,13 +12,14 @@ import SearchIcon from '@mui/icons-material/Search';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import useStore from '../store';
+import { unreadConversations } from '../hooks/useMessagingSync';
 
 export const PremiumBottomNav = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-    const { isTeacher, userName, notification } = useStore();
+    const { isTeacher, userName, chats } = useStore();
 
     if (!isMobile) return null;
 
@@ -40,7 +41,7 @@ export const PremiumBottomNav = () => {
             path: '/chat',
             icon: <ChatBubbleOutlineIcon />,
             label: 'Messages',
-            badge: notification?.length
+            badge: unreadConversations(chats)
         },
         {
             id: 'profile',

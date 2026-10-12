@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Stack, Typography, Tooltip, Avatar } from '@mui/material';
+import { Badge, Box, Stack, Typography, Tooltip, Avatar } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 import HomeIcon from '@mui/icons-material/Home';
 import SearchIcon from '@mui/icons-material/Search';
@@ -7,10 +7,11 @@ import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import useStore from '../../store';
+import { unreadConversations } from '../../hooks/useMessagingSync';
 import studioTimeIcon from '../../assets/studio_time_icon.png';
 
 
-const NavItem = ({ to, icon, label, isActive }) => (
+const NavItem = ({ to, icon, label, isActive, badge = 0 }) => (
     <Tooltip title={label} placement="right" arrow>
         <Box
             component={Link}
@@ -37,7 +38,9 @@ const NavItem = ({ to, icon, label, isActive }) => (
                 }
             }}
         >
-            {React.cloneElement(icon, { sx: { fontSize: 24 } })}
+            <Badge badgeContent={badge} color="primary" overlap="circular" sx={{ '& .MuiBadge-badge': { fontWeight: 700, fontSize: '0.65rem', minWidth: 16, height: 16 } }}>
+                {React.cloneElement(icon, { sx: { fontSize: 24 } })}
+            </Badge>
             <Typography variant="caption" sx={{ mt: 0.75, fontWeight: 500, fontSize: '0.75rem', fontFamily: 'Inter, sans-serif' }}>
                 {label}
             </Typography>
@@ -47,14 +50,14 @@ const NavItem = ({ to, icon, label, isActive }) => (
 
 const SideRail = () => {
     const location = useLocation();
-    const { userName, isTeacher } = useStore();
+    const { userName, isTeacher, chats } = useStore();
 
     const profileLink = userName ? `/${isTeacher ? 'teachers' : 'students'}/${userName}` : '/sign-up';
 
     const navItems = [
         { to: '/', icon: <HomeIcon />, label: 'Home' },
         { to: '/explore', icon: <SearchIcon />, label: 'Explore' },
-        { to: '/chat', icon: <ChatBubbleOutlineIcon />, label: 'Messages' },
+        { to: '/chat', icon: <ChatBubbleOutlineIcon />, label: 'Messages', badge: unreadConversations(chats) },
         {
             to: profileLink,
             icon: <PersonOutlineIcon />,

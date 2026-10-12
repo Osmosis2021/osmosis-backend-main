@@ -8,7 +8,7 @@ const useLogout = () => {
     const navigate = useNavigate()
     const {
         setUserID, setUserName, setIsTeacher, setIsStudent, setFirstName, setLastName, setIsRegistered,
-        setEmail, setDescription, setRoles, setCustomerStripeID, setPaymentMethodID,
+        setEmail, setDescription, setRoles, setCustomerStripeID, setPaymentMethodID, setChats, setSelectedChat,
     } = useStore()
 
     const logout = async (redirect = '/') => {
@@ -32,6 +32,8 @@ const useLogout = () => {
         setCustomerStripeID([])
         setPaymentMethodID([])
         setIsRegistered(false)
+        setChats([])
+        setSelectedChat(null)
         try {
             await axios.get('user/logout')
         } catch (err) {

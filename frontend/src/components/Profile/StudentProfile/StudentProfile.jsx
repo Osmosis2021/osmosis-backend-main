@@ -7,17 +7,11 @@ import {
   Stack,
   Tabs,
   Tab,
-  Chip,
-  Divider,
-  IconButton,
   Button,
   useTheme
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import MessageIcon from '@mui/icons-material/Message';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 import React, { useState, useEffect, useMemo } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import useStore from "../../../store";
@@ -27,14 +21,13 @@ import { PremiumCard } from "../../../ui/PremiumCard";
 import { PremiumButton } from "../../../ui/PremiumButton";
 import { PremiumSectionHeader } from "../../../ui/PremiumSectionHeader";
 import PremiumEmptyState from "../../../ui/PremiumEmptyState";
-import useStartChat from '../../../hooks/useStartChat';
 import { isBookingCancelled, isBookingUpcoming } from '../../../utils/bookingStatus';
-import { formatClockTime, formatSessionDate, sessionLocalDay } from '../../../utils/sessionTime';
+import { sessionLocalDay } from '../../../utils/sessionTime';
+import { BookingListItem } from '../../Booking/BookingParts';
 
 const StudentProfile = () => {
   const logout = useLogout();
   const axiosPrivate = useAxiosPrivate();
-  const startChat = useStartChat();
   const theme = useTheme();
   const navigate = useNavigate();
 
@@ -70,109 +63,25 @@ const StudentProfile = () => {
     setTabValue(newValue);
   };
 
-  const getStatusChip = (booking) => {
-    if (isBookingCancelled(booking)) {
-      return <Chip label="Cancelled by host" size="small" color="error" variant="outlined" sx={{ fontWeight: 700 }} />;
-    }
-    if (!isBookingUpcoming(booking)) {
-      return <Chip label="Completed" size="small" sx={{ fontWeight: 700, bgcolor: 'rgba(0,0,0,0.05)', color: 'text.secondary' }} />;
-    }
-    return <Chip label="Upcoming" size="small" color="primary" sx={{ fontWeight: 700 }} />;
+  const isOwnProfile = userInfo.userName && userInfo.userName === userName;
+
+  // Past sessions the guest went to and hasn't reviewed yet get a nudge.
+  const reviewFooter = (booking) => {
+    if (!isOwnProfile || isBookingCancelled(booking) || isBookingUpcoming(booking) || booking.ratedAndReviewed) return null;
+    return (
+      <Button component={Link} to={`/student/bookings/${booking._id}#review`} variant="outlined" size="small" startIcon={<StarBorderIcon />}
+        sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '10px' }}>
+        Leave a review
+      </Button>
+    );
   };
 
-  const BookingItem = ({ booking }) => (
-    <PremiumCard sx={{ p: 0, mb: 2, overflow: 'hidden' }}>
-      <Grid container>
-        <Grid item xs={12} md={3}>
-          <Box
-            sx={{
-              height: { xs: 140, md: '100%' },
-              backgroundImage: `url(${booking?.courseID?.images?.[0]?.url})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          />
-        </Grid>
-        <Grid item xs={12} md={9}>
-          <Box sx={{ p: 2.5 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
-              <Box>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
-                  {getStatusChip(booking)}
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
-                    ID: {booking._id.slice(-6).toUpperCase()}
-                  </Typography>
-                </Stack>
-                <Typography variant="h6" sx={{ fontWeight: 800 }}>
-                  {booking?.courseID?.courseTitle}
-                </Typography>
-              </Box>
-              <IconButton size="small">
-                <MoreVertIcon />
-              </IconButton>
-            </Stack>
-
-            <Grid container spacing={2} sx={{ mb: 2 }}>
-              <Grid item xs={6} sm={4}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <CalendarTodayIcon sx={{ fontSize: 16, color: 'primary.main' }} />
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" display="block">Date & Time</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                      {formatSessionDate(booking.date || '', { month: 'short', day: 'numeric' })} @ {formatClockTime(booking.time) || booking.time}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Grid>
-              <Grid item xs={6} sm={4}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <LocationOnIcon sx={{ fontSize: 16, color: 'primary.main' }} />
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" display="block">Location</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 700 }} noWrap>
-                      {booking?.courseID?.address || 'Remote'}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <Avatar src={booking?.teacherID?.profileImage?.url} sx={{ width: 24, height: 24 }} />
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" display="block">Artist</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                      {booking?.teacherID?.firstName} {booking?.teacherID?.lastName}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Grid>
-            </Grid>
-
-            <Divider sx={{ mb: 2, borderStyle: 'dashed' }} />
-
-            <Stack direction="row" spacing={2} justifyContent="flex-end">
-              <Button
-                size="small"
-                startIcon={<MessageIcon />}
-                sx={{ fontWeight: 700, textTransform: 'none' }}
-                onClick={() => startChat(booking?.teacherID?._id, { personLabel: 'this artist' })}
-              >
-                Message Artist
-              </Button>
-              <PremiumButton
-                size="small"
-                variant="outlined"
-                component={Link}
-                to={`/student/bookings/${booking._id}`}
-                sx={{ px: 3 }}
-              >
-                View Details
-              </PremiumButton>
-            </Stack>
-          </Box>
-        </Grid>
-      </Grid>
-    </PremiumCard>
+  const BookingList = ({ items }) => (
+    <Stack spacing={1.5}>
+      {items.map((booking) => (
+        <BookingListItem key={booking._id} booking={booking} perspective="guest" footer={reviewFooter(booking)} />
+      ))}
+    </Stack>
   );
 
   return (
@@ -229,7 +138,7 @@ const StudentProfile = () => {
               subtitle="Manage your upcoming and past studio sessions"
             />
 
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2.5 }}>
               <Tabs value={tabValue} onChange={handleTabChange} aria-label="Booking tabs">
                 <Tab label={`Upcoming (${sortedBookings.upcoming.length})`} sx={{ fontWeight: 700, textTransform: 'none' }} />
                 <Tab label={`Past (${sortedBookings.past.length})`} sx={{ fontWeight: 700, textTransform: 'none' }} />
@@ -239,9 +148,7 @@ const StudentProfile = () => {
             {tabValue === 0 && (
               <Box>
                 {sortedBookings.upcoming.length > 0 ? (
-                  sortedBookings.upcoming.map(booking => (
-                    <BookingItem key={booking._id} booking={booking} />
-                  ))
+                  <BookingList items={sortedBookings.upcoming} />
                 ) : (
                   <PremiumEmptyState
                     title="No upcoming sessions"
@@ -256,9 +163,7 @@ const StudentProfile = () => {
             {tabValue === 1 && (
               <Box>
                 {sortedBookings.past.length > 0 ? (
-                  sortedBookings.past.map(booking => (
-                    <BookingItem key={booking._id} booking={booking} />
-                  ))
+                  <BookingList items={sortedBookings.past} />
                 ) : (
                   <PremiumEmptyState
                     title="No past sessions"

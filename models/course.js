@@ -21,6 +21,8 @@ const CourseSchema = new mongoose.Schema({
         rating: Number,
         reviews: String,
         studentID: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        bookingID: { type: mongoose.Schema.Types.ObjectId, ref: 'Booking' },
+        createdAt: Date,
     }],
     // city: String,
     // zipCode: Number,

@@ -113,7 +113,7 @@ const useStore = create(set => ({
     increaseCapacity: () => set(state => ({ capacity: state.capacity + 1 })),
     decreaseCapacity: () => set(state => ({ capacity: Math.max(1, state.capacity - 1) })),
 
-    selectedChat: [],
+    selectedChat: null,
     setSelectedChat: selectedChat => set({ selectedChat }),
 
     socket: null,

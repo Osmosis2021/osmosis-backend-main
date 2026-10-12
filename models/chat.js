@@ -18,6 +18,14 @@ const ChatSchema = new mongoose.Schema({
         type: String, 
         trim: true 
     },
+
+    // When each participant was last emailed about unread messages here (user id -> date),
+    // so a busy conversation sends at most one email an hour.
+    lastEmailedAt: {
+        type: Map,
+        of: Date,
+        default: undefined,
+    },
 }, 
 
 {

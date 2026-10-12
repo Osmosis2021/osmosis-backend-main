@@ -135,3 +135,10 @@ const server = app.listen(port, () =>
 
 const initSocket = require('./services/socketService');
 initSocket(server);
+
+// Hourly: ask guests for a review the morning after their session.
+if (env.NODE_ENV !== 'test') {
+    require('./services/reviewService').startReviewRequestJob();
+    // Every few minutes: email people about messages they haven't read.
+    require('./services/messageNotificationService').startMessageEmailJob();
+}

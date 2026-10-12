@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const User = require('../models/user');
 const { PUBLIC_FIELDS } = require('../models/user');
 const Chat = require('../models/chat');
+const Message = require('../models/message');
 const { requireAuth } = require('../middleware/auth');
 
 const escapeRegex = (text) => String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -87,7 +88,19 @@ router.get('/fetchChats/:userID', requireAuth, async (req, res, next) => {
             select: 'userName profileImage'
         });
 
-        res.status(200).send(results);
+        // How many messages from the other person the user hasn't seen, per conversation.
+        const me = req.currentUser._id;
+        const unread = await Message.aggregate([
+            { $match: { chat: { $in: results.map((c) => c._id) }, sender: { $ne: me }, readBy: { $ne: me } } },
+            { $group: { _id: '$chat', count: { $sum: 1 } } },
+        ]);
+        const unreadByChat = new Map(unread.map((u) => [String(u._id), u.count]));
+
+        res.status(200).send(results.map((chat) => {
+            const json = chat.toJSON();
+            delete json.lastEmailedAt;
+            return { ...json, unreadCount: unreadByChat.get(String(chat._id)) || 0 };
+        }));
     } catch (err) {
         next(err);
     }

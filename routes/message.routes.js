@@ -33,7 +33,7 @@ router.post('/sendMessage', requireAuth, async (req, res, next) => {
         });
 
         // Populate data consistently
-        message = await message.populate("sender", 'userName profileImage')
+        message = await message.populate("sender", 'userName firstName lastName profileImage')
         message = await message.populate('chat')
         message = await User.populate(message, {
             path: 'chat.users',
@@ -53,6 +53,8 @@ router.post('/sendMessage', requireAuth, async (req, res, next) => {
 
 
 // FETCHING MESSAGES
+// The most recent messages of a conversation, oldest first.
+const MESSAGE_PAGE_SIZE = 300;
 router.get('/allMessages/:chatId', requireAuth, async (req, res, next) => {
     try {
         const { chatId } = req.params;
@@ -61,12 +63,33 @@ router.get('/allMessages/:chatId', requireAuth, async (req, res, next) => {
             return res.status(403).json({ message: 'You are not part of this conversation.' });
         }
 
-        const messages = await Message.find({ chat: chat._id })
-            .populate('sender', 'userName profileImage')
-            .populate('chat');
-        res.json(messages)
+        const latest = await Message.find({ chat: chat._id })
+            .sort({ _id: -1 })
+            .limit(MESSAGE_PAGE_SIZE)
+            .populate('sender', 'userName firstName lastName profileImage')
+            .select('-emailNotifiedAt');
+        res.json(latest.reverse())
     } catch (error) {
         next(error);
+    }
+})
+
+// MARK AS READ
+// Marks every message in the conversation from the other person as seen by the signed-in user.
+router.post('/read/:chatId', requireAuth, async (req, res, next) => {
+    try {
+        const chat = await findChatForMember(req.params.chatId, req.currentUser._id);
+        if (!chat) {
+            return res.status(403).json({ message: 'You are not part of this conversation.' });
+        }
+        const me = req.currentUser._id;
+        const result = await Message.updateMany(
+            { chat: chat._id, sender: { $ne: me }, readBy: { $ne: me } },
+            { $addToSet: { readBy: me } }
+        );
+        res.json({ success: true, marked: result.modifiedCount ?? result.nModified ?? 0 });
+    } catch (err) {
+        next(err);
     }
 })
 

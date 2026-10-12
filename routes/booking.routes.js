@@ -7,6 +7,7 @@ const { requireAuth, optionalAuth, authIfPresent } = require('../middleware/auth
 
 const reservationService = require('../services/reservationService');
 const bookingService = require('../services/bookingService');
+const reviewService = require('../services/reviewService');
 
 // Creates the booking for a payment the guest just completed in checkout.
 // (The Stripe webhook does the same if the guest closes the page before this call.)
@@ -56,6 +57,17 @@ router.post('/createBooking', authIfPresent, async (req, res, next) => {
         if (err.status) {
             return res.status(err.status).json({ success: false, message: err.message });
         }
+        next(err);
+    }
+})
+
+// A guest reviews a session they went to: { rating: 1-5, text?: string }.
+router.post('/:bookingID/review', requireAuth, async (req, res, next) => {
+    try {
+        const booking = await reviewService.submitReview(req.params.bookingID, req.currentUser, req.body || {});
+        res.json({ success: true, booking });
+    } catch (err) {
+        if (err.status) return res.status(err.status).json({ success: false, message: err.message });
         next(err);
     }
 })
