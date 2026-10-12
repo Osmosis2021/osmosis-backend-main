@@ -192,7 +192,7 @@ export const ReserveModule = ({
                     fullWidth
                 />
                 <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block', textAlign: 'center' }}>
-                    You'll see the full price and session details before you pay.
+                    <strong>Free cancellation</strong> until the day before your session. No account needed to book.
                 </Typography>
             </Box>
         </Stack>

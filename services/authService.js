@@ -107,6 +107,10 @@ class AuthService {
                 console.log(`[Signup] Registration failed: Username "${userName}" is already taken.`);
                 return { success: false, message: 'Unsuccessful. This username is already taken.' };
             }
+            if (existingUser.passwordSetupRequired) {
+                // Booked as a guest before: they finish that account instead of making a new one.
+                return { success: false, message: 'You\'ve booked with this email before. Use the "Set a password" link in your booking confirmation email, or "Forgot password" on the login page.' };
+            }
             console.log(`[Signup] Registration failed: Email "${email}" is already registered.`);
             return { success: false, message: 'Unsuccessful. This email is already registered.' };
         }

@@ -48,7 +48,7 @@ export default function CheckoutForm({ clientSecret, bookThisCourse, onBookingSu
             setIsSuccess(true);
             if (onBookingSuccess) {
               const bookingId = bookingResponse.data.booking?._id || bookingResponse.data.bookingID || bookingResponse.data._id;
-              onBookingSuccess(bookingId);
+              onBookingSuccess(bookingId, bookingResponse.data);
             }
           } else {
             console.error("Booking creation failed response:", bookingResponse);

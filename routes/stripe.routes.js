@@ -4,9 +4,10 @@ const User = require('../models/user');
 const Course = require('../models/course');
 const CourseTimeslot = require('../models/courseTimeslot');
 const stripe = require('../services/stripeClient');
-const { requireAuth, optionalAuth, requireTeacher } = require('../middleware/auth');
+const { requireAuth, optionalAuth, authIfPresent, requireTeacher } = require('../middleware/auth');
 const payoutService = require('../services/payoutService');
 const { INACTIVE_STATUSES, effectiveStartAt } = require('../services/sessionTime');
+const { parseGuestDetails } = require('../services/guestAccountService');
 
 
 router.get('/config', (req, res) => {
@@ -152,7 +153,9 @@ const applicationFeeFor = (totalCents) => Math.round(totalCents * 0.099) + 30;
 // The client says *what* it is booking (course, session, number of guests). The price,
 // the host's payout account and the guest's Stripe customer are all looked up here, so
 // the amount or destination cannot be changed from the browser.
-router.post('/create-payment-intent', requireAuth, async (req, res) => {
+// Signed-in guests pay as themselves. Anyone else checks out with just name + email
+// (`guest: { firstName, lastName, email }`); their account is set up once the payment succeeds.
+router.post('/create-payment-intent', authIfPresent, async (req, res) => {
     const { courseID, timeslotID } = req.body
     // `capacity` is the legacy name the checkout used for the number of guests.
     const guests = Number(req.body.guests ?? req.body.capacity)
@@ -205,7 +208,16 @@ router.post('/create-payment-intent', requireAuth, async (req, res) => {
         }
         const destinationAccount = host.stripeID
 
-        const guest = req.currentUser;
+        const signedInGuest = req.currentUser;
+        let guestDetails = null;
+        if (!signedInGuest) {
+            try {
+                guestDetails = parseGuestDetails(req.body.guest);
+            } catch (err) {
+                return res.status(400).json({ error: err.message });
+            }
+        }
+
         let paymentIntentOptions = {
             amount: totalCents,
             currency: 'usd',
@@ -214,7 +226,12 @@ router.post('/create-payment-intent', requireAuth, async (req, res) => {
                 timeslotID: String(timeslot._id),
                 guests: String(guests),
                 teacherUserName: course.userName || '',
-                studentUserName: guest.userName,
+                studentUserName: signedInGuest ? signedInGuest.userName : '',
+                ...(guestDetails && {
+                    guestEmail: guestDetails.email,
+                    guestFirstName: guestDetails.firstName,
+                    guestLastName: guestDetails.lastName,
+                }),
                 date: timeslot.startDate ? timeslot.startDate.toISOString().split('T')[0] : '',
                 time: timeslot.startTime || '',
             },
@@ -223,14 +240,15 @@ router.post('/create-payment-intent', requireAuth, async (req, res) => {
                 destination: destinationAccount,
             },
         }
-        if (guest.email) paymentIntentOptions.receipt_email = guest.email;
+        const receiptEmail = signedInGuest ? signedInGuest.email : guestDetails.email;
+        if (receiptEmail) paymentIntentOptions.receipt_email = receiptEmail;
         // Saved card and customer belong to the signed-in guest only.
-        if (guest.paymentMethodID) paymentIntentOptions.payment_method = guest.paymentMethodID;
-        if (guest.customerStripeID) paymentIntentOptions.customer = guest.customerStripeID;
+        if (signedInGuest?.paymentMethodID) paymentIntentOptions.payment_method = signedInGuest.paymentMethodID;
+        if (signedInGuest?.customerStripeID) paymentIntentOptions.customer = signedInGuest.customerStripeID;
 
         const paymentIntent = await stripe.paymentIntents.create(paymentIntentOptions)
         // Return client secret to frontend
-        res.send({ clientSecret: paymentIntent.client_secret, amount: totalCents })
+        res.send({ clientSecret: paymentIntent.client_secret, paymentIntentID: paymentIntent.id, amount: totalCents })
 
     } catch (error) {
         console.error('Error creating payment intent:', error);

@@ -99,7 +99,8 @@ router.patch('/updatePassword/:email/:resetCode', async (req, res, next) => {
         const hashedPassword = await bcrypt.hash(password, bcryptSalt);
         await User.updateOne(
             { _id: foundUser._id },
-            { $set: { password: hashedPassword, resetCode: '' }, $unset: { resetCodeExpires: 1 } }
+            // The reset code came by email, so this also finishes a guest-checkout account.
+            { $set: { password: hashedPassword, resetCode: '', passwordSetupRequired: false, isEmailVerified: true }, $unset: { resetCodeExpires: 1 } }
         );
         attemptLimiter.reset(limiterKey);
         res.status(200).json({ result: 'success' });

@@ -1,14 +1,18 @@
 const router = require('express').Router();
 const mongoose = require('mongoose');
 const stripe = require('../services/stripeClient');
-const { requireAuth, optionalAuth } = require('../middleware/auth');
+const Course = require('../models/course');
+const CourseTimeslot = require('../models/courseTimeslot');
+const { requireAuth, optionalAuth, authIfPresent } = require('../middleware/auth');
 
 const reservationService = require('../services/reservationService');
 const bookingService = require('../services/bookingService');
 
 // Creates the booking for a payment the guest just completed in checkout.
 // (The Stripe webhook does the same if the guest closes the page before this call.)
-router.post('/createBooking', requireAuth, async (req, res, next) => {
+// Signed-in guests must own the payment; guest checkouts (no account) are matched by the
+// name and email stored on the payment, and only get back what the confirmation page needs.
+router.post('/createBooking', authIfPresent, async (req, res, next) => {
     try {
         const { courseID, courseTimeslotID, paymentIntentID } = req.body;
         if (!paymentIntentID || typeof paymentIntentID !== 'string') {
@@ -24,14 +28,24 @@ router.post('/createBooking', requireAuth, async (req, res, next) => {
 
         // The payment must belong to this guest and to the session they're booking.
         const metadata = paymentIntent?.metadata || {};
-        if (metadata.studentUserName !== req.currentUser.userName
+        const isGuestCheckout = !metadata.studentUserName && Boolean(metadata.guestEmail);
+        const ownerMatches = isGuestCheckout || (req.currentUser && metadata.studentUserName === req.currentUser.userName);
+        if (!ownerMatches
             || (courseID && metadata.courseID !== String(courseID))
             || (courseTimeslotID && metadata.timeslotID !== String(courseTimeslotID))) {
-            console.error('[createBooking] Payment does not match booking', { paymentIntentID, courseID, courseTimeslotID, user: req.currentUser.userName });
+            console.error('[createBooking] Payment does not match booking', { paymentIntentID, courseID, courseTimeslotID, user: req.currentUser?.userName });
             return res.status(400).json({ success: false, message: "That payment doesn't match this booking. Please contact support if you were charged." });
         }
 
-        const { booking } = await bookingService.createBookingFromPayment(paymentIntent);
+        const { booking, guest } = await bookingService.createBookingFromPayment(paymentIntent);
+        if (isGuestCheckout) {
+            return res.json({
+                success: true,
+                message: 'Booking created successfully',
+                booking: { _id: booking._id, status: booking.status, numberOfGuests: booking.numberOfGuests, total: booking.total },
+                guestCheckout: { email: metadata.guestEmail, needsPassword: Boolean(guest?.passwordSetupRequired) },
+            });
+        }
         res.json({
             success: true,
             message: 'Booking created successfully',
@@ -42,6 +56,17 @@ router.post('/createBooking', requireAuth, async (req, res, next) => {
         if (err.status) {
             return res.status(err.status).json({ success: false, message: err.message });
         }
+        next(err);
+    }
+})
+
+// A guest cancels their own booking (full refund until the day before the session).
+router.post('/:bookingID/cancel', requireAuth, async (req, res, next) => {
+    try {
+        const booking = await bookingService.cancelBookingByGuest(req.params.bookingID, req.currentUser);
+        res.json({ success: true, booking });
+    } catch (err) {
+        if (err.status) return res.status(err.status).json({ success: false, message: err.message });
         next(err);
     }
 })
@@ -94,7 +119,17 @@ const getBookingForParticipant = (label) => async (req, res, next) => {
             return res.status(403).json({ message: 'You do not have permission to view this booking' });
         }
 
-        res.json(booking)
+        // Tell the guest whether they can still cancel for a refund, and until when.
+        const [timeslot, course] = await Promise.all([
+            CourseTimeslot.findById(booking.courseTimeslotID),
+            Course.findById(booking.courseID?._id || booking.courseID),
+        ]);
+        const { canCancel, deadline } = bookingService.cancellationInfo(booking, timeslot, course);
+        res.json({
+            ...booking.toJSON(),
+            canCancel: canCancel && booking.studentUserName === userName,
+            freeCancellationUntil: deadline,
+        })
     } catch (error) {
         console.error(`[API ERROR] ${label}:`, { id: bookingID, error: error.message });
         next(error);

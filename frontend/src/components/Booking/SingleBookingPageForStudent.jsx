@@ -23,8 +23,16 @@ import { PremiumSectionHeader } from '../../ui/PremiumSectionHeader';
 import { PremiumBackButton } from '../../ui/PremiumBackButton';
 import useStartChat from '../../hooks/useStartChat';
 import { Alert } from '@mui/material';
-import { bookingStatusChip, isBookingCancelled, refundMessage } from '../../utils/bookingStatus';
+import { bookingStatusChip, isBookingCancelled, isBookingUpcoming, refundMessage } from '../../utils/bookingStatus';
 import { formatClockTime, formatSessionDate } from '../../utils/sessionTime';
+import { useConfirm, useToast } from '../../ui/feedback';
+
+// "Friday, November 13 at 11:59 PM": the last moment a guest can cancel for a refund.
+const formatDeadline = (deadline) => {
+    if (!deadline) return '';
+    const lastMinute = new Date(new Date(deadline).getTime() - 60000);
+    return `${lastMinute.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} at ${lastMinute.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+};
 
 function SingleBookingPageForStudent() {
     const axiosPrivate = useAxiosPrivate();
@@ -32,6 +40,8 @@ function SingleBookingPageForStudent() {
     const { backendURL, userName, userID } = useStore();
     const startChat = useStartChat();
     const [booking, setBooking] = useState(null);
+    const confirm = useConfirm();
+    const toast = useToast();
 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -63,6 +73,28 @@ function SingleBookingPageForStudent() {
 
     const handleMessageHost = () => startChat(booking?.teacherID?._id, { personLabel: 'this artist' });
 
+    const handleCancelBooking = async () => {
+        let cancelled = null;
+        const confirmed = await confirm({
+            title: 'Cancel this booking?',
+            description: `You'll get a full refund of ${formatCurrency(booking.total || 0)} to your original payment method, and your ${booking.numberOfGuests === 1 ? 'spot' : 'spots'} will open up for someone else. This can't be undone.`,
+            confirmLabel: 'Cancel booking',
+            cancelLabel: 'Keep booking',
+            destructive: true,
+            errorMessage: "We couldn't cancel your booking. Please try again, or contact support.",
+            onConfirm: async () => {
+                const { data } = await axiosPrivate.post(`booking/${booking._id}/cancel`);
+                cancelled = data.booking;
+            },
+        });
+        if (confirmed && cancelled) {
+            setBooking((prev) => ({ ...prev, ...cancelled, canCancel: false }));
+            toast.success(cancelled.refundStatus === 'refunded' ? 'Booking cancelled. Your refund is on its way.' : 'Booking cancelled. Our team will process your refund shortly.');
+        }
+    };
+
+    const cancelledByGuest = booking?.status === 'cancelled by guest';
+
     const formatDate = (dateStr) => formatSessionDate(dateStr || '', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
     if (isLoading) return (
@@ -92,7 +124,7 @@ function SingleBookingPageForStudent() {
                     <Grid item xs={12} md={8}>
                         {isBookingCancelled(booking) && (
                             <Alert severity="warning" sx={{ mb: 3, borderRadius: '12px' }}>
-                                <strong>The artist cancelled this session.</strong> {refundMessage(booking)}
+                                <strong>{cancelledByGuest ? 'You cancelled this booking.' : 'The artist cancelled this session.'}</strong> {refundMessage(booking)}
                             </Alert>
                         )}
                         <PremiumCard sx={{ p: 4, mb: 4 }}>
@@ -150,7 +182,10 @@ function SingleBookingPageForStudent() {
                                                         {booking?.courseID?.addressDetails?.line1 || booking?.courseID?.address || "Location details provided"}
                                                     </Typography>
                                                     <Typography variant="body2" color="text.secondary">
-                                                        {booking?.courseID?.addressDetails?.city || booking?.courseID?.city}, {booking?.courseID?.addressDetails?.state || booking?.courseID?.state} {booking?.courseID?.addressDetails?.zipCode || booking?.courseID?.zipCode}
+                                                        {[
+                                                            booking?.courseID?.addressDetails?.city || booking?.courseID?.city,
+                                                            [booking?.courseID?.addressDetails?.state || booking?.courseID?.state, booking?.courseID?.addressDetails?.zipCode || booking?.courseID?.zipCode].filter(Boolean).join(' '),
+                                                        ].filter(Boolean).join(', ')}
                                                     </Typography>
                                                 </Box>
                                             </Stack>
@@ -240,10 +275,31 @@ function SingleBookingPageForStudent() {
                                 </Stack>
                             </PremiumCard>
 
+                            {isBookingUpcoming(booking) && booking?.freeCancellationUntil && (
+                                <PremiumCard sx={{ p: 3 }}>
+                                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>Cancellation</Typography>
+                                    {booking.canCancel ? (
+                                        <>
+                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                                Free cancellation until {formatDeadline(booking.freeCancellationUntil)}. You'll get a full refund.
+                                            </Typography>
+                                            <Button variant="outlined" color="error" fullWidth onClick={handleCancelBooking}
+                                                sx={{ fontWeight: 700, textTransform: 'none', borderRadius: '12px' }}>
+                                                Cancel booking
+                                            </Button>
+                                        </>
+                                    ) : (
+                                        <Typography variant="body2" color="text.secondary">
+                                            Free cancellation ended {formatDeadline(booking.freeCancellationUntil)}. If something came up, message the artist.
+                                        </Typography>
+                                    )}
+                                </PremiumCard>
+                            )}
+
                             {(userID && booking?.teacherID?._id !== userID) && (
                                 <PremiumCard sx={{ p: 3, bgcolor: 'primary.main', color: 'white' }}>
-                                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>Need help?</Typography>
-                                    <Typography variant="body2" sx={{ mb: 2, opacity: 0.9 }}>
+                                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 1, color: 'inherit' }}>Need help?</Typography>
+                                    <Typography variant="body2" sx={{ mb: 2, opacity: 0.9, color: 'inherit' }}>
                                         If you have questions about your booking, message the artist directly.
                                     </Typography>
                                     <Button

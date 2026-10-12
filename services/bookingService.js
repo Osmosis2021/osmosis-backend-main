@@ -7,7 +7,10 @@ const stripe = require('./stripeClient');
 const emailService = require('./emailService');
 const env = require('../config/env');
 const reservationService = require('./reservationService');
-const { formatSessionForHumans, DEFAULT_TIMEZONE } = require('./sessionTime');
+const { formatSessionForHumans, freeCancellationDeadline, DEFAULT_TIMEZONE } = require('./sessionTime');
+const guestAccountService = require('./guestAccountService');
+
+const FRONTEND_URL = () => env.FRONTEND_URL || 'https://getstudiotime.com';
 
 const httpError = (status, message) => Object.assign(new Error(message), { status });
 
@@ -26,7 +29,15 @@ const sendBookingEmails = async (details) => {
 const sendBookingEmailsUnsafe = async ({ booking, course, timeslot, guest, host }) => {
     const when = formatSessionForHumans(timeslot, course.timezone || DEFAULT_TIMEZONE);
     const guests = booking.numberOfGuests;
-    const listingUrl = `https://getstudiotime.com/teachers/${encodeURIComponent(course.userName)}/${course._id}`;
+    const listingUrl = `${FRONTEND_URL()}/teachers/${encodeURIComponent(course.userName)}/${course._id}`;
+    const bookingPath = `/student/bookings/${booking._id}`;
+    // Guests who checked out without an account get a link to set a password (and land on their booking).
+    const claimLink = guestAccountService.claimLinkFor(guest, { next: bookingPath });
+    const manageLink = claimLink || `${FRONTEND_URL()}${bookingPath}`;
+    const deadline = freeCancellationDeadline(timeslot, course.timezone || DEFAULT_TIMEZONE);
+    const deadlineText = deadline
+        ? `until the end of ${new Date(deadline.getTime() - 60000).toLocaleDateString('en-US', { timeZone: timeslot.timezone || course.timezone || DEFAULT_TIMEZONE, weekday: 'long', month: 'long', day: 'numeric' })}`
+        : 'until the day before your session';
     const address = course.address ? `<p><strong>Where:</strong> ${escapeHtml(course.address)}</p>` : '';
     const replyTo = env.RESEND_FROM_EMAIL || undefined;
 
@@ -44,7 +55,11 @@ const sendBookingEmailsUnsafe = async ({ booking, course, timeslot, guest, host 
                 ${address}
                 <p><strong>Guests:</strong> ${guests}<br/><strong>Paid:</strong> $${booking.total}</p>
                 ${course.whatToBring ? `<p><strong>What to bring:</strong> ${escapeHtml(course.whatToBring)}</p>` : ''}
-                <p>Questions? You can message the artist in the Studio Time app. <a href="${listingUrl}">View the listing</a>.</p>
+                <p><strong>Free cancellation ${escapeHtml(deadlineText)}.</strong> Cancel any time before the day of your session for a full refund.</p>
+                ${claimLink
+                    ? `<p><a href="${claimLink}"><strong>Set a password</strong></a> to see your booking, cancel if plans change, message the artist and leave a review afterwards.</p>`
+                    : `<p><a href="${manageLink}">Manage your booking</a> to cancel or message the artist.</p>`}
+                <p><a href="${listingUrl}">View the listing</a></p>
                 <p>See you there,<br/>The Studio Time Team</p>
             `,
         }));
@@ -92,7 +107,7 @@ const refundPayment = async (paymentIntentId, reason) => {
 const createBookingFromPayment = async (paymentIntent) => {
     if (!paymentIntent?.id) throw httpError(400, "We couldn't find that payment.");
     const existing = await Booking.findOne({ paymentIntentID: paymentIntent.id });
-    if (existing) return { booking: existing, created: false };
+    if (existing) return { booking: existing, created: false, guest: await User.findById(existing.studentID) };
 
     const metadata = paymentIntent.metadata || {};
     if (paymentIntent.status !== 'succeeded') throw httpError(400, "This payment hasn't gone through yet.");
@@ -100,11 +115,21 @@ const createBookingFromPayment = async (paymentIntent) => {
         throw httpError(400, "That payment isn't linked to a Studio Time session.");
     }
 
-    const [course, timeslot, guest] = await Promise.all([
+    const [course, timeslot] = await Promise.all([
         Course.findById(metadata.courseID),
         CourseTimeslot.findOne({ _id: metadata.timeslotID, courseID: metadata.courseID }),
-        User.findOne({ userName: metadata.studentUserName }),
     ]);
+    // Signed-in checkouts name the guest; guest checkouts carry a name and email instead.
+    let guest = null;
+    if (metadata.studentUserName) {
+        guest = await User.findOne({ userName: metadata.studentUserName });
+    } else if (metadata.guestEmail && course && timeslot) {
+        ({ user: guest } = await guestAccountService.findOrCreateGuestAccount({
+            firstName: metadata.guestFirstName,
+            lastName: metadata.guestLastName,
+            email: metadata.guestEmail,
+        }));
+    }
     if (!course || !timeslot || !guest) {
         await refundPayment(paymentIntent.id, 'listing, session or guest no longer exists');
         throw httpError(409, "This session is no longer available, so we've refunded your payment.");
@@ -138,7 +163,7 @@ const createBookingFromPayment = async (paymentIntent) => {
         // Another request for this payment won the race: return its booking.
         if (err.code === 11000) {
             const winner = await Booking.findOne({ paymentIntentID: paymentIntent.id });
-            if (winner) return { booking: winner, created: false };
+            if (winner) return { booking: winner, created: false, guest };
         }
         if (err.status === 409 || /capacity|full/i.test(err.message || '')) {
             const refunded = await refundPayment(paymentIntent.id, err.message);
@@ -153,7 +178,115 @@ const createBookingFromPayment = async (paymentIntent) => {
     const updatedSlot = await CourseTimeslot.findById(timeslot._id);
     await sendBookingEmails({ booking, course, timeslot: updatedSlot || timeslot, guest, host });
 
-    return { booking, created: true };
+    return { booking, created: true, guest };
 };
 
-module.exports = { createBookingFromPayment, sendBookingEmails };
+const sendGuestCancellationEmails = async ({ booking, course, timeslot, guest, host, refunded }) => {
+    try {
+        const when = formatSessionForHumans(timeslot, course.timezone || DEFAULT_TIMEZONE);
+        const replyTo = env.RESEND_FROM_EMAIL || undefined;
+        const spots = booking.numberOfGuests === 1 ? 'spot' : 'spots';
+        const jobs = [];
+        if (guest?.email) {
+            jobs.push(emailService.sendEmail({
+                sendTo: guest.email,
+                replyTo,
+                subject: `Cancelled: ${course.courseTitle} on ${when}`,
+                message: `
+                    <p>Hi ${escapeHtml(guest.firstName) || 'there'},</p>
+                    <p>Your booking for <strong>${escapeHtml(course.courseTitle)}</strong> on ${escapeHtml(when)} is cancelled.</p>
+                    <p>${refunded
+                        ? `Your $${booking.total} refund is on its way. It usually appears on your statement within 5–10 business days.`
+                        : 'Our team will process your refund shortly.'}</p>
+                    <p>The Studio Time Team</p>
+                `,
+            }));
+        }
+        if (host?.email) {
+            jobs.push(emailService.sendEmail({
+                sendTo: host.email,
+                replyTo,
+                subject: `Booking cancelled: ${course.courseTitle} on ${when}`,
+                message: `
+                    <p>${escapeHtml(guest?.firstName) || 'A guest'} cancelled ${booking.numberOfGuests} ${spots} for <strong>${escapeHtml(course.courseTitle)}</strong> on ${escapeHtml(when)}.</p>
+                    <p>The ${spots} ${booking.numberOfGuests === 1 ? 'is' : 'are'} open again for other guests to book.</p>
+                    <p>The Studio Time Team</p>
+                `,
+            }));
+        }
+        const results = await Promise.allSettled(jobs);
+        results.filter((r) => r.status === 'rejected').forEach((r) => console.error('[cancel email] failed:', r.reason?.message));
+    } catch (err) {
+        console.error('[cancel email] failed:', err.message);
+    }
+};
+
+/** Whether a guest can still cancel this booking for a full refund, and until when. */
+const cancellationInfo = (booking, timeslot, course) => {
+    if (!booking || /^cancelled/.test(booking.status || '') || !timeslot) return { canCancel: false, deadline: null };
+    const deadline = freeCancellationDeadline(timeslot, course?.timezone || DEFAULT_TIMEZONE);
+    return { canCancel: Boolean(deadline) && Date.now() < deadline.getTime(), deadline };
+};
+
+/**
+ * A guest cancels their own booking. Allowed until the day of the session (in the studio's
+ * timezone), with a full refund including the Studio Time fee. Frees the spots and emails both sides.
+ */
+const cancelBookingByGuest = async (bookingId, user) => {
+    if (!mongoose.isValidObjectId(bookingId)) throw httpError(404, "We couldn't find that booking.");
+    const booking = await Booking.findById(bookingId);
+    if (!booking) throw httpError(404, "We couldn't find that booking.");
+    if (String(booking.studentID) !== String(user._id) && booking.studentUserName !== user.userName) {
+        throw httpError(403, 'You can only cancel your own bookings.');
+    }
+    if (/^cancelled/.test(booking.status || '')) throw httpError(409, 'This booking is already cancelled.');
+
+    const [course, timeslot] = await Promise.all([
+        Course.findById(booking.courseID),
+        CourseTimeslot.findById(booking.courseTimeslotID),
+    ]);
+    const { canCancel } = cancellationInfo(booking, timeslot, course);
+    if (!canCancel) {
+        throw httpError(409, "Bookings can be cancelled for a full refund until the day before the session. Message the artist if something came up.");
+    }
+
+    // Claim the booking first so two taps can't refund twice.
+    const claimed = await Booking.findOneAndUpdate(
+        { _id: booking._id, status: booking.status },
+        { $set: { status: 'cancelled by guest', cancelledAt: new Date() } },
+        { new: true }
+    );
+    if (!claimed) throw httpError(409, 'This booking is already cancelled.');
+
+    let refundStatus = 'not_needed';
+    if (claimed.paymentIntentID) {
+        try {
+            await stripe.refunds.create(
+                { payment_intent: claimed.paymentIntentID, reverse_transfer: true, refund_application_fee: true },
+                { idempotencyKey: `guest-cancel-${claimed._id}` }
+            );
+            refundStatus = 'refunded';
+        } catch (err) {
+            console.error(`[guest cancel] NEEDS MANUAL REFUND for booking ${claimed._id}:`, err.message);
+            refundStatus = 'failed';
+        }
+    } else if ((claimed.total || 0) > 0) {
+        refundStatus = 'manual';
+    }
+    claimed.refundStatus = refundStatus;
+    await claimed.save();
+
+    // Free the spots (never below zero).
+    await CourseTimeslot.updateOne(
+        { _id: claimed.courseTimeslotID, enrollment: { $gte: claimed.numberOfGuests } },
+        { $inc: { enrollment: -claimed.numberOfGuests } }
+    );
+
+    if (course && timeslot) {
+        const host = await User.findById(course.teacherID).select('email firstName');
+        await sendGuestCancellationEmails({ booking: claimed, course, timeslot, guest: user, host, refunded: refundStatus === 'refunded' });
+    }
+    return claimed;
+};
+
+module.exports = { createBookingFromPayment, sendBookingEmails, cancelBookingByGuest, cancellationInfo };

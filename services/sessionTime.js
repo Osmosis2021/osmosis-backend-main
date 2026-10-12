@@ -75,6 +75,18 @@ const formatSessionForHumans = (slot, fallbackTimeZone = DEFAULT_TIMEZONE) => {
     return `${date} at ${time}`;
 };
 
+/**
+ * Guests get a full refund if they cancel before the day of their session: the deadline is
+ * midnight at the start of the session's calendar day, in the studio's timezone.
+ */
+const freeCancellationDeadline = (slot, fallbackTimeZone = DEFAULT_TIMEZONE) => {
+    const start = effectiveStartAt(slot, fallbackTimeZone);
+    if (!start) return null;
+    const timeZone = isValidTimeZone(slot.timezone) ? slot.timezone : fallbackTimeZone;
+    const localDay = start.toLocaleDateString('en-CA', { timeZone }); // YYYY-MM-DD
+    return zonedTimeToUtc(localDay, '00:00', timeZone);
+};
+
 const INACTIVE_STATUSES = ['cancelled', 'removed by teacher'];
 const isActiveSession = (slot) => !INACTIVE_STATUSES.includes(slot.status);
 
@@ -89,5 +101,6 @@ module.exports = {
     dayKeyFor,
     effectiveStartAt,
     formatSessionForHumans,
+    freeCancellationDeadline,
     isActiveSession,
 };

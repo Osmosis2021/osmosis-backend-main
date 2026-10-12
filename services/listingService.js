@@ -81,7 +81,7 @@ const getHostStats = async (userName) => {
     const pastSessionIds = new Set(pastSessions.map((s) => String(s._id)));
     const bookings = await Booking.find({
         teacherUserName: userName,
-        status: { $nin: ['cancelled', 'cancelled by host'] },
+        status: { $not: /^cancelled/ },
     }).select('courseTimeslotID numberOfGuests');
     const guestsHosted = bookings
         .filter((b) => pastSessionIds.has(String(b.courseTimeslotID)))

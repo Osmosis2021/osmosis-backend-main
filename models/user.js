@@ -101,6 +101,11 @@ const UserSchema = new mongoose.Schema(
 		// Unset means "not checked yet".
 		payoutsEnabled: {
 			type: Boolean,
+		},
+		// Created by a guest checkout (name + email only). There is no usable password until the
+		// guest follows the link in their confirmation email and sets one.
+		passwordSetupRequired: {
+			type: Boolean,
 		}
 
 	},

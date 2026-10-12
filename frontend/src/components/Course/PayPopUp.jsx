@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import {
+  Alert,
   Button,
+  TextField,
   Dialog,
   IconButton,
   Typography,
@@ -27,6 +29,58 @@ import { useTheme, useMediaQuery, Grid } from '@mui/material';
 import useStartChat from '../../hooks/useStartChat';
 import { formatSessionDate } from '../../utils/sessionTime';
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMPTY_GUEST = { firstName: '', lastName: '', email: '' };
+
+/** Name and email for booking without an account. */
+function GuestDetailsForm({ value, onSubmit, onLogIn }) {
+  const [form, setForm] = useState(value || EMPTY_GUEST);
+  const [errors, setErrors] = useState({});
+
+  const update = (field) => (e) => {
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
+  };
+
+  const submit = (e) => {
+    e.preventDefault();
+    const trimmed = { firstName: form.firstName.trim(), lastName: form.lastName.trim(), email: form.email.trim() };
+    const nextErrors = {};
+    if (!trimmed.firstName) nextErrors.firstName = 'Please enter your first name.';
+    if (!trimmed.lastName) nextErrors.lastName = 'Please enter your last name.';
+    if (!EMAIL_PATTERN.test(trimmed.email)) nextErrors.email = 'Please enter a valid email address.';
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length === 0) onSubmit(trimmed);
+  };
+
+  return (
+    <Box component="form" noValidate onSubmit={submit}>
+      <Stack spacing={2}>
+        <Typography variant="body2" color="text.secondary">
+          No account needed. We'll email your confirmation here.
+        </Typography>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+          <TextField label="First name" autoComplete="given-name" value={form.firstName} onChange={update('firstName')}
+            error={Boolean(errors.firstName)} helperText={errors.firstName} fullWidth required />
+          <TextField label="Last name" autoComplete="family-name" value={form.lastName} onChange={update('lastName')}
+            error={Boolean(errors.lastName)} helperText={errors.lastName} fullWidth required />
+        </Stack>
+        <TextField label="Email" type="email" autoComplete="email" inputProps={{ inputMode: 'email', autoCapitalize: 'none' }}
+          value={form.email} onChange={update('email')} error={Boolean(errors.email)} helperText={errors.email} fullWidth required />
+        <PremiumButton type="submit" variant="contained" fullWidth sx={{ py: 1.8 }}>
+          Continue to payment
+        </PremiumButton>
+        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+          Have an account?{' '}
+          <Button variant="text" onClick={onLogIn} sx={{ textTransform: 'none', fontWeight: 700, p: 0, minWidth: 0, verticalAlign: 'baseline' }}>
+            Log in
+          </Button>
+        </Typography>
+      </Stack>
+    </Box>
+  );
+}
+
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -35,6 +89,9 @@ export default function PayPopUp(props) {
   const [open, setOpen] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [bookingID, setBookingID] = useState(null);
+  // Booking without an account: name + email, then payment.
+  const [guestDetails, setGuestDetails] = useState(null);
+  const [guestResult, setGuestResult] = useState(null); // { email, needsPassword } after a guest booking
   const { userID, userName } = useStore();
   const axiosPrivate = useAxiosPrivate();
   const navigate = useNavigate();
@@ -68,8 +125,9 @@ export default function PayPopUp(props) {
     return bookingResponse;
   }
 
-  const handleBookingSuccess = (id) => {
+  const handleBookingSuccess = (id, data) => {
     setBookingID(id);
+    setGuestResult(data?.guestCheckout || null);
     setIsSuccess(true);
   };
 
@@ -78,11 +136,12 @@ export default function PayPopUp(props) {
   };
 
   const handleClose = () => {
-    if (isSuccess) {
+    if (isSuccess && userID) {
       navigate(`/students/${userName}`);
     }
     setOpen(false);
     setIsSuccess(false);
+    setGuestResult(null);
   };
 
   const timeConverter = (rawTime) => {
@@ -109,15 +168,14 @@ export default function PayPopUp(props) {
   const paymentsReady = Boolean(props.paymentsReady && props.stripeID);
   const isDisabled = !hasDate || isOwnListing || !paymentsReady;
 
-  const handleReserveClick = () => {
-    if (!userID) {
-      // Come back to this listing with the same session selected.
-      const search = props.selectedTimeslotID ? `?session=${props.selectedTimeslotID}` : location.search;
-      navigate('/', { state: { from: { pathname: location.pathname, search } } });
-      return;
-    }
-    handleClickOpen();
+  // Log in, then come back to this listing with the same session selected.
+  const goToLogin = () => {
+    const search = props.selectedTimeslotID ? `?session=${props.selectedTimeslotID}` : location.search;
+    navigate('/', { state: { from: { pathname: location.pathname, search } } });
   };
+
+  const handleReserveClick = () => handleClickOpen();
+  const isGuestCheckout = !userID;
 
   return (
     <Box sx={{ width: props.fullWidth ? '100%' : 'auto' }}>
@@ -143,14 +201,8 @@ export default function PayPopUp(props) {
       >
         {isOwnListing ? "This is your studio time" :
           !paymentsReady ? "Bookings open soon" :
-            !hasDate ? "Choose a date to continue" :
-              !userID ? "Log in to reserve" : "Reserve now"}
+            !hasDate ? "Choose a date to continue" : "Reserve now"}
       </Button>
-      {!userID && hasDate && paymentsReady && (
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
-          You'll come right back here after logging in.
-        </Typography>
-      )}
       {!paymentsReady && !isOwnListing && (
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
           This artist is still setting up payments. Check back soon, or message them in the meantime.
@@ -205,9 +257,16 @@ export default function PayPopUp(props) {
                 <Box sx={{ textAlign: 'center', mx: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', py: 4 }}>
                   <CheckCircleIcon sx={{ fontSize: 80, color: 'success.main', mb: 3 }} />
                   <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>You're booked!</Typography>
-                  <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 400 }}>
-                    Pack your bags, you're going to {props.courseTitle}. We've sent a confirmation email to you.
+                  <Typography variant="body1" color="text.secondary" sx={{ mb: guestResult ? 2 : 4, maxWidth: 400 }}>
+                    You're going to {props.courseTitle}. We've sent a confirmation email to {guestResult?.email || 'you'}.
                   </Typography>
+                  {guestResult && (
+                    <Alert severity="info" sx={{ mb: 4, maxWidth: 450, textAlign: 'left', borderRadius: 3 }}>
+                      {guestResult.needsPassword
+                        ? 'Open that email and tap "Set a password" to see your booking, message the artist or cancel if plans change.'
+                        : 'You already have an account with this email. Log in to see your booking, message the artist or cancel if plans change.'}
+                    </Alert>
+                  )}
 
                   <PremiumCard sx={{ p: 3, textAlign: 'left', mb: 4, width: '100%', maxWidth: 450 }}>
                     <Typography variant="overline" sx={{ fontWeight: 800, color: 'text.secondary', letterSpacing: 1 }}>
@@ -229,37 +288,51 @@ export default function PayPopUp(props) {
                     </Stack>
                   </PremiumCard>
 
-                  <Stack spacing={2} sx={{ width: '100%', maxWidth: 450 }}>
-                    <PremiumButton
-                      variant="contained"
-                      fullWidth
-                      startIcon={<MessageIcon />}
-                      onClick={handleMessageHost}
-                      sx={{ py: 1.8, borderRadius: 3 }}
-                    >
-                      Message Artist
-                    </PremiumButton>
-                    <Stack direction="row" spacing={2}>
-                      <Button
-                        variant="outlined"
-                        fullWidth
-                        startIcon={<VisibilityIcon />}
-                        component={Link}
-                        to={`/student/bookings/${bookingID}`}
-                        sx={{ py: 1.5, borderRadius: 3, fontWeight: 700, textTransform: 'none' }}
-                      >
-                        View Booking
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        fullWidth
-                        onClick={() => navigate(`/students/${userName}`)}
-                        sx={{ py: 1.5, borderRadius: 3, fontWeight: 700, textTransform: 'none' }}
-                      >
-                        Return to Dashboard
+                  {guestResult ? (
+                    <Stack spacing={2} sx={{ width: '100%', maxWidth: 450 }}>
+                      {!guestResult.needsPassword && (
+                        <PremiumButton variant="contained" fullWidth onClick={goToLogin} sx={{ py: 1.8, borderRadius: 3 }}>
+                          Log in
+                        </PremiumButton>
+                      )}
+                      <Button variant="outlined" fullWidth onClick={handleClose}
+                        sx={{ py: 1.5, borderRadius: 3, fontWeight: 700, textTransform: 'none' }}>
+                        Done
                       </Button>
                     </Stack>
-                  </Stack>
+                  ) : (
+                    <Stack spacing={2} sx={{ width: '100%', maxWidth: 450 }}>
+                      <PremiumButton
+                        variant="contained"
+                        fullWidth
+                        startIcon={<MessageIcon />}
+                        onClick={handleMessageHost}
+                        sx={{ py: 1.8, borderRadius: 3 }}
+                      >
+                        Message Artist
+                      </PremiumButton>
+                      <Stack direction="row" spacing={2}>
+                        <Button
+                          variant="outlined"
+                          fullWidth
+                          startIcon={<VisibilityIcon />}
+                          component={Link}
+                          to={`/student/bookings/${bookingID}`}
+                          sx={{ py: 1.5, borderRadius: 3, fontWeight: 700, textTransform: 'none' }}
+                        >
+                          View Booking
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          fullWidth
+                          onClick={() => navigate(`/students/${userName}`)}
+                          sx={{ py: 1.5, borderRadius: 3, fontWeight: 700, textTransform: 'none' }}
+                        >
+                          Return to Dashboard
+                        </Button>
+                      </Stack>
+                    </Stack>
+                  )}
                 </Box>
               </Fade>
             ) : (
@@ -303,7 +376,8 @@ export default function PayPopUp(props) {
 
                     <Box sx={{ px: 1 }}>
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4 }}>
-                        By booking, you agree to the Studio Time Terms of Service and this studio time's cancellation policy.
+                        <strong>Free cancellation until the day before your session</strong> for a full refund.
+                        By booking, you agree to the Studio Time <Link to="/termsofservice">Terms of Service</Link>.
                       </Typography>
                     </Box>
                   </Stack>
@@ -314,7 +388,7 @@ export default function PayPopUp(props) {
                   <PremiumCard sx={{ p: { xs: 2.5, md: 4 }, bgcolor: 'white', height: '100%', overflow: 'visible' }}>
                     <Box sx={{ mb: 3 }}>
                       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 800 }}>Payment</Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 800 }}>{isGuestCheckout && !guestDetails ? 'Your details' : 'Payment'}</Typography>
                         <Box sx={{
                           display: 'flex',
                           alignItems: 'center',
@@ -347,13 +421,30 @@ export default function PayPopUp(props) {
                         boxShadow: '0 0 0 4px rgba(10, 10, 10, 0.025)'
                       }
                     }}>
-                      <Payment
-                        item={props}
-                        paymentMetadata={paymentMetadata}
-                        stripeID={props.stripeID}
-                        bookThisCourse={bookThisCourse}
-                        onBookingSuccess={handleBookingSuccess}
-                      />
+                      {isGuestCheckout && !guestDetails ? (
+                        <GuestDetailsForm value={guestDetails} onSubmit={setGuestDetails} onLogIn={goToLogin} />
+                      ) : (
+                        <Stack spacing={2}>
+                          {isGuestCheckout && (
+                            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                              <Typography variant="body2" color="text.secondary" sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+                                Booking as <strong>{guestDetails.firstName} {guestDetails.lastName}</strong> · {guestDetails.email}
+                              </Typography>
+                              <Button size="small" onClick={() => setGuestDetails(null)} sx={{ textTransform: 'none', fontWeight: 700, flexShrink: 0 }}>
+                                Edit
+                              </Button>
+                            </Stack>
+                          )}
+                          <Payment
+                            item={props}
+                            guest={isGuestCheckout ? guestDetails : null}
+                            paymentMetadata={paymentMetadata}
+                            stripeID={props.stripeID}
+                            bookThisCourse={bookThisCourse}
+                            onBookingSuccess={handleBookingSuccess}
+                          />
+                        </Stack>
+                      )}
                     </Box>
 
                     <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 3, opacity: 0.6 }}>

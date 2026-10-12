@@ -41,7 +41,16 @@ export default function Payment(props) {
     const courseID = props?.item?.courseID;
     const timeslotID = props?.item?.selectedTimeslotID;
     const guests = props?.item?.guests;
-    const requestBody = useMemo(() => ({ courseID, timeslotID, guests }), [courseID, timeslotID, guests]);
+    // Booking without an account sends the guest's name and email instead of a sign-in.
+    const guestFirstName = props?.guest?.firstName;
+    const guestLastName = props?.guest?.lastName;
+    const guestEmail = props?.guest?.email;
+    const requestBody = useMemo(() => ({
+        courseID,
+        timeslotID,
+        guests,
+        ...(guestEmail && { guest: { firstName: guestFirstName, lastName: guestLastName, email: guestEmail } }),
+    }), [courseID, timeslotID, guests, guestFirstName, guestLastName, guestEmail]);
 
     useEffect(() => {
         let isMounted = true;
@@ -154,7 +163,7 @@ export default function Payment(props) {
                 clientSecret={clientSecret}
                 bookThisCourse={props.bookThisCourse}
                 paymentMetadata={props.paymentMetadata}
-                paymentMethodID={paymentMethodID}
+                paymentMethodID={props.guest ? undefined : paymentMethodID}
                 onBookingSuccess={props.onBookingSuccess}
             />
         </Elements>

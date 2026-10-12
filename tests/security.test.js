@@ -425,8 +425,36 @@ describe('Payments', () => {
         expect((await User.findById(host._id)).payoutsEnabled).toBe(false);
     });
 
-    it('requires sign-in to start a payment', async () => {
-        await request(app).post('/stripe/create-payment-intent').send({ courseID: new mongoose.Types.ObjectId().toString(), guests: 1 }).expect(401);
+    it('asks for a name and email when checking out without an account', async () => {
+        const host = await makeUser({ isTeacher: true, stripeID: 'acct_host' });
+        const course = await makeCourse(host);
+        const slot = await CourseTimeslot.create({ courseID: course._id, capacity: 4, enrollment: 0, startTime: '14:00', startDate: new Date('2030-01-05') });
+        stripe.accounts.retrieve.mockResolvedValue({ payouts_enabled: true });
+        const res = await request(app).post('/stripe/create-payment-intent')
+            .send({ courseID: String(course._id), timeslotID: String(slot._id), guests: 1, guest: { firstName: 'Ana' } })
+            .expect(400);
+        expect(res.body.error).toMatch(/last name|email/i);
+        expect(stripe.paymentIntents.create).not.toHaveBeenCalled();
+    });
+
+    it('lets a guest pay without an account, without touching anyone\'s saved card', async () => {
+        const host = await makeUser({ isTeacher: true, stripeID: 'acct_host' });
+        await makeUser({ email: 'ana@example.com', customerStripeID: 'cus_existing', paymentMethodID: 'pm_existing' });
+        const course = await makeCourse(host, { pricePerStudent: 40 });
+        const slot = await CourseTimeslot.create({ courseID: course._id, capacity: 4, enrollment: 0, startTime: '14:00', startDate: new Date('2030-01-05') });
+        stripe.accounts.retrieve.mockResolvedValue({ payouts_enabled: true });
+        stripe.paymentIntents.create.mockResolvedValue({ id: 'pi_1', client_secret: 'pi_secret' });
+
+        await request(app).post('/stripe/create-payment-intent')
+            .send({ courseID: String(course._id), timeslotID: String(slot._id), guests: 1, guest: { firstName: 'Ana', lastName: 'Ruiz', email: 'Ana@Example.com' } })
+            .expect(200);
+
+        const options = stripe.paymentIntents.create.mock.calls[0][0];
+        expect(options.amount).toBe(4000);
+        expect(options.metadata).toEqual(expect.objectContaining({ studentUserName: '', guestEmail: 'ana@example.com', guestFirstName: 'Ana' }));
+        expect(options.receipt_email).toBe('ana@example.com');
+        expect(options.customer).toBeUndefined();
+        expect(options.payment_method).toBeUndefined();
     });
 
     it("refuses Stripe onboarding links for someone else's account", async () => {

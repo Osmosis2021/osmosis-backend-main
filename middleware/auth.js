@@ -76,6 +76,16 @@ const optionalAuth = async (req, res, next) => {
     next();
 };
 
+/**
+ * For endpoints that work signed in or not (guest checkout): no token means anonymous, but a
+ * token that is sent must be valid. An expired token gets 403 so the client refreshes and
+ * retries as the signed-in user, instead of silently being treated as a stranger.
+ */
+const authIfPresent = async (req, res, next) => {
+    if (!getBearerToken(req)) return next();
+    return requireAuth(req, res, next);
+};
+
 /** Requires the authenticated user to be a host. Must run after requireAuth. */
 const requireTeacher = (req, res, next) => {
     if (!req.currentUser?.isTeacher) {
@@ -89,5 +99,6 @@ module.exports = {
     verifyAccessToken,
     requireAuth,
     optionalAuth,
+    authIfPresent,
     requireTeacher,
 };

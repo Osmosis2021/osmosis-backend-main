@@ -18,7 +18,8 @@ const {
 
 const MAX_SESSIONS_PER_REQUEST = 60;
 const MAX_DAYS_AHEAD = 366;
-const ACTIVE_BOOKING_FILTER = { status: { $nin: ['cancelled', 'cancelled by host'] } };
+// Any booking not cancelled (by the host, the guest or an older 'cancelled' status).
+const ACTIVE_BOOKING_FILTER = { status: { $not: /^cancelled/ } };
 
 const httpError = (status, message, extra = {}) => Object.assign(new Error(message), { status, ...extra });
 

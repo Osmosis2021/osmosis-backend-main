@@ -1054,7 +1054,7 @@ export default function Settings() {
                   </AccordionSummary>
                   <AccordionDetails>
                     <Typography variant="body2" color="text.secondary">
-                      Cancellations made at least 24 hours prior to slot initiation trigger automated Stripe balance returns. Within 24 hours, contact customer care.
+                      Cancel from your booking any time before the day of your session for a full refund to your original payment method. Same-day cancellations aren't refunded. If the artist cancels, you're refunded in full automatically.
                     </Typography>
                   </AccordionDetails>
                 </Accordion>

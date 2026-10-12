@@ -11,6 +11,7 @@ const { REFRESH_COOKIE_OPTIONS, issueTokens } = require('../services/authService
 const emailService = require('../services/emailService');
 const { verifyGoogleCredential } = require('../services/googleAuth');
 const payoutService = require('../services/payoutService');
+const guestAccountService = require('../services/guestAccountService');
 const attemptLimiter = require('../services/attemptLimiter');
 const { requireAuth, optionalAuth, getBearerToken, verifyAccessToken } = require('../middleware/auth');
 
@@ -34,6 +35,30 @@ router.post('/login', async (req, res, next) => {
         res.json(user);
     } catch (error) {
         next(error);
+    }
+});
+
+// GUEST CHECKOUT ACCOUNTS
+// A guest who booked with just name + email follows the link in their confirmation email
+// to set a password. The link proves they own the email; setting the password signs them in.
+router.get('/claim-account', async (req, res) => {
+    try {
+        const user = await guestAccountService.userForClaimToken(req.query.token);
+        res.json({ firstName: user.firstName, email: user.email });
+    } catch (err) {
+        res.status(err.status || 500).json({ message: err.status ? err.message : 'Something went wrong. Please try again.' });
+    }
+});
+
+router.post('/claim-account', async (req, res, next) => {
+    try {
+        const user = await guestAccountService.claimAccount(req.body?.token, req.body?.password);
+        const { roles, accessToken, refreshToken } = await issueTokens(user, { persist: true });
+        res.cookie('jwt', refreshToken, REFRESH_COOKIE_OPTIONS);
+        res.json({ ...user.toJSON(), roles, accessToken });
+    } catch (err) {
+        if (err.status) return res.status(err.status).json({ message: err.message });
+        next(err);
     }
 });
 
