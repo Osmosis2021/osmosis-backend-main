@@ -28,6 +28,7 @@ import { PremiumCard } from '../../ui/PremiumCard';
 import { useTheme, useMediaQuery, Grid } from '@mui/material';
 import useStartChat from '../../hooks/useStartChat';
 import { formatSessionDate } from '../../utils/sessionTime';
+import Mascot from '../../ui/Mascot';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMPTY_GUEST = { firstName: '', lastName: '', email: '' };
@@ -255,7 +256,11 @@ export default function PayPopUp(props) {
             {isSuccess ? (
               <Fade in={true} timeout={400}>
                 <Box sx={{ textAlign: 'center', mx: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', py: 4 }}>
-                  <CheckCircleIcon sx={{ fontSize: 80, color: 'success.main', mb: 3 }} />
+                  {/* The cube hops for joy, with a check so the success is unmistakable. */}
+                  <Box sx={{ position: 'relative', mb: 3 }}>
+                    <Mascot size={104} motion="hop" />
+                    <CheckCircleIcon sx={{ position: 'absolute', right: -6, bottom: 4, fontSize: 34, color: 'success.main', bgcolor: 'background.default', borderRadius: '50%' }} aria-hidden />
+                  </Box>
                   <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>You're booked!</Typography>
                   <Typography variant="body1" color="text.secondary" sx={{ mb: guestResult ? 2 : 4, maxWidth: 400 }}>
                     You're going to {props.courseTitle}. We've sent a confirmation email to {guestResult?.email || 'you'}.

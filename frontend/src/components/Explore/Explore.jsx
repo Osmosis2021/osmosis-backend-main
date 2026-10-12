@@ -8,8 +8,8 @@ import { PremiumSectionHeader } from '../../ui/PremiumSectionHeader';
 import OpeningMap from '../OpeningMap/openingMap';
 import MapIcon from '@mui/icons-material/Map';
 import ViewListIcon from '@mui/icons-material/ViewList';
-import EventBusyIcon from '@mui/icons-material/EventBusy';
 import { sessionStart } from '../../utils/sessionTime';
+import Mascot from '../../ui/Mascot';
 
 const isBookable = (course) => Boolean(course.nextSession && course.paymentsReady);
 
@@ -82,7 +82,7 @@ export default function Explore() {
         if (sorted.length === 0) {
             return (
                 <Stack alignItems="center" spacing={1.5} sx={{ py: 8, px: 3, textAlign: 'center', border: '1px dashed', borderColor: 'divider', borderRadius: '16px' }}>
-                    <EventBusyIcon sx={{ fontSize: 44, color: 'text.disabled' }} aria-hidden />
+                    <Mascot size={88} />
                     <Typography variant="h6" component="h2" sx={{ fontWeight: 700 }}>No studio times yet</Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 380 }}>
                         Artists are getting their studios ready. Check back soon, or follow us on Instagram to hear when new sessions open.

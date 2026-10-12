@@ -17,6 +17,7 @@ import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-d
 import axios from '../../actions/axios';
 import useSession from '../../hooks/useSession';
 import { useToast } from '../../ui/feedback';
+import Mascot from '../../ui/Mascot';
 
 const MIN_PASSWORD_LENGTH = 6;
 
@@ -106,6 +107,7 @@ export default function ClaimAccount() {
                 <Box component="form" onSubmit={submit} noValidate>
                     <Stack spacing={3}>
                         <Box>
+                            <Mascot size={72} sx={{ mb: 2 }} />
                             <Typography variant="h4" component="h1" sx={{ fontWeight: 800, mb: 1 }}>
                                 Welcome{account?.firstName ? `, ${account.firstName}` : ''}!
                             </Typography>

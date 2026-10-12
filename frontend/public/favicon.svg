@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none" role="img" aria-label="Studio Time cube icon">
+<path d="M43 83 L111 46 L213 67 L145 104 Z" fill="#F8F7F4" stroke="#111318" stroke-width="10" stroke-linejoin="round"/>
+<path d="M43 83 L111 46 L111 211 L43 184 Z" fill="#F1F0EC" stroke="#111318" stroke-width="10" stroke-linejoin="round"/>
+<path d="M111 46 L213 67 L213 188 L111 211 Z" fill="#FFFFFF" stroke="#111318" stroke-width="10" stroke-linejoin="round"/>
+<path d="M133 94 L193 83 L193 177 L133 188 Z" fill="#F8F7F4" stroke="#111318" stroke-width="7" stroke-linejoin="round"/>
+<rect x="148" y="127" width="8" height="20" rx="4" fill="#111318"/>
+<rect x="172" y="127" width="8" height="20" rx="4" fill="#111318"/>
+</svg>

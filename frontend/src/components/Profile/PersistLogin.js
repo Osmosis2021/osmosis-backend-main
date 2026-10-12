@@ -2,7 +2,8 @@ import { Outlet } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import useRefreshToken from '../../hooks/useRefreshToken'
 import useAuth from '../../hooks/useAuth'
-import { Box, CircularProgress } from '@mui/material'
+import { Box } from '@mui/material'
+import Mascot from '../../ui/Mascot'
 
 const PersistLogin = () => {
     const [isLoading, setIsLoading] = useState(true)
@@ -27,8 +28,8 @@ const PersistLogin = () => {
 
     if (persist && isLoading) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh' }} role="status">
-                <CircularProgress aria-label="Loading your account" />
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh' }} role="status" aria-label="Loading your account">
+                <Mascot size={88} />
             </Box>
         )
     }

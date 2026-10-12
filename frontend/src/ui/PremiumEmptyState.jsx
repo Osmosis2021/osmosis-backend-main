@@ -1,16 +1,18 @@
 import React from 'react';
 import { Box, Typography, Stack } from '@mui/material';
 import { PremiumButton } from './PremiumButton';
+import { Mascot } from './Mascot';
 
 /**
  * Empty state: title, explanation and an optional action.
+ * Shows the mascot unless an `icon` is given (`icon={null}` shows nothing).
  * (`message` is accepted as an alias of `subtitle`.)
  */
 export const PremiumEmptyState = ({
     title,
     subtitle,
     message,
-    icon,
+    icon = <Mascot size={88} />,
     actionLabel,
     onAction,
     sx = {}
