@@ -132,5 +132,6 @@ module.exports = {
     getHostStats,
     getListingsByLocation,
     getListingsByHost,
-    getListingById
+    getListingById,
+    upcomingSessionsByCourse,
 };

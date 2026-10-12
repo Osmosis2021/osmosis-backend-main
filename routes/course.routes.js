@@ -3,6 +3,7 @@ const Course = require('../models/course')
 const Booking = require('../models/booking');
 
 const listingService = require('../services/listingService');
+const sharePreviewService = require('../services/sharePreviewService');
 const { requireAuth, requireTeacher } = require('../middleware/auth');
 const mongoose = require('mongoose');
 const CourseTimeslot = require('../models/courseTimeslot');
@@ -86,6 +87,21 @@ router.get('/getCourse/:courseID', async (req, res, next) => {
         res.json({ message: "Could not get course XXXXXXXXX.", err });
     }
 });
+
+// Link-preview text and image for a listing or an artist's page (public; used by the
+// frontend's edge function so links shared on Instagram etc. show a photo and details).
+const sendPreview = (load) => async (req, res, next) => {
+    try {
+        const preview = await load(req.params);
+        if (!preview) return res.status(404).json({ message: 'Not found' });
+        res.set('Cache-Control', 'public, max-age=300');
+        res.json(preview);
+    } catch (err) {
+        next(err);
+    }
+};
+router.get('/preview/listing/:courseID', sendPreview(({ courseID }) => sharePreviewService.listingPreview(courseID)));
+router.get('/preview/host/:userName', sendPreview(({ userName }) => sharePreviewService.hostPreview(userName)));
 
 // Real profile stats for a host (public).
 router.get('/hostStats/:userName', async (req, res, next) => {
