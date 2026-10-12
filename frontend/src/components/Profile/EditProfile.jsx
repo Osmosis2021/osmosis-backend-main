@@ -35,25 +35,26 @@ import DeleteForeverRoundedIcon from '@mui/icons-material/DeleteForeverRounded';
 import React, { useState, useEffect } from 'react';
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { useToast } from '../../ui/feedback';
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import UploadProfilePicture from './UploadProfilePicture';
 import useStore from '../../store';
 import useAuth from '../../hooks/useAuth';
 import useLogout from '../../hooks/useLogout';
+import useSession from '../../hooks/useSession';
 import TopNavBar from '../TopNavBar/TopNavBar';
 import useKeyboard from '../../hooks/useKeyboard';
 
 
 function EditProfile() {
-    const { auth } = useAuth();
-    const axiosPrivate = useAxiosPrivate();
+    const { auth, setAuth, persist } = useAuth();
     const navigate = useNavigate();
-    const location = useLocation();
+    const axiosPrivate = useAxiosPrivate();
     const logout = useLogout();
+    const startSession = useSession();
 
     const {
-        userID, userName, setUserName, isTeacher, firstName, setFirstName, lastName, setLastName,
-        email, setEmail, description, setDescription, backendURL
+        userID, userName, isTeacher, firstName, setFirstName, lastName, setLastName,
+        email, setEmail, description, setDescription, setProfileImage
     } = useStore();
 
     const [userInfo, setUserInfo] = useState({});
@@ -70,40 +71,32 @@ function EditProfile() {
 
     const { showToast } = useToast();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         manageKeyboard('editProfileFieldGrid'); // hide bottomnav when mobile keyboard showing
     }, [manageKeyboard]);
 
     useEffect(() => {
-        let isMounted = true;
+        if (!userName) return undefined;
         const controller = new AbortController();
-
-        const getUserInfo = async () => {
-            try {
-                const response = await axiosPrivate.get(`user/getUserInfo/${userName}`, {
-                    signal: controller.signal
-                });
-                if (isMounted) {
-                    setUserInfo(response.data);
-                    // Pre-fill state if store value was empty initially
-                    if (!firstName_) setFirstName_(response.data.firstName || '');
-                    if (!lastName_) setLastName_(response.data.lastName || '');
-                    if (!userName_) setUserName_(response.data.userName || '');
-                    if (!email_) setEmail_(response.data.email || '');
-                    if (!description_) setDescription_(response.data.description || '');
-                }
-            } catch (err) {
-                navigate('/', { state: { from: location }, replace: true });
-            }
-        };
-
-        getUserInfo();
-        return () => {
-            isMounted = false;
-            controller.abort();
-        };
-    }, [userName, axiosPrivate, description_, email_, firstName_, lastName_, location, navigate, userName_]);
+        axiosPrivate.get(`user/getUserInfo/${userName}`, { signal: controller.signal })
+            .then(({ data }) => {
+                setUserInfo(data);
+                // Fill in anything the store didn't have, without overwriting what the user typed.
+                setFirstName_((prev) => prev || data.firstName || '');
+                setLastName_((prev) => prev || data.lastName || '');
+                setUserName_((prev) => prev || data.userName || '');
+                setEmail_((prev) => prev || data.email || '');
+                setDescription_((prev) => prev || data.description || '');
+            })
+            .catch((err) => {
+                if (controller.signal.aborted) return;
+                console.error('Error loading profile:', err);
+                showToast("We couldn't load your profile. Please refresh the page.", 'error');
+            });
+        return () => controller.abort();
+    }, [userName, axiosPrivate, showToast]);
 
     const changeFirstName = e => setFirstName_(e.target.value);
     const changeLastName = e => setLastName_(e.target.value);
@@ -121,39 +114,57 @@ function EditProfile() {
 
     const updateProfile = async (e) => {
         e.preventDefault();
+        const next = {
+            firstName: firstName_.trim(),
+            lastName: lastName_.trim(),
+            userName: userName_.trim(),
+            email: email_.trim(),
+            description: description_.trim(),
+        };
+        const current = { firstName, lastName, userName, email, description: description || '' };
         const newInfo = {};
-        if (firstName !== firstName_ && firstName_ !== '') newInfo['firstName'] = firstName_;
-        if (lastName !== lastName_ && lastName_ !== '') newInfo['lastName'] = lastName_;
-        if (userName !== userName_ && userName_ !== '') newInfo['userName'] = userName_;
-        if (description !== description_) newInfo['description'] = description_;
-        if (email !== email_ && email_ !== '') newInfo['email'] = email_;
+        Object.keys(next).forEach((field) => {
+            // The bio may be cleared; the other fields can't be empty.
+            if (next[field] === current[field]) return;
+            if (field !== 'description' && !next[field]) return;
+            newInfo[field] = next[field];
+        });
 
         if (Object.keys(newInfo).length === 0) {
-            showToast('There are no updates to make.', 'info');
+            showToast('Nothing has changed yet.', 'info');
             return;
         }
 
-        const updateObj = { auth, newInfo, userID };
+        setIsSaving(true);
         try {
-            await fetch(`${backendURL}user/updateProfile/${userID}`, {
-                body: JSON.stringify(updateObj),
-                method: 'PUT',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-            }).then((res) => {
-                if (!res.ok) throw new Error();
-                newInfo?.firstName && setFirstName(newInfo.firstName);
-                newInfo?.lastName && setLastName(newInfo.lastName);
-                newInfo?.userName && setUserName(newInfo.userName);
-                newInfo?.description && setDescription(newInfo.description);
-                newInfo?.email && setEmail(newInfo.email);
-                showToast('Successfully updated your profile!', 'success');
-                setTimeout(() => {
-                    navigate(`/${isTeacher ? 'teachers' : 'students'}/${userName_ || userName}`);
-                }, 1500);
-            });
+            const { data } = await axiosPrivate.put(`user/updateProfile/${userID}`, { newInfo });
+            const user = data?.user || {};
+            if (data?.accessToken) {
+                // Username changed: the server issued new tokens tied to the new name.
+                startSession({ ...user, accessToken: data.accessToken, roles: auth.roles }, { persist });
+            } else {
+                if (newInfo.firstName !== undefined) setFirstName(user.firstName ?? newInfo.firstName);
+                if (newInfo.lastName !== undefined) setLastName(user.lastName ?? newInfo.lastName);
+                if (newInfo.description !== undefined) setDescription(user.description ?? newInfo.description);
+                if (newInfo.email !== undefined) setEmail(user.email ?? newInfo.email);
+            }
+            setFirstName_(next.firstName);
+            setLastName_(next.lastName);
+            setUserName_(next.userName);
+            setEmail_(next.email);
+            setDescription_(next.description);
+            if (newInfo.email) {
+                // Same as Settings: a new email has to be verified before carrying on.
+                setAuth((prev) => ({ ...prev, isEmailVerified: false, email: user.email || newInfo.email }));
+                showToast('Profile saved. Please verify your new email.', 'warning');
+                navigate('/verify-email');
+                return;
+            }
+            showToast('Profile saved.', 'success');
         } catch (err) {
-            showToast('Update failed, please try again later', 'error');
+            showToast(err.response?.data?.message || "We couldn't save your changes. Please try again.", 'error');
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -203,7 +214,13 @@ function EditProfile() {
                     {/* Profile Picture Card */}
                     <Card variant="outlined">
                         <CardContent sx={{ py: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <UploadProfilePicture />
+                            <UploadProfilePicture
+                                imageUrl={userInfo?.profileImage?.url}
+                                onUploaded={(profileImage) => {
+                                    setUserInfo((prev) => ({ ...prev, profileImage }));
+                                    setProfileImage(profileImage?.url || '');
+                                }}
+                            />
                             <Typography variant="h6" sx={{ mt: 2, fontWeight: 700 }}>
                                 {firstName_ || userInfo.firstName} {lastName_ || userInfo.lastName}
                             </Typography>
@@ -305,8 +322,9 @@ function EditProfile() {
                                 startIcon={<SaveRoundedIcon />}
                                 sx={{ py: 1.5, fontSize: '1rem', borderRadius: '12px' }}
                                 fullWidth
+                                disabled={isSaving}
                             >
-                                Save Profile Updates
+                                {isSaving ? 'Saving…' : 'Save changes'}
                             </Button>
 
                             {/* Danger Zone Card */}

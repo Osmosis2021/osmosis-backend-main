@@ -2,10 +2,12 @@ const router = require('express').Router()
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user')
+const Course = require('../models/course');
+const Booking = require('../models/booking');
 const { pickPublicFields } = require('../models/user');
 const env = require('../config/env');
 const authService = require('../services/authService');
-const { REFRESH_COOKIE_OPTIONS } = require('../services/authService');
+const { REFRESH_COOKIE_OPTIONS, issueTokens } = require('../services/authService');
 const emailService = require('../services/emailService');
 const { verifyGoogleCredential } = require('../services/googleAuth');
 const payoutService = require('../services/payoutService');
@@ -171,7 +173,24 @@ router.put('/updateProfile/:id', async (req, res, next) => {
         }
 
         const updatedUser = await User.findOneAndUpdate({ _id: req.params.id }, { $set: data }, { new: true });
-        res.status(200).json({ success: true, user: updatedUser });
+
+        // Tokens, listings and bookings carry a copy of the username. After a rename, point the
+        // user's listings and bookings at the new name (otherwise their links and host stats break)
+        // and hand back fresh tokens (the old ones would sign the user out).
+        let newAccessToken;
+        if (updatedUser.userName !== currentUser.userName) {
+            const previousUserName = currentUser.userName;
+            await Promise.all([
+                Course.updateMany({ userName: previousUserName }, { $set: { userName: updatedUser.userName } }),
+                Booking.updateMany({ teacherUserName: previousUserName }, { $set: { teacherUserName: updatedUser.userName } }),
+                Booking.updateMany({ studentUserName: previousUserName }, { $set: { studentUserName: updatedUser.userName } }),
+            ]);
+            const tokens = await issueTokens(updatedUser, { persist: Boolean(currentUser.refreshToken) });
+            newAccessToken = tokens.accessToken;
+            if (tokens.refreshToken) res.cookie('jwt', tokens.refreshToken, REFRESH_COOKIE_OPTIONS);
+        }
+
+        res.status(200).json({ success: true, user: updatedUser.toJSON(), accessToken: newAccessToken });
     } catch (error) {
         next(error);
     }

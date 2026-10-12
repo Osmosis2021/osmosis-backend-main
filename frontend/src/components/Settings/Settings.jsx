@@ -53,11 +53,13 @@ import { useToast } from '../../ui/feedback';
 import { SUPPORT_EMAIL } from '../../constants/support';
 import useKeyboard from '../../hooks/useKeyboard';
 import UploadProfilePicture from '../Profile/UploadProfilePicture';
+import useSession from '../../hooks/useSession';
 import PaymentMethodForm from '../Profile/PaymentMethodForm';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from "@stripe/stripe-js";
 export default function Settings() {
-  const { auth, setAuth } = useAuth();
+  const { auth, setAuth, persist } = useAuth();
+  const startSession = useSession();
   const axiosPrivate = useAxiosPrivate();
   const logout = useLogout();
   const navigate = useNavigate();
@@ -68,8 +70,8 @@ export default function Settings() {
   const activeTab = searchParams.get('tab') || 'account';
 
   const {
-    userID, userName, setUserName, isTeacher, isStudent, firstName, setFirstName, lastName, setLastName,
-    email, setEmail, description, setDescription, backendURL
+    userID, userName, isTeacher, isStudent, firstName, setFirstName, lastName, setLastName,
+    email, setEmail, description, setDescription, backendURL, setProfileImage
   } = useStore();
 
   // Account Information States
@@ -168,15 +170,16 @@ export default function Settings() {
     };
   }, [userName, axiosPrivate]);
 
-  // Pre-fill fields when userInfo is loaded
+  // Pre-fill fields when userInfo is loaded. Only reacts to newly loaded data, so a field the
+  // user clears (like their bio) isn't refilled while they type.
   useEffect(() => {
-    if (userInfo.firstName && !firstName_) setFirstName_(userInfo.firstName);
-    if (userInfo.lastName && !lastName_) setLastName_(userInfo.lastName);
-    if (userInfo.userName && !userName_) setUserName_(userInfo.userName);
-    if (userInfo.email && !email_) setEmail_(userInfo.email);
-    if (userInfo.description && !description_) setDescription_(userInfo.description);
-    if (userInfo.phoneNumber !== undefined && !phoneNumber_) setPhoneNumber_(userInfo.phoneNumber || '');
-  }, [userInfo, firstName_, lastName_, userName_, email_, description_, phoneNumber_]);
+    if (userInfo.firstName) setFirstName_(prev => prev || userInfo.firstName);
+    if (userInfo.lastName) setLastName_(prev => prev || userInfo.lastName);
+    if (userInfo.userName) setUserName_(prev => prev || userInfo.userName);
+    if (userInfo.email) setEmail_(prev => prev || userInfo.email);
+    if (userInfo.description) setDescription_(prev => prev || userInfo.description);
+    if (userInfo.phoneNumber !== undefined) setPhoneNumber_(prev => prev || userInfo.phoneNumber || '');
+  }, [userInfo]);
 
   // Fetch Stripe Info (on Demand or Mount)
   useEffect(() => {
@@ -241,21 +244,12 @@ export default function Settings() {
       return;
     }
 
-    const updateObj = { auth, newInfo, userID };
     try {
-      const res = await fetch(`${backendURL}user/updateProfile/${userID}`, {
-        body: JSON.stringify(updateObj),
-        method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Update failed');
+      const { data } = await axiosPrivate.put(`user/updateProfile/${userID}`, { newInfo });
+      if (data.accessToken) {
+        // Username changed: the server issued new tokens tied to the new name.
+        startSession({ ...data.user, accessToken: data.accessToken, roles: auth.roles }, { persist });
       }
-
-      const data = await res.json();
       if (data.user) {
         setUserInfo(data.user);
         if (data.user.phoneNumber !== undefined) setPhoneNumber_(data.user.phoneNumber || '');
@@ -274,14 +268,12 @@ export default function Settings() {
         }
       }
 
-      newInfo?.firstName && setFirstName(newInfo.firstName);
-      newInfo?.lastName && setLastName(newInfo.lastName);
-      newInfo?.userName && setUserName(newInfo.userName);
-      newInfo?.description && setDescription(newInfo.description);
-      newInfo?.email && setEmail(newInfo.email);
-      showToast('Successfully updated your profile!', 'success');
+      if (newInfo.firstName !== undefined) setFirstName(newInfo.firstName);
+      if (newInfo.lastName !== undefined) setLastName(newInfo.lastName);
+      if (newInfo.description !== undefined) setDescription(newInfo.description);
+      showToast('Profile saved.', 'success');
     } catch (err) {
-      showToast(err.message || 'Update failed, please try again later', 'error');
+      showToast(err.response?.data?.message || "We couldn't save your changes. Please try again.", 'error');
     }
   };
 
@@ -406,7 +398,13 @@ export default function Settings() {
             <Divider />
 
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 2 }}>
-              <UploadProfilePicture />
+              <UploadProfilePicture
+                imageUrl={userInfo?.profileImage?.url}
+                onUploaded={(profileImage) => {
+                  setUserInfo(prev => ({ ...prev, profileImage }));
+                  setProfileImage(profileImage?.url || '');
+                }}
+              />
               <Typography variant="h6" sx={{ mt: 2, fontWeight: 700, fontFamily: 'Outfit' }}>
                 {firstName_ || userInfo.firstName} {lastName_ || userInfo.lastName}
               </Typography>

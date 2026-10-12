@@ -339,7 +339,8 @@ class AuthService {
 
         return new Promise((resolve, reject) => {
             jwt.verify(accessToken, jwtSecret, {}, async (err, userData) => {
-                if (err) return reject({ status: 401, message: 'Unauthorized' });
+                // 403 (not 401) so the client refreshes an expired token and retries.
+                if (err) return reject({ status: 403, message: 'Your session has expired. Please sign in again.' });
 
                 try {
                     const currentUser = await User.findById(userId);
@@ -383,3 +384,4 @@ module.exports.REFRESH_COOKIE_OPTIONS = REFRESH_COOKIE_OPTIONS;
 module.exports.ROLES = ROLES;
 module.exports.buildRoles = buildRoles;
 module.exports.emailMatch = emailMatch;
+module.exports.issueTokens = issueTokens;

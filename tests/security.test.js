@@ -308,6 +308,26 @@ describe('Profile updates', () => {
         await request(app).put(`/user/updateProfile/${me._id}`).set('Authorization', `Bearer ${tokenFor(me)}`).send({ newInfo: { userName: other.userName } }).expect(400);
     });
 
+    it('hands back a working token after a username change', async () => {
+        const me = await makeUser({ isTeacher: true });
+        const course = await makeCourse(me);
+        const newName = `renamed${Date.now()}`;
+        const res = await request(app).put(`/user/updateProfile/${me._id}`).set('Authorization', `Bearer ${tokenFor(me)}`)
+            .send({ newInfo: { userName: newName } }).expect(200);
+        expect(res.body.accessToken).toBeTruthy();
+        expect((await Course.findById(course._id)).userName).toBe(newName);
+        expect(res.body.user.password).toBeUndefined();
+        await request(app).put(`/user/updateProfile/${me._id}`).set('Authorization', `Bearer ${res.body.accessToken}`)
+            .send({ newInfo: { description: '' } }).expect(200);
+    });
+
+    it('lets users clear their bio', async () => {
+        const me = await makeUser({ description: 'Old bio' });
+        await request(app).put(`/user/updateProfile/${me._id}`).set('Authorization', `Bearer ${tokenFor(me)}`)
+            .send({ newInfo: { description: '' } }).expect(200);
+        expect((await User.findById(me._id)).description).toBe('');
+    });
+
     it('deletes an account only with the right password, sent in the body', async () => {
         const me = await makeUser();
         const auth = { Authorization: `Bearer ${tokenFor(me)}` };
