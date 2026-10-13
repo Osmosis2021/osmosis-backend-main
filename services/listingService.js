@@ -39,7 +39,7 @@ const withNextSessions = async (courses) => {
     const sessions = await upcomingSessionsByCourse(courses);
     const hosts = await User.find({ _id: { $in: courses.map((c) => c.teacherID?._id || c.teacherID) } });
     await payoutService.refreshUnknownPayoutFlags(hosts);
-    const payoutsById = new Map(hosts.map((h) => [String(h._id), h.payoutsEnabled === true]));
+    const payoutsById = new Map(hosts.map((h) => [String(h._id), payoutService.payoutsReady(h)]));
     return courses.map((course) => {
         const upcoming = sessions.get(String(course._id)) || [];
         const open = upcoming.find(({ slot }) => (slot.enrollment || 0) < (slot.capacity || 1));

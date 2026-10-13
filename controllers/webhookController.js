@@ -3,7 +3,21 @@ const stripe = require('../services/stripeClient');
 const bookingService = require('../services/bookingService');
 const User = require('../models/user');
 
-const STRIPE_WEBHOOK_SECRET = env.STRIPE_WEBHOOK_SECRET;
+// Stripe signs each webhook endpoint with its own secret. There are two endpoints pointing here:
+// one for our own account (payments) and one for connected artist accounts (payout setup).
+const WEBHOOK_SECRETS = [env.STRIPE_WEBHOOK_SECRET, env.STRIPE_CONNECT_WEBHOOK_SECRET].filter(Boolean);
+
+const verifyEvent = (body, signature) => {
+    let lastError = new Error('No Stripe webhook secret is configured.');
+    for (const secret of WEBHOOK_SECRETS) {
+        try {
+            return stripe.webhooks.constructEvent(body, signature, secret);
+        } catch (err) {
+            lastError = err;
+        }
+    }
+    throw lastError;
+};
 
 /**
  * Stripe webhook. On a successful payment, makes sure the booking exists. Normally checkout
@@ -15,7 +29,7 @@ const handleWebhook = async (req, res) => {
     let event;
 
     try {
-        event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
+        event = verifyEvent(req.body, sig);
     } catch (err) {
         console.error('[webhook] Signature verification failed:', err.message);
         res.status(400).send(`Webhook Error: ${err.message}`);
@@ -40,7 +54,7 @@ const handleWebhook = async (req, res) => {
         // Requires the webhook to also listen to events on connected accounts.
         case 'account.updated': {
             const account = event.data.object;
-            await User.updateOne({ stripeID: account.id }, { $set: { payoutsEnabled: Boolean(account.payouts_enabled) } })
+            await User.updateOne({ stripeID: account.id }, { $set: { payoutsEnabled: Boolean(account.payouts_enabled), payoutsMode: event.livemode ? 'live' : 'test' } })
                 .catch((err) => console.error('[webhook] account.updated failed:', err.message));
             break;
         }

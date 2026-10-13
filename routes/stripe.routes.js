@@ -200,8 +200,14 @@ router.post('/create-payment-intent', authIfPresent, async (req, res) => {
             return res.status(400).json({ error: 'This studio time does not have a valid price.' });
         }
 
-        // Hosts can only take bookings once Stripe can pay them out.
-        const stripeAccountData = await stripe.accounts.retrieve(host.stripeID)
+        // Hosts can only take bookings once Stripe can pay them out. An account Stripe doesn't know
+        // (e.g. one made in test mode, now that we're live) means they still need to set up payouts.
+        let stripeAccountData = null;
+        try {
+            stripeAccountData = await stripe.accounts.retrieve(host.stripeID);
+        } catch (err) {
+            if (!payoutService.isMissingAccountError(err)) throw err;
+        }
         const payoutsEnabled = await payoutService.syncPayoutsFlag(host, stripeAccountData)
         if (!payoutsEnabled) {
             return res.status(409).json({ error: "This artist is still setting up payments, so this session can't be booked yet. Check back soon!" });
@@ -246,7 +252,19 @@ router.post('/create-payment-intent', authIfPresent, async (req, res) => {
         if (signedInGuest?.paymentMethodID) paymentIntentOptions.payment_method = signedInGuest.paymentMethodID;
         if (signedInGuest?.customerStripeID) paymentIntentOptions.customer = signedInGuest.customerStripeID;
 
-        const paymentIntent = await stripe.paymentIntents.create(paymentIntentOptions)
+        let paymentIntent;
+        try {
+            paymentIntent = await stripe.paymentIntents.create(paymentIntentOptions);
+        } catch (err) {
+            // A saved card or Stripe customer from the other mode (test vs live) doesn't exist here:
+            // take the payment without them rather than failing checkout.
+            const staleSavedCard = err?.code === 'resource_missing' && ['customer', 'payment_method'].includes(err?.param);
+            if (!staleSavedCard) throw err;
+            console.warn(`[checkout] Ignoring saved ${err.param} for ${signedInGuest?.userName}: not found in ${stripe.stripeMode} mode.`);
+            delete paymentIntentOptions.customer;
+            delete paymentIntentOptions.payment_method;
+            paymentIntent = await stripe.paymentIntents.create(paymentIntentOptions);
+        }
         // Return client secret to frontend
         res.send({ clientSecret: paymentIntent.client_secret, paymentIntentID: paymentIntent.id, amount: totalCents })
 

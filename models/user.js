@@ -102,6 +102,11 @@ const UserSchema = new mongoose.Schema(
 		payoutsEnabled: {
 			type: Boolean,
 		},
+		// Which Stripe mode ('test' or 'live') payoutsEnabled was checked in. Test-mode accounts
+		// don't exist in live mode, so a flag from the other mode is treated as unknown.
+		payoutsMode: {
+			type: String,
+		},
 		// Created by a guest checkout (name + email only). There is no usable password until the
 		// guest follows the link in their confirmation email and sets one.
 		passwordSetupRequired: {

@@ -120,7 +120,10 @@ router.get('/getUserInfo/:userName', optionalAuth, async (req, res, next) => {
         if (data?.isTeacher) await payoutService.refreshUnknownPayoutFlags([data]);
         if (data) {
             const isOwner = req.currentUser && String(req.currentUser._id) === String(data._id);
-            res.json(isOwner ? data : pickPublicFields(data))
+            const json = isOwner ? data.toJSON() : pickPublicFields(data);
+            // Only "ready" if it was checked in the Stripe mode we're running in.
+            if (data.isTeacher) json.payoutsEnabled = payoutService.payoutsReady(data);
+            res.json(json)
         } else {
             res.status(404).json({ message: "Could not get user's info." })
         }

@@ -77,31 +77,38 @@ const createOnboardingLink = async (user) => {
     return link.url;
 };
 
-/** Saves Stripe's payouts_enabled on the user when it changed. */
+/**
+ * Whether the saved payoutsEnabled flag was checked in the Stripe mode we're running in.
+ * Flags saved before payoutsMode existed were all checked in test mode.
+ */
+const isPayoutFlagCurrent = (user) => typeof user?.payoutsEnabled === 'boolean' && (user.payoutsMode || 'test') === stripe.stripeMode;
+
+/** Can this host take bookings right now, as far as we know? */
+const payoutsReady = (user) => isPayoutFlagCurrent(user) && user.payoutsEnabled === true;
+
+/** Saves Stripe's payouts_enabled (and the mode it was checked in) on the user when it changed. */
 const syncPayoutsFlag = async (user, account) => {
     const enabled = Boolean(account?.payouts_enabled);
-    if (user.payoutsEnabled !== enabled) {
+    if (user.payoutsEnabled !== enabled || user.payoutsMode !== stripe.stripeMode) {
         user.payoutsEnabled = enabled;
+        user.payoutsMode = stripe.stripeMode;
         await user.save();
     }
     return enabled;
 };
 
 /**
- * Fills in payoutsEnabled for hosts we haven't checked with Stripe yet (e.g. hosts who
- * onboarded before the flag existed). Never throws; unknown hosts stay unknown.
+ * Fills in payoutsEnabled for hosts we haven't checked with Stripe yet in this mode (e.g. right
+ * after switching from test to live). Never throws; hosts Stripe can't be asked about stay unknown.
  */
 const refreshUnknownPayoutFlags = async (users) => {
     if (!stripe.isConfigured) return;
-    const unknown = users.filter((u) => u?.stripeID && typeof u.payoutsEnabled !== 'boolean' && typeof u.save === 'function');
+    const unknown = users.filter((u) => u?.stripeID && !isPayoutFlagCurrent(u) && typeof u.save === 'function');
     await Promise.all(unknown.map(async (user) => {
         try {
             await syncPayoutsFlag(user, await stripe.accounts.retrieve(user.stripeID));
         } catch (err) {
-            if (isMissingAccountError(err)) {
-                user.payoutsEnabled = false;
-                await user.save().catch(() => {});
-            }
+            if (isMissingAccountError(err)) await syncPayoutsFlag(user, null).catch(() => {});
         }
     }));
 };
@@ -124,7 +131,10 @@ const getPayoutStatus = async (user) => {
         return { state, payoutsEnabled, detailsSubmitted, requirementsDue: due.length, mode: stripe.stripeMode };
     } catch (err) {
         if (err?.type === 'StripeAuthenticationError') throw configError(err);
-        if (isMissingAccountError(err)) return { state: 'not_started', payoutsEnabled: false, mode: stripe.stripeMode };
+        if (isMissingAccountError(err)) {
+            await syncPayoutsFlag(user, null).catch(() => {});
+            return { state: 'not_started', payoutsEnabled: false, mode: stripe.stripeMode };
+        }
         throw err;
     }
 };
@@ -137,4 +147,7 @@ const createDashboardLink = async (user) => {
     return link.url;
 };
 
-module.exports = { ensureConnectedAccount, createOnboardingLink, getPayoutStatus, createDashboardLink, syncPayoutsFlag, refreshUnknownPayoutFlags };
+module.exports = {
+    ensureConnectedAccount, createOnboardingLink, getPayoutStatus, createDashboardLink,
+    syncPayoutsFlag, refreshUnknownPayoutFlags, isMissingAccountError, isPayoutFlagCurrent, payoutsReady,
+};

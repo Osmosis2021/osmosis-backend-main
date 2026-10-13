@@ -112,3 +112,62 @@ describe('Payout status', () => {
         expect(res.body).toEqual(expect.objectContaining({ state: 'not_started', mode: 'test' }));
     });
 });
+
+describe('Switching from test to live mode', () => {
+    const Course = require('../models/course');
+    const CourseTimeslot = require('../models/courseTimeslot');
+    const listingService = require('../services/listingService');
+    const missing = () => stripeError({ type: 'StripeInvalidRequestError', statusCode: 404, code: 'resource_missing', message: 'No such account' });
+
+    beforeEach(() => { stripe.stripeMode = 'live'; });
+    afterEach(() => { stripe.stripeMode = 'test'; });
+
+    it("doesn't trust a 'ready' flag checked in test mode: re-checks with Stripe", async () => {
+        // Finished onboarding in test mode (flag saved before payoutsMode existed).
+        const host = await makeHost({ stripeID: 'acct_test_only', payoutsEnabled: true });
+        await Course.create({ teacherID: host._id, userName: host.userName, courseTitle: 'Resin Pour', pricePerStudent: 45, capacity: 4 });
+        stripe.accounts.retrieve.mockRejectedValue(missing());
+
+        const [listing] = await listingService.getAllListings();
+        expect(listing.paymentsReady).toBe(false);
+        const saved = await User.findById(host._id);
+        expect(saved.payoutsEnabled).toBe(false);
+        expect(saved.payoutsMode).toBe('live');
+        await Course.deleteMany({});
+    });
+
+    it('asks the artist to set up payouts instead of failing checkout', async () => {
+        const host = await makeHost({ stripeID: 'acct_test_only', payoutsEnabled: true });
+        const course = await Course.create({ teacherID: host._id, userName: host.userName, courseTitle: 'Resin Pour', pricePerStudent: 45, capacity: 4 });
+        const slot = await CourseTimeslot.create({ courseID: course._id, capacity: 4, enrollment: 0, startTime: '14:00', startDate: new Date('2030-01-05') });
+        stripe.accounts.retrieve.mockRejectedValue(missing());
+
+        const res = await request(app).post('/stripe/create-payment-intent')
+            .send({ courseID: String(course._id), timeslotID: String(slot._id), guests: 1, guest: { firstName: 'Ana', lastName: 'Ruiz', email: 'ana@example.com' } })
+            .expect(409);
+        expect(res.body.error).toMatch(/still setting up payments/);
+        expect(stripe.paymentIntents.create).not.toHaveBeenCalled();
+        await Promise.all([Course.deleteMany({}), CourseTimeslot.deleteMany({})]);
+    });
+
+    it("takes the payment without a guest's test-mode saved card", async () => {
+        const host = await makeHost({ stripeID: 'acct_live', payoutsEnabled: true, payoutsMode: 'live' });
+        const guest = await User.create({ firstName: 'Gia', lastName: 'Park', userName: 'giapark', email: 'gia@example.com', password: 'x', isStudent: true, customerStripeID: 'cus_test_only', paymentMethodID: 'pm_test_only' });
+        const course = await Course.create({ teacherID: host._id, userName: host.userName, courseTitle: 'Resin Pour', pricePerStudent: 45, capacity: 4 });
+        const slot = await CourseTimeslot.create({ courseID: course._id, capacity: 4, enrollment: 0, startTime: '14:00', startDate: new Date('2030-01-05') });
+        stripe.accounts.retrieve.mockResolvedValue({ id: 'acct_live', payouts_enabled: true });
+        stripe.paymentIntents.create
+            .mockRejectedValueOnce(stripeError({ type: 'StripeInvalidRequestError', code: 'resource_missing', param: 'customer', message: 'No such customer' }))
+            .mockResolvedValueOnce({ id: 'pi_live', client_secret: 'pi_live_secret' });
+
+        const res = await request(app).post('/stripe/create-payment-intent').set('Authorization', `Bearer ${tokenFor(guest)}`)
+            .send({ courseID: String(course._id), timeslotID: String(slot._id), guests: 1 })
+            .expect(200);
+        expect(res.body.clientSecret).toBe('pi_live_secret');
+        const retry = stripe.paymentIntents.create.mock.calls[1][0];
+        expect(retry.customer).toBeUndefined();
+        expect(retry.payment_method).toBeUndefined();
+        expect(retry.amount).toBe(4500);
+        await Promise.all([Course.deleteMany({}), CourseTimeslot.deleteMany({})]);
+    });
+});
