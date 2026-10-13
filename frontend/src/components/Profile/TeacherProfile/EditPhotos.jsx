@@ -6,16 +6,9 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { Link } from 'react-router-dom';
 import useAxiosPrivate from '../../../hooks/useAxiosPrivate';
 import { useConfirm, useToast } from '../../../ui/feedback';
+import { prepareImages } from '../../../utils/prepareImage';
 
-const MAX_FILE_MB = 10;
 const MAX_PHOTOS = 12;
-
-const readAsDataUrl = (file) => new Promise((resolve, reject) => {
-	const reader = new FileReader();
-	reader.onload = () => resolve(reader.result);
-	reader.onerror = reject;
-	reader.readAsDataURL(file);
-});
 
 const tileSx = {
 	position: 'relative',
@@ -58,12 +51,13 @@ const EditPhotos = ({ courseId, images = [], onChange }) => {
 	const addFiles = async (event) => {
 		const files = Array.from(event.target.files || []);
 		event.target.value = ''; // allow picking the same file again
-		const tooBig = files.filter((file) => file.size > MAX_FILE_MB * 1024 * 1024);
-		const usable = files.filter((file) => file.type.startsWith('image/') && file.size <= MAX_FILE_MB * 1024 * 1024);
-		if (tooBig.length) toast.error(`Photos must be under ${MAX_FILE_MB} MB. ${tooBig.length === 1 ? 'One photo was' : `${tooBig.length} photos were`} skipped.`);
 		const room = MAX_PHOTOS - images.length - pending.length;
-		if (usable.length > room) toast.info(`A listing can have up to ${MAX_PHOTOS} photos.`);
-		const dataUrls = await Promise.all(usable.slice(0, Math.max(room, 0)).map(readAsDataUrl));
+		if (files.length > room) toast.info(`A listing can have up to ${MAX_PHOTOS} photos.`);
+		// Resized in the browser, so any size works and uploads are quick.
+		setIsUploading(true);
+		const { images: dataUrls, errors } = await prepareImages(files.slice(0, Math.max(room, 0)));
+		setIsUploading(false);
+		errors.forEach((message) => toast.error(message));
 		setPending((prev) => [...prev, ...dataUrls]);
 	};
 

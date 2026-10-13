@@ -4,15 +4,8 @@ import useStore from '../../store';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 import { useToast } from '../../ui/feedback';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import { ImagePrepError, prepareImage } from '../../utils/prepareImage';
 
-const MAX_FILE_MB = 10;
-
-const readAsDataUrl = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-});
 
 /**
  * Profile photo with a camera button. Picking a photo uploads it straight away;
@@ -32,25 +25,18 @@ export default function UploadProfilePicture({ imageUrl, onUploaded }) {
         const file = event.target.files?.[0];
         event.target.value = ''; // allow picking the same file again
         if (!file) return;
-        if (!file.type.startsWith('image/')) {
-            toast.error('Please choose an image file.');
-            return;
-        }
-        if (file.size > MAX_FILE_MB * 1024 * 1024) {
-            toast.error(`Photos must be under ${MAX_FILE_MB} MB.`);
-            return;
-        }
 
         setIsUploading(true);
         try {
-            const image = await readAsDataUrl(file);
+            // Resized in the browser (a profile photo never needs more than 1024px).
+            const image = await prepareImage(file, { maxDimension: 1024 });
             setPreview(image);
             const { data } = await axiosPrivate.put(`user/updateProfileImage/${userID}`, { image });
             onUploaded?.(data?.userUpdate?.profileImage);
             toast.success('Profile photo updated.');
         } catch (err) {
             console.error('Error uploading profile photo:', err);
-            toast.error("We couldn't update your profile photo. Please try again.");
+            toast.error(err instanceof ImagePrepError ? err.message : "We couldn't update your profile photo. Please try again.");
         } finally {
             setPreview('');
             setIsUploading(false);

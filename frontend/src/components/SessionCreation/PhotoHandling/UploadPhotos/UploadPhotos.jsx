@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
 	Box,
 	IconButton,
@@ -6,40 +6,39 @@ import {
 	Typography,
 	Grid,
 	Container,
-	Fade
+	Fade,
+	CircularProgress
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import useStore from '../../../../store';
 import { PremiumSectionHeader } from '../../../../ui/PremiumSectionHeader';
 import { PremiumCard } from '../../../../ui/PremiumCard';
+import { prepareImages } from '../../../../utils/prepareImage';
+import { useToast } from '../../../../ui/feedback';
 
 export default function UploadPhotos(props) {
 	const { images, setImages } = useStore();
+	const [isPreparing, setIsPreparing] = useState(false);
+	const toast = useToast();
 
 	useEffect(() => {
 		// Validation is handled via the store (images array)
 		props.setIsNextDisabled(images.length === 0);
 	}, [images, props]);
 
-	//Handle and convert image to base 64 
-	const addImage = (e) => {
-		const files = Array.from(e.target.files);
-		const currentImages = Array.isArray(images) ? images : [];
-		let newImages = [...currentImages];
-
-		let counter = 0;
-		files.forEach(file => {
-			const reader = new FileReader();
-			reader.readAsDataURL(file);
-			reader.onloadend = () => {
-				newImages.push(reader.result);
-				counter++;
-				if (counter === files.length) {
-					setImages(newImages);
-				}
-			};
-		});
+	// Photos are resized in the browser first, so big phone photos upload fast and never
+	// hit the upload size limit when publishing.
+	const addImage = async (e) => {
+		const files = Array.from(e.target.files || []);
+		e.target.value = ''; // allow picking the same file again
+		if (!files.length) return;
+		setIsPreparing(true);
+		const { images: prepared, errors } = await prepareImages(files);
+		setIsPreparing(false);
+		const currentImages = Array.isArray(useStore.getState().images) ? useStore.getState().images : [];
+		if (prepared.length) setImages([...currentImages, ...prepared]);
+		errors.forEach((message) => toast.error(message));
 	};
 
 	//Remove image from array
@@ -90,14 +89,17 @@ export default function UploadPhotos(props) {
 								type="file"
 								accept="image/*"
 								multiple
+								disabled={isPreparing}
 								onChange={addImage}
 							/>
-							<AddPhotoAlternateIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2, opacity: 0.6 }} />
+							{isPreparing
+								? <CircularProgress size={40} sx={{ mb: 2 }} aria-label="Preparing photos" />
+								: <AddPhotoAlternateIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2, opacity: 0.6 }} />}
 							<Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }}>
-								Tap to upload photos
+								{isPreparing ? 'Preparing your photos…' : 'Tap to upload photos'}
 							</Typography>
 							<Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
-								High-quality JPG or PNG preferred
+								Any size is fine. We'll optimize them for the web.
 							</Typography>
 						</Box>
 					</PremiumCard>

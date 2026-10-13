@@ -7,11 +7,11 @@ import {
     Box,
     Stack,
     Button,
-    Fade
+    Fade,
+    Backdrop
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import SessionCard from '../../SessionCard/SessionCard'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ShareIcon from '@mui/icons-material/Share';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -23,6 +23,11 @@ import { Link } from 'react-router-dom';
 import CompletenessChecklist from '../CompletenessChecklist/CompletenessChecklist';
 import { PremiumSectionHeader } from '../../../ui/PremiumSectionHeader';
 import { PremiumCard } from '../../../ui/PremiumCard';
+import Mascot from '../../../ui/Mascot';
+import Confetti from '../../../ui/Confetti';
+
+// Shown in turn while the studio time is being published (photos are the slow part).
+const PUBLISH_STEPS = ['Uploading your photos…', 'Setting up your sessions…', 'Putting your studio on the map…', 'Almost there…'];
 
 export const ConfirmSession = (props) => {
     const {
@@ -58,6 +63,16 @@ export const ConfirmSession = (props) => {
     const [newCourseID, setNewCourseID] = useState('');
     const [publishedTitle, setPublishedTitle] = useState('');
     const [submitError, setSubmitError] = useState('');
+    const [publishStep, setPublishStep] = useState(0);
+    const [publishedCard, setPublishedCard] = useState(null);
+
+    // Move through the publishing messages while we wait (stays on the last one).
+    useEffect(() => {
+        if (!isLoading) return undefined;
+        setPublishStep(0);
+        const timer = setInterval(() => setPublishStep((step) => Math.min(step + 1, PUBLISH_STEPS.length - 1)), 3500);
+        return () => clearInterval(timer);
+    }, [isLoading]);
 
     const handleCourseRegistration = async (e) => {
         e.preventDefault();
@@ -99,8 +114,20 @@ export const ConfirmSession = (props) => {
             if (data.success === true && data.course?._id) {
                 setNewCourseID(data.course._id);
                 setPublishedTitle(courseTitle);
+                // Keep what the card looked like (the form is cleared below) to show it on the success screen.
+                setPublishedCard({
+                    images: data.course.images?.[0]?.url || images[0]?.url || images[0],
+                    industry: newCourseIndustry,
+                    tags,
+                    courseTitle,
+                    price: newCourseCost || 0,
+                    capacity,
+                    duration: newCourseDuration,
+                    city: newCourseAddressCity,
+                });
                 setIsSuccess(true);
                 if (props.setHideFooter) props.setHideFooter(true);
+                window.scrollTo({ top: 0 }); // start the celebration at the top
 
                 // Reset store
                 setNewCourseIndustry('')
@@ -173,31 +200,44 @@ export const ConfirmSession = (props) => {
     };
 
     if (isSuccess) {
+        const hostFirstName = teacherInfo?.firstName || userName;
         return (
-            <Fade in={true} timeout={800}>
-                <Container maxWidth="sm" sx={{ py: 8, textAlign: 'center' }}>
-                    <Box sx={{ mb: 4 }}>
-                        <CheckCircleIcon sx={{ fontSize: 80, color: 'success.main', mb: 2 }} />
-                        <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>
-                            Your Studio Time is live!
+            <Fade in={true} timeout={600}>
+                <Container maxWidth="sm" sx={{ py: { xs: 5, md: 8 }, textAlign: 'center' }}>
+                    <Confetti />
+                    <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <Mascot size={120} motion="hop" title="The Studio Time cube, celebrating" />
+                        <Typography variant="h3" component="h1" sx={{ fontWeight: 900, mt: 2, mb: 1, fontSize: { xs: '2rem', md: '2.6rem' } }}>
+                            You're live!
                         </Typography>
-                        <Typography variant="h6" color="text.secondary">
-                            It's live! Share the link with your followers so they can book.
+                        <Typography variant="h6" component="p" color="text.secondary" sx={{ fontWeight: 500, maxWidth: 420 }}>
+                            Your studio doors are open. Share the link with your followers so they can book.
                         </Typography>
                     </Box>
 
-                    <Stack spacing={2} sx={{ mb: 6 }}>
+                    {publishedCard && (
+                        <Box sx={{ maxWidth: 360, mx: 'auto', mb: 4, textAlign: 'left' }}>
+                            <SessionCard
+                                {...publishedCard}
+                                icon={publishedCard.industry}
+                                firstName={teacherInfo?.firstName || userName}
+                                lastName={teacherInfo?.lastName}
+                                profileImage={teacherInfo?.profileImage?.url}
+                            />
+                        </Box>
+                    )}
+
+                    <Stack spacing={2} sx={{ mb: 5 }}>
                         <Button
                             variant="contained"
                             size="large"
                             fullWidth
-                            startIcon={<VisibilityIcon />}
-                            component={Link}
-                            to={`/teachers/${userName}/${newCourseID}`}
+                            startIcon={<ShareIcon />}
+                            onClick={handleShare}
                             disabled={!newCourseID}
-                            sx={{ py: 2, fontWeight: 700, borderRadius: 3, opacity: newCourseID ? 1 : 0.6 }}
+                            sx={{ py: 2, fontWeight: 800, borderRadius: 3, textTransform: 'none', fontSize: '1.05rem' }}
                         >
-                            {newCourseID ? 'View Your Listing' : 'Finalizing Listing...'}
+                            Share your studio time
                         </Button>
                         <Stack direction="row" spacing={2}>
                             <Button
@@ -206,47 +246,39 @@ export const ConfirmSession = (props) => {
                                 startIcon={<ContentCopyIcon />}
                                 onClick={handleCopyLink}
                                 disabled={!newCourseID}
-                                sx={{ py: 1.5, fontWeight: 700, borderRadius: 3 }}
+                                sx={{ py: 1.5, fontWeight: 700, borderRadius: 3, textTransform: 'none' }}
                             >
-                                Copy Link
+                                Copy link
                             </Button>
                             <Button
                                 variant="outlined"
                                 fullWidth
-                                startIcon={<ShareIcon />}
-                                onClick={handleShare}
+                                startIcon={<VisibilityIcon />}
+                                component={Link}
+                                to={`/teachers/${userName}/${newCourseID}`}
                                 disabled={!newCourseID}
-                                sx={{ py: 1.5, fontWeight: 700, borderRadius: 3 }}
+                                sx={{ py: 1.5, fontWeight: 700, borderRadius: 3, textTransform: 'none' }}
                             >
-                                Share
+                                View listing
                             </Button>
                         </Stack>
                     </Stack>
 
-                    <PremiumCard sx={{ textAlign: 'left', p: 3 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
-                            Next Steps
+                    <PremiumCard nohover sx={{ textAlign: 'left', p: 3 }}>
+                        <Typography variant="h6" component="h2" sx={{ fontWeight: 800, mb: 2 }}>
+                            What's next, {hostFirstName}?
                         </Typography>
-                        <Stack spacing={2}>
-                            <Box sx={{ display: 'flex', gap: 2 }}>
-                                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'primary.main', mt: 1 }} />
-                                <Typography variant="body2">
-                                    Add more availability to your calendar to get more bookings.
-                                </Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', gap: 2 }}>
-                                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'primary.main', mt: 1 }} />
-                                <Typography variant="body2">
-                                    Share your link on Instagram or Twitter to reach your audience.
-                                </Typography>
-                            </Box>
+                        <Stack spacing={1.5} component="ol" sx={{ pl: 2.5, m: 0 }}>
+                            <Typography component="li" variant="body2">Post the link in your Instagram bio or stories. Shared links show your photo and price.</Typography>
+                            <Typography component="li" variant="body2">Add more dates from your profile so more people can find a time that works.</Typography>
+                            <Typography component="li" variant="body2">You'll get an email the moment someone books.</Typography>
                         </Stack>
                         <Button
                             component={Link}
                             to={`/teachers/${userName}`}
-                            sx={{ mt: 3, fontWeight: 700, textTransform: 'none' }}
+                            sx={{ mt: 2.5, fontWeight: 700, textTransform: 'none', px: 0 }}
                         >
-                            Back to Dashboard
+                            Go to my profile
                         </Button>
                     </PremiumCard>
                 </Container>
@@ -256,6 +288,16 @@ export const ConfirmSession = (props) => {
 
     return (
         <Container maxWidth='md' sx={{ py: 4 }}>
+            {/* While publishing: the cube keeps people company so the wait doesn't feel stuck. */}
+            <Backdrop open={isLoading} sx={{ zIndex: 200000, bgcolor: 'rgba(255,255,255,0.94)', flexDirection: 'column', px: 3, textAlign: 'center' }}>
+                <Mascot size={96} motion="hop" />
+                <Typography variant="h5" component="p" sx={{ fontWeight: 800, mt: 3, color: 'text.primary' }} role="status" aria-live="polite">
+                    {PUBLISH_STEPS[publishStep]}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1, maxWidth: 360 }}>
+                    Publishing can take up to a minute. Please keep this page open.
+                </Typography>
+            </Backdrop>
             <Grid container spacing={4}>
                 <Grid item xs={12}>
                     <PremiumSectionHeader
@@ -295,7 +337,7 @@ export const ConfirmSession = (props) => {
                                     boxShadow: '0 8px 24px rgba(10, 10, 10, 0.125)'
                                 }}
                             >
-                                {isLoading ? <CircularProgress size={24} color="inherit" aria-label="Publishing" /> : 'Go Live Today'}
+                                {isLoading ? <CircularProgress size={24} color="inherit" aria-label="Publishing" /> : 'Go live today'}
                             </Button>
                             {submitError && (
                                 <Alert severity="error" role="alert" sx={{ mt: 2, borderRadius: '12px' }}>{submitError}</Alert>
@@ -322,7 +364,8 @@ export const ConfirmSession = (props) => {
                             courseTitle={courseTitle || 'Your studio time title'}
                             icon={newCourseIndustry}
                             price={newCourseCost || 0}
-                            firstName={userName}
+                            firstName={teacherInfo?.firstName || userName}
+                            lastName={teacherInfo?.lastName}
                             capacity={capacity}
                             address={newCourseAddressLine1}
                             city={newCourseAddressCity}
