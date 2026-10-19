@@ -107,10 +107,20 @@ const UserSchema = new mongoose.Schema(
 		payoutsMode: {
 			type: String,
 		},
-		// Created by a guest checkout (name + email only). There is no usable password until the
-		// guest follows the link in their confirmation email and sets one.
+		// Created by a guest checkout (name + email only), or an artist account set up by the
+		// Studio Time team. There is no usable password until the person follows their link and sets one.
 		passwordSetupRequired: {
 			type: Boolean,
+		},
+		// Studio Time team member: can set up artist accounts for outreach (see routes/admin.routes.js).
+		// Only ever set directly in the database (scripts/make-admin.js), never through the app.
+		isAdmin: {
+			type: Boolean,
+		},
+		// The team member who set up this artist account, if any.
+		createdByAdmin: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'User',
 		}
 
 	},

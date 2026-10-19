@@ -6,12 +6,16 @@ import IosShareIcon from '@mui/icons-material/IosShare';
 import { Link } from 'react-router-dom';
 import { PremiumCard } from '../../../ui/PremiumCard';
 import { useToast } from '../../../ui/feedback';
+import useAuth from '../../../hooks/useAuth';
 
 /**
  * First-run guide on an artist's own profile: the few things needed before guests can book.
  * Disappears into a small "share your studio" card once everything is done.
  */
 const HostChecklist = ({ host, listingCount, payoutsReady }) => {
+    // A team member setting up this artist's profile can't do payouts for them (Stripe needs the artist).
+    const { auth } = useAuth();
+    const isTeamSetup = Boolean(auth?.actingAs);
     const toast = useToast();
     const profileUrl = `${window.location.origin}/teachers/${host.userName}`;
 
@@ -79,7 +83,11 @@ const HostChecklist = ({ host, listingCount, payoutsReady }) => {
                             </Typography>
                             {!step.done && <Typography variant="body2" color="text.secondary">{step.why}</Typography>}
                         </Box>
-                        {!step.done && (
+                        {!step.done && isTeamSetup && step.key === 'payouts' ? (
+                            <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, maxWidth: 140, textAlign: 'right' }}>
+                                {host.firstName || 'The artist'} does this after claiming
+                            </Typography>
+                        ) : !step.done && (
                             <Button component={Link} to={step.to} size="small" variant="outlined" sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '10px', flexShrink: 0 }}>
                                 {step.action}
                             </Button>

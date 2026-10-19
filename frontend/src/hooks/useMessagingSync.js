@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import useStore from '../store';
 import useAxiosPrivate from './useAxiosPrivate';
 import { useToast } from '../ui/feedback';
+import useAuth from './useAuth';
 
 /** Number of conversations with messages the user hasn't read (for the nav badge). */
 export const unreadConversations = (chats) => (chats || []).filter((chat) => chat.unreadCount > 0).length;
@@ -14,19 +15,24 @@ export const unreadConversations = (chats) => (chats || []).filter((chat) => cha
  */
 const useMessagingSync = () => {
     const { userID, socket } = useStore();
+    const { auth } = useAuth();
+    const actingAs = Boolean(auth?.actingAs); // team member on an artist's profile: don't load their inbox
     const axiosPrivate = useAxiosPrivate();
     const location = useLocation();
     const toast = useToast();
     const onChatPage = location.pathname.startsWith('/chat');
 
     useEffect(() => {
-        if (!userID) return undefined;
+        if (!userID || actingAs) {
+            useStore.getState().setChats([]);
+            return undefined;
+        }
         let cancelled = false;
         axiosPrivate.get(`chat/fetchChats/${userID}`)
             .then(({ data }) => { if (!cancelled) useStore.getState().setChats(Array.isArray(data) ? data : []); })
             .catch((err) => console.error('Error loading conversations:', err.message));
         return () => { cancelled = true; };
-    }, [userID, axiosPrivate]);
+    }, [userID, axiosPrivate, actingAs]);
 
     useEffect(() => {
         if (!socket) return undefined;

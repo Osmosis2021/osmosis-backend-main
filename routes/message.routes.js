@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const User = require('../models/user');
 const Chat = require('../models/chat');
 const Message = require('../models/message');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, blockWhileActing } = require('../middleware/auth');
 
 // Returns the chat if the user is one of its participants, otherwise null.
 const findChatForMember = async (chatId, userId) => {
@@ -13,7 +13,7 @@ const findChatForMember = async (chatId, userId) => {
 
 // SENDING MESSAGE
 // The sender is always the signed-in user (any `_id` in the body is ignored).
-router.post('/sendMessage', requireAuth, async (req, res, next) => {
+router.post('/sendMessage', requireAuth, blockWhileActing, async (req, res, next) => {
     try {
         const { chatId, content } = req.body;
 

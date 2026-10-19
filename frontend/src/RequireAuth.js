@@ -5,7 +5,8 @@ const RequireAuth = ({allowedRoles}) => {
     const {auth} = useAuth()
     const location = useLocation()
 
-    if (auth?.userName && auth?.isEmailVerified === false) {
+    // (A team member working on an unclaimed artist's profile isn't asked to verify the artist's email.)
+    if (auth?.userName && auth?.isEmailVerified === false && !auth?.actingAs) {
         return <Navigate to='/verify-email' state={{from: location}} replace />
     }
 

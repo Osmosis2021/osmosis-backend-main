@@ -6,6 +6,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import GroupAddOutlinedIcon from '@mui/icons-material/GroupAddOutlined';
+import useAuth from '../../hooks/useAuth';
 import useStore from '../../store';
 import { unreadConversations } from '../../hooks/useMessagingSync';
 import studioTimeIcon from '../../assets/studio_time_icon.png';
@@ -51,6 +53,8 @@ const NavItem = ({ to, icon, label, isActive, badge = 0 }) => (
 const SideRail = () => {
     const location = useLocation();
     const { userName, isTeacher, chats } = useStore();
+    const { auth } = useAuth();
+    const isTeamMember = Boolean(auth?.roles?.includes(1413) && !auth?.actingAs);
 
     const profileLink = userName ? `/${isTeacher ? 'teachers' : 'students'}/${userName}` : '/sign-up';
 
@@ -104,6 +108,14 @@ const SideRail = () => {
 
             {/* Bottom Actions */}
             <Stack spacing={2}>
+                {isTeamMember && (
+                    <NavItem
+                        to="/admin"
+                        icon={<GroupAddOutlinedIcon />}
+                        label="Artists"
+                        isActive={location.pathname === '/admin'}
+                    />
+                )}
                 <NavItem
                     to="/settings"
                     icon={<SettingsOutlinedIcon />}

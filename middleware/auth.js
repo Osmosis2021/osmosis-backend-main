@@ -35,6 +35,13 @@ const authenticate = async (req, token) => {
         error.status = 401;
         throw error;
     }
+    // A team member working on an artist's profile before the artist claims it. Once the artist
+    // has set a password the account is theirs, so these tokens stop working immediately.
+    if (decoded.actingBy && !currentUser.passwordSetupRequired) {
+        const error = new Error('This artist has claimed their account.');
+        error.status = 403;
+        throw error;
+    }
     req.user = decoded;
     req.currentUser = currentUser;
 };
@@ -86,6 +93,22 @@ const authIfPresent = async (req, res, next) => {
     return requireAuth(req, res, next);
 };
 
+/** Requires a Studio Time team member, signed in as themselves. Must run after requireAuth. */
+const requireAdmin = (req, res, next) => {
+    if (!req.currentUser?.isAdmin || req.user?.actingBy) {
+        return res.status(403).json({ success: false, message: 'Only the Studio Time team can do this.' });
+    }
+    next();
+};
+
+/** Blocks things only the account owner may do (payouts, messages) while a team member is acting for them. */
+const blockWhileActing = (req, res, next) => {
+    if (req.user?.actingBy) {
+        return res.status(403).json({ success: false, message: 'The artist does this themselves after claiming their account.' });
+    }
+    next();
+};
+
 /** Requires the authenticated user to be a host. Must run after requireAuth. */
 const requireTeacher = (req, res, next) => {
     if (!req.currentUser?.isTeacher) {
@@ -101,4 +124,6 @@ module.exports = {
     optionalAuth,
     authIfPresent,
     requireTeacher,
+    requireAdmin,
+    blockWhileActing,
 };

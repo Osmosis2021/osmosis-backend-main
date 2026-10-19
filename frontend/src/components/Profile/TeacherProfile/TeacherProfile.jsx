@@ -24,10 +24,14 @@ import { PremiumSectionHeader } from "../../../ui/PremiumSectionHeader";
 import { PremiumButton } from "../../../ui/PremiumButton";
 import { PremiumSkeleton, PremiumEmptyState } from "../../../ui/PremiumFeedback";
 import useStartChat from '../../../hooks/useStartChat';
+import useAuth from '../../../hooks/useAuth';
+import GroupAddOutlinedIcon from '@mui/icons-material/GroupAddOutlined';
 import HostChecklist from './HostChecklist';
 import axios from '../../../actions/axios';
 import { isBookingUpcoming } from '../../../utils/bookingStatus';
 import { BookingListItem } from '../../Booking/BookingParts';
+
+const ADMIN_ROLE = 1413; // Studio Time team (see services/authService.js ROLES)
 
 const handleJsonResponse = async (res) => {
   if (!res.ok) {
@@ -45,6 +49,9 @@ const TeacherProfile = (props) => {
   const navigate = useNavigate();
   const axiosPrivate = useAxiosPrivate();
   const startChat = useStartChat();
+  const { auth } = useAuth();
+  // Studio Time team member, signed in as themselves (not working on an artist's profile).
+  const isTeamMember = Boolean(auth?.roles?.includes(ADMIN_ROLE) && !auth?.actingAs);
   const logout = useLogout();
   const [teacherInfo, setTeacherInfo] = useState({ profileImage: {} });
   const [sessionCard, setSessionCard] = useState([]);
@@ -221,6 +228,17 @@ const TeacherProfile = (props) => {
                       >
                         Edit profile
                       </Button>
+                      {isTeamMember && (
+                        <Button
+                          component={Link}
+                          to="/admin"
+                          variant="outlined"
+                          startIcon={<GroupAddOutlinedIcon />}
+                          sx={{ borderRadius: 3, fontWeight: 700, textTransform: 'none' }}
+                        >
+                          Artist setup
+                        </Button>
+                      )}
                     </>
                   )}
                 </Stack>

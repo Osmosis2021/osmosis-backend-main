@@ -11,6 +11,7 @@ import Course from './components/Course/Course';
 import Forgot from './components/Auth/ForgotPassword/ForgotPassword';
 import VerifyEmail from './components/Auth/VerifyEmail/VerifyEmail';
 import ClaimAccount from './components/Auth/ClaimAccount';
+import AdminArtists from './components/Admin/AdminArtists';
 import './App.css';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
@@ -93,7 +94,7 @@ function App() {
 
 						{/* Admin Only Routes */}
 						<Route element={<RequireAuth allowedRoles={[1413]} />} >
-							{/* Admin specific routes here */}
+							<Route path='/admin' element={<AdminArtists />} />
 						</Route>
 
 						{/* Catch all 404 page */}

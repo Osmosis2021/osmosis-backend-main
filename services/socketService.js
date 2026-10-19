@@ -20,6 +20,8 @@ const initSocket = (server) => {
             const token = socket.handshake.auth?.token;
             if (!token) return next(new Error('unauthorized'));
             const decoded = await verifyAccessToken(token);
+            // No live messaging while a team member is working on an artist's profile.
+            if (decoded.actingBy) return next(new Error('unauthorized'));
             const user = await User.findOne({ userName: decoded.userName }).select('_id');
             if (!user) return next(new Error('unauthorized'));
             socket.data.userId = String(user._id);

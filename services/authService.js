@@ -22,13 +22,14 @@ const REFRESH_COOKIE_OPTIONS = {
     maxAge: REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
 };
 
-const ROLES = { USER: 2119, STUDENT: 1920, TEACHER: 205 };
+const ROLES = { USER: 2119, STUDENT: 1920, TEACHER: 205, ADMIN: 1413 };
 
 // Every signed-in account has the base USER role; guests and hosts add their own.
 const buildRoles = (user) => {
     const roles = [ROLES.USER];
     if (user?.isStudent) roles.push(ROLES.STUDENT);
     if (user?.isTeacher) roles.push(ROLES.TEACHER);
+    if (user?.isAdmin) roles.push(ROLES.ADMIN); // Studio Time team (outreach tools)
     return roles;
 };
 
@@ -108,8 +109,13 @@ class AuthService {
                 return { success: false, message: 'Unsuccessful. This username is already taken.' };
             }
             if (existingUser.passwordSetupRequired) {
-                // Booked as a guest before: they finish that account instead of making a new one.
-                return { success: false, message: 'You\'ve booked with this email before. Use the "Set a password" link in your booking confirmation email, or "Forgot password" on the login page.' };
+                // An account is waiting for them: a guest booking, or a studio the team set up.
+                return {
+                    success: false,
+                    message: existingUser.isTeacher
+                        ? 'Your studio is already set up on Studio Time. Use the "Claim your studio" link we sent you, or "Forgot password" on the login page.'
+                        : 'You\'ve booked with this email before. Use the "Set a password" link in your booking confirmation email, or "Forgot password" on the login page.',
+                };
             }
             console.log(`[Signup] Registration failed: Email "${email}" is already registered.`);
             return { success: false, message: 'Unsuccessful. This email is already registered.' };
@@ -349,6 +355,10 @@ class AuthService {
                 try {
                     const currentUser = await User.findById(userId);
                     if (!currentUser) return reject({ status: 404, message: 'User not found' });
+                    // A team member's "acting as" access ends once the artist claims the account.
+                    if (userData.actingBy && !currentUser.passwordSetupRequired) {
+                        return reject({ status: 403, message: 'This artist has claimed their account.' });
+                    }
 
                     if (userData.userName !== currentUser.userName) {
                         return reject({ status: 403, message: 'Forbidden' });

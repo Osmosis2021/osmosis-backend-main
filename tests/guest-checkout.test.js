@@ -119,7 +119,7 @@ describe('Claiming a guest account', () => {
         const token = claimLinkFromEmail();
 
         const preview = await request(app).get('/user/claim-account').query({ token }).expect(200);
-        expect(preview.body).toEqual({ firstName: 'Ana', email: 'ana@example.com' });
+        expect(preview.body).toEqual(expect.objectContaining({ firstName: 'Ana', email: 'ana@example.com', isArtist: false }));
 
         await request(app).post('/user/claim-account').send({ token, password: '123' }).expect(400);
         const res = await request(app).post('/user/claim-account').send({ token, password: 'secret123' }).expect(200);

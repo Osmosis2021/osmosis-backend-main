@@ -4,7 +4,7 @@ const User = require('../models/user');
 const { PUBLIC_FIELDS } = require('../models/user');
 const Chat = require('../models/chat');
 const Message = require('../models/message');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, blockWhileActing } = require('../middleware/auth');
 
 const escapeRegex = (text) => String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -32,7 +32,7 @@ router.get('/allUsers', requireAuth, async (req, res, next) => {
 
 // Opens (or creates) the one-to-one chat between the signed-in user and another user.
 // The `userID` query parameter is ignored; the signed-in user is always one participant.
-router.get('/accessChats/:searchedUserID', requireAuth, async (req, res, next) => {
+router.get('/accessChats/:searchedUserID', requireAuth, blockWhileActing, async (req, res, next) => {
     try {
         const { searchedUserID } = req.params
         const userID = req.currentUser._id

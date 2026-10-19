@@ -21,7 +21,8 @@ const useSession = () => {
         setEmail, setDescription, setIsRegistered, setCustomerStripeID, setPaymentMethodID,
     } = useStore();
 
-    const startSession = useCallback((user, { persist = true } = {}) => {
+    // `actingAs` is set when a team member is working on an unclaimed artist's profile (admin tools).
+    const startSession = useCallback((user, { persist = true, actingAs = null } = {}) => {
         try {
             localStorage.setItem('persist', persist);
         } catch (e) {
@@ -34,6 +35,7 @@ const useSession = () => {
             roles: user.roles,
             isEmailVerified: user.isEmailVerified,
             email: user.email,
+            actingAs,
         });
         setRoles(user.roles);
         setUserID(user._id);

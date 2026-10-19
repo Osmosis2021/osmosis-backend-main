@@ -7,6 +7,7 @@ import { useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import useAuth from './hooks/useAuth';
 import useMessagingSync from './hooks/useMessagingSync';
+import ActingBanner from './components/Admin/ActingBanner';
 
 const Layout = () => {
     const { platform } = useStore();
@@ -25,7 +26,8 @@ const Layout = () => {
 
     useEffect(() => {
         const { socket, backendURL } = useStore.getState();
-        if (userID && !socket) {
+        // No live messaging while a team member is working on an artist's profile.
+        if (userID && !socket && !auth?.actingAs) {
             // The server rejects connections without a valid token. `auth` is a function so each
             // (re)connection attempt sends the current token.
             const newSocket = io(backendURL, {
@@ -47,7 +49,8 @@ const Layout = () => {
                 setSocket(null);
             }
         }
-    }, [userID, setSocket]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- reconnect only when the person changes
+    }, [userID, setSocket, Boolean(auth?.actingAs)]);
 
     return (
         <Box
@@ -64,6 +67,7 @@ const Layout = () => {
             }}
         >
             {!isMobile && <SideRail />}
+            <ActingBanner />
 
             {/* Global page transition wrapper keyed by pathname */}
             <Box

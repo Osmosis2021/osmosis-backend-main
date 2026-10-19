@@ -4,7 +4,7 @@ const User = require('../models/user');
 const Course = require('../models/course');
 const CourseTimeslot = require('../models/courseTimeslot');
 const stripe = require('../services/stripeClient');
-const { requireAuth, optionalAuth, authIfPresent, requireTeacher } = require('../middleware/auth');
+const { requireAuth, optionalAuth, authIfPresent, requireTeacher, blockWhileActing } = require('../middleware/auth');
 const payoutService = require('../services/payoutService');
 const { INACTIVE_STATUSES, effectiveStartAt } = require('../services/sessionTime');
 const { parseGuestDetails } = require('../services/guestAccountService');
@@ -35,7 +35,7 @@ router.get('/payouts/status', requireAuth, requireTeacher, async (req, res, next
 });
 
 // Link to Stripe's hosted onboarding (creates the host's Stripe account first if needed).
-router.post('/payouts/onboarding-link', requireAuth, requireTeacher, async (req, res, next) => {
+router.post('/payouts/onboarding-link', requireAuth, requireTeacher, blockWhileActing, async (req, res, next) => {
     try {
         res.json({ url: await payoutService.createOnboardingLink(req.currentUser) });
     } catch (err) {
@@ -44,7 +44,7 @@ router.post('/payouts/onboarding-link', requireAuth, requireTeacher, async (req,
 });
 
 // One-time sign-in link to the host's Stripe Express Dashboard.
-router.post('/payouts/dashboard-link', requireAuth, requireTeacher, async (req, res, next) => {
+router.post('/payouts/dashboard-link', requireAuth, requireTeacher, blockWhileActing, async (req, res, next) => {
     try {
         res.json({ url: await payoutService.createDashboardLink(req.currentUser) });
     } catch (err) {

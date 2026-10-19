@@ -98,6 +98,7 @@ app.use('/chat', chatRoute)
 app.use('/message', messageRoute)
 app.use('/stripe', stripe)
 app.use('/email', emailRoute)
+app.use('/admin', require('./routes/admin.routes'))
 
 if (env.NODE_ENV === 'production') {
     const fs = require('fs');

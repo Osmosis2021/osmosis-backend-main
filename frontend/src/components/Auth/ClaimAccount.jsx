@@ -72,8 +72,8 @@ export default function ClaimAccount() {
         try {
             const { data } = await axios.post('user/claim-account', { token, password }, { withCredentials: true });
             startSession(data, { persist: true });
-            toast.success("You're all set. Welcome to Studio Time!");
-            navigate(next || `/students/${data.userName}`, { replace: true });
+            toast.success(data.isTeacher ? 'Your studio is yours. Next: set up payouts so guests can book.' : "You're all set. Welcome to Studio Time!");
+            navigate(next || `/${data.isTeacher ? 'teachers' : 'students'}/${data.userName}`, { replace: true });
         } catch (err) {
             setError(err.response?.data?.message || "We couldn't save your password. Please try again.");
             setIsSaving(false);
@@ -109,10 +109,14 @@ export default function ClaimAccount() {
                         <Box>
                             <Mascot size={72} sx={{ mb: 2 }} />
                             <Typography variant="h4" component="h1" sx={{ fontWeight: 800, mb: 1 }}>
-                                Welcome{account?.firstName ? `, ${account.firstName}` : ''}!
+                                {account?.isArtist
+                                    ? `Your studio is ready${account?.firstName ? `, ${account.firstName}` : ''}!`
+                                    : `Welcome${account?.firstName ? `, ${account.firstName}` : ''}!`}
                             </Typography>
                             <Typography variant="body1" color="text.secondary">
-                                Set a password to see your bookings, message artists and leave reviews.
+                                {account?.isArtist
+                                    ? 'Set a password to claim your Studio Time profile. Then check your studio times and set up payouts so guests can book.'
+                                    : 'Set a password to see your bookings, message artists and leave reviews.'}
                             </Typography>
                         </Box>
                         <TextField label="Email" value={account?.email || ''} InputProps={{ readOnly: true }} fullWidth />
@@ -138,7 +142,7 @@ export default function ClaimAccount() {
                         />
                         <Button type="submit" variant="contained" size="large" disabled={isSaving}
                             sx={{ py: 1.5, textTransform: 'none', fontWeight: 800, borderRadius: '12px' }}>
-                            {isSaving ? 'Saving…' : 'Set password and continue'}
+                            {isSaving ? 'Saving…' : account?.isArtist ? 'Claim my studio' : 'Set password and continue'}
                         </Button>
                     </Stack>
                 </Box>

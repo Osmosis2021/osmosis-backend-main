@@ -13,7 +13,7 @@ const { verifyGoogleCredential } = require('../services/googleAuth');
 const payoutService = require('../services/payoutService');
 const guestAccountService = require('../services/guestAccountService');
 const attemptLimiter = require('../services/attemptLimiter');
-const { requireAuth, optionalAuth, getBearerToken, verifyAccessToken } = require('../middleware/auth');
+const { requireAuth, optionalAuth, getBearerToken, verifyAccessToken, blockWhileActing } = require('../middleware/auth');
 
 router.get('/config', (req, res) => {
     res.send({
@@ -44,7 +44,7 @@ router.post('/login', async (req, res, next) => {
 router.get('/claim-account', async (req, res) => {
     try {
         const user = await guestAccountService.userForClaimToken(req.query.token);
-        res.json({ firstName: user.firstName, email: user.email });
+        res.json({ firstName: user.firstName, email: user.email, isArtist: Boolean(user.isTeacher), userName: user.userName });
     } catch (err) {
         res.status(err.status || 500).json({ message: err.status ? err.message : 'Something went wrong. Please try again.' });
     }
@@ -153,6 +153,9 @@ router.put('/updateProfile/:id', async (req, res, next) => {
 
         const currentUser = await User.findOne({ userName: tokenData.userName });
         if (!currentUser) return res.status(401).json({ success: false, message: 'Please sign in to continue.' });
+        if (tokenData.actingBy && !currentUser.passwordSetupRequired) {
+            return res.status(403).json({ success: false, message: 'This artist has claimed their account.' });
+        }
         if (String(currentUser._id) !== req.params.id) {
             return res.status(403).json({ success: false, message: 'You can only update your own profile.' });
         }
@@ -243,7 +246,7 @@ router.put('/updateProfileImage/:id', async (req, res, next) => {
 
 // DELETE USER
 // The password is sent in the request body (never in the URL, where it would end up in logs).
-router.delete('/deleteProfile/:id', requireAuth, async (req, res, next) => {
+router.delete('/deleteProfile/:id', requireAuth, blockWhileActing, async (req, res, next) => {
     try {
         const foundUser = req.currentUser;
         if (String(foundUser._id) !== req.params.id) {
@@ -411,7 +414,7 @@ router.post('/google-login', async (req, res, next) => {
 });
 
 // LINK GOOGLE ACCOUNT
-router.post('/link-google', requireAuth, async (req, res, next) => {
+router.post('/link-google', requireAuth, blockWhileActing, async (req, res, next) => {
     try {
         const { sub } = await verifyGoogleCredential(req.body?.credential);
 
@@ -432,7 +435,7 @@ router.post('/link-google', requireAuth, async (req, res, next) => {
 });
 
 // UNLINK GOOGLE ACCOUNT
-router.post('/unlink-google', requireAuth, async (req, res, next) => {
+router.post('/unlink-google', requireAuth, blockWhileActing, async (req, res, next) => {
     try {
         const user = req.currentUser;
         user.googleId = '';
