@@ -35,12 +35,15 @@ function SessionCard(props) {
     const renderImage = () => {
         if (images) {
             return (
+                // Every card's photo has the same shape (4:3), whatever the original photo's size.
                 <CardMedia
                     component="img"
-                    height="200"
                     image={images}
                     alt=""
                     sx={{
+                        width: '100%',
+                        height: 'auto',
+                        aspectRatio: '4 / 3',
                         objectFit: 'cover',
                         transition: 'transform 0.5s ease',
                         '&:hover': { transform: 'scale(1.05)' }
@@ -52,7 +55,7 @@ function SessionCard(props) {
         return (
             <Box
                 sx={{
-                    height: 200,
+                    aspectRatio: '4 / 3',
                     background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
                     display: 'flex',
                     flexDirection: 'column',
@@ -127,29 +130,31 @@ function SessionCard(props) {
                         </Stack>
                     </Box>
 
+                    {/* Each fact stays on one line; the row wraps between facts on narrow cards. */}
                     <Stack
                         direction="row"
-                        spacing={1}
                         alignItems="center"
                         sx={{
                             color: 'text.secondary',
                             fontSize: '0.85rem',
-                            fontWeight: 500
+                            fontWeight: 500,
+                            flexWrap: 'wrap',
+                            columnGap: 1.5,
+                            rowGap: 0.25,
+                            '& > *': { whiteSpace: 'nowrap' },
                         }}
                     >
                         <Stack direction="row" spacing={0.5} alignItems="center">
                             <AccessTimeIcon sx={{ fontSize: 16 }} aria-hidden />
                             <Typography variant="inherit">{formatDuration(duration || 60)}</Typography>
                         </Stack>
-                        <Typography variant="inherit" aria-hidden>•</Typography>
                         <Stack direction="row" spacing={0.5} alignItems="center">
                             <PeopleIcon sx={{ fontSize: 16 }} aria-hidden />
                             <Typography variant="inherit">Up to {capacity}</Typography>
                         </Stack>
                         {city && (
                             <>
-                                <Typography variant="inherit" aria-hidden>•</Typography>
-                                <Stack direction="row" spacing={0.5} alignItems="center">
+                                        <Stack direction="row" spacing={0.5} alignItems="center">
                                     <LocationOnIcon sx={{ fontSize: 16 }} aria-hidden />
                                     <Typography variant="inherit">{city}</Typography>
                                 </Stack>

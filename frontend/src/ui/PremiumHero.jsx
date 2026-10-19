@@ -101,11 +101,21 @@ export const PremiumHero = ({ images, title, industry }) => {
         <Box sx={{ position: 'relative', height: { xs: '45vh', md: '500px' }, overflow: 'hidden' }}>
             <Slider {...settings}>
                 {images.map((photo, index) => (
-                    <Box key={index} sx={{ height: { xs: '45vh', md: '500px' }, position: 'relative' }}>
+                    <Box key={index} sx={{ height: { xs: '45vh', md: '500px' }, position: 'relative', overflow: 'hidden', bgcolor: '#111318' }}>
+                        {/* The whole photo, never cropped, over a soft blurred copy that fills the space
+                            (so portrait photos aren't zoomed in on wide screens). */}
+                        <Box
+                            aria-hidden
+                            sx={{
+                                position: 'absolute', inset: '-24px',
+                                backgroundImage: `url("${photo.url}")`, backgroundSize: 'cover', backgroundPosition: 'center',
+                                filter: 'blur(24px) brightness(0.85)',
+                            }}
+                        />
                         <img
                             src={photo.url}
                             alt={`${title} ${index + 1}`}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            style={{ position: 'relative', display: 'block', width: '100%', height: '100%', objectFit: 'contain' }}
                         />
                         <Box
                             sx={{
