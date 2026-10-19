@@ -66,11 +66,14 @@ function Capacity(props) {
 	const MAX_CAPACITY = 100;
 	const setGuests = (value) => setCapacity(Math.min(MAX_CAPACITY, Math.max(1, value)));
 
-	// Matches the platform fee charged at checkout: 9.9% of each booking plus $0.30.
-	// Estimated as if every spot were a separate booking (the worst case for the host).
+	// Same fee as checkout (routes/stripe.routes.js, applicationFeeFor): 9.9% of each booking
+	// plus $0.30, rounded to the cent. Shown as if each guest books separately, the usual case
+	// and the cautious one for the artist (a group booking together pays the $0.30 once).
 	const guests = Number(capacity) || 0;
-	const totalEarnings = guests * (Number(newCourseCost) || 0);
-	const studioTimeFee = totalEarnings * 0.099 + guests * 0.3;
+	const priceCents = Math.round((Number(newCourseCost) || 0) * 100);
+	const feePerBookingCents = Math.round(priceCents * 0.099) + 30;
+	const totalEarnings = (guests * priceCents) / 100;
+	const studioTimeFee = (guests * feePerBookingCents) / 100;
 	const hostTakeHome = Math.max(0, totalEarnings - studioTimeFee);
 
 	// Determine current tier for styling
@@ -202,15 +205,15 @@ function Capacity(props) {
 						</Typography>
 						<Stack direction="row" spacing={1} justifyContent="center" alignItems="baseline">
 							<Typography variant="h4" sx={{ fontWeight: 800 }}>
-								${hostTakeHome.toFixed(0)}
+								${hostTakeHome.toFixed(2)}
 							</Typography>
 							<Typography variant="body2" color="text.secondary">
 								per session
 							</Typography>
 						</Stack>
 						<Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-							{guests} {guests === 1 ? 'guest' : 'guests'} × ${newCourseCost} = ${totalEarnings}, minus the Studio Time fee
-							(9.9% + $0.30 per booking, about ${studioTimeFee.toFixed(2)}).
+							{guests} {guests === 1 ? 'guest' : 'guests'} × ${newCourseCost || 0} = ${totalEarnings.toFixed(2)}, minus the Studio Time fee
+							of 9.9% + $0.30 per booking (${studioTimeFee.toFixed(2)} if each guest books separately).
 						</Typography>
 					</Box>
 				</Fade>
